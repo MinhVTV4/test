@@ -16,10 +16,14 @@
     <header class="app-header">
         <h1>Ghi Chú Khởi Đầu</h1>
         <div class="header-actions">
-            <button id="manage-notebooks-btn" title="Quản lý các sổ tay">Quản lý Sổ tay</button> <button id="view-archive-btn" title="Xem các ghi chú đã lưu trữ">Xem Lưu trữ</button>
+            <button id="manage-notebooks-btn" title="Quản lý các sổ tay">Quản lý Sổ tay</button>
+            <button id="manage-templates-btn" title="Quản lý các mẫu ghi chú">Quản lý Mẫu</button>
+            <button id="view-archive-btn" title="Xem các ghi chú đã lưu trữ">Xem Lưu trữ</button>
             <button id="view-trash-btn" title="Xem các ghi chú đã xóa">Thùng rác</button>
             <button id="empty-trash-btn" class="hidden" title="Xóa vĩnh viễn tất cả ghi chú trong thùng rác">Dọn sạch Thùng rác</button>
-            <button id="export-notes-btn" title="Xuất tất cả ghi chú, mẫu và sổ tay ra file JSON">Xuất Notes</button> <button id="import-notes-btn" title="Nhập ghi chú, mẫu và sổ tay từ file JSON (Sẽ thay thế toàn bộ dữ liệu hiện tại)">Nhập Notes</button> <input type="file" id="import-file-input" accept=".json" class="hidden">
+            <button id="export-notes-btn" title="Xuất tất cả ghi chú, mẫu và sổ tay ra file JSON">Xuất Notes</button>
+            <button id="import-notes-btn" title="Nhập ghi chú, mẫu và sổ tay từ file JSON (Sẽ thay thế toàn bộ dữ liệu hiện tại)">Nhập Notes</button>
+            <input type="file" id="import-file-input" accept=".json" class="hidden">
             <button id="settings-btn" title="Mở cài đặt giao diện">Cài đặt</button>
             <button id="theme-toggle-btn" title=""></button>
 
@@ -32,6 +36,8 @@
         <button class="tab-button active" data-notebook-id="all">Tất cả Ghi chú</button>
         <button id="add-notebook-tab-btn" class="add-tab-button" title="Thêm Sổ tay mới">+</button>
     </div>
+
+
     <div class="controls-container">
         <input type="search" id="search-input" placeholder="Tìm kiếm ghi chú (tiêu đề, nội dung hoặc #tag)...">
         <div id="add-note-panel" class="hidden">
@@ -67,7 +73,7 @@
                     <h3>Danh sách Sổ tay</h3>
                     <div id="notebook-list-container">
                         <p class="empty-state">Chưa có sổ tay nào.</p>
-                        </div>
+                    </div>
                     <button id="show-add-notebook-panel-btn" class="modal-button primary">Tạo Sổ tay Mới</button>
                 </div>
 
@@ -86,6 +92,7 @@
             </div>
         </div>
     </div>
+
     <div id="template-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="template-modal-title">
         <div class="modal-content template-modal-content">
             <div class="modal-header">

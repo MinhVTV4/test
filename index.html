@@ -195,14 +195,3 @@
 
 </body>
 </html>
-```
-
-**Những thay đổi chính trong HTML:**
-
-* **Thêm `#notebook-tabs-container`**: Một `div` để chứa các nút tab sổ tay.
-* **Thêm `#add-notebook-tab-btn`**: Nút "+" để mở giao diện thêm sổ tay mới (sẽ được xử lý bởi JS).
-* **Đổi tên nút:** Nút `#manage-templates-btn` trong header được đổi thành `#manage-notebooks-btn` để phản ánh chức năng mới (quản lý sổ tay thay vì template, mặc dù modal template vẫn còn). Bạn có thể muốn giữ cả hai nút nếu cần.
-* **Thêm `#notebook-modal`**: Cấu trúc HTML cho modal quản lý sổ tay, bao gồm khu vực danh sách (`#notebook-list-container`) và panel chỉnh sửa (`#notebook-edit-panel`), tương tự như modal template.
-* **Cập nhật `title` cho nút Xuất/Nhập**: Ghi rõ là bao gồm cả sổ tay.
-
-Bước tiếp theo là chúng ta sẽ cập nhật file CSS để định dạng cho các thành phần mới này. Bạn đã sẵn sàng ch

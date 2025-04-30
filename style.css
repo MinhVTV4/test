@@ -12,19 +12,19 @@
     --success-color: #198754; /* Màu thành công/khôi phục */
     --input-bg-color: #ffffff;
     --input-border-color: #ced4da;
-    --shadow-color: rgba(0, 0, 0, 0.08); /* UPDATED: Shadow nhẹ hơn */
-    --shadow-hover-color: rgba(0, 0, 0, 0.12); /* UPDATED: Shadow hover rõ hơn chút */
-    --fab-bg-color: var(--primary-color); /* FAB dùng màu nhấn */
+    --shadow-color: rgba(0, 0, 0, 0.08);
+    --shadow-hover-color: rgba(0, 0, 0, 0.12);
+    --fab-bg-color: var(--primary-color);
     --fab-text-color: var(--primary-text-color);
     --tag-bg-color: #e9ecef;
     --tag-text-color: #495057;
-    --pin-color: var(--secondary-color); /* Màu icon pin chưa ghim */
-    --pinned-color: #ffc107; /* Màu icon pin đã ghim (vàng) */
-    --highlight-bg-color: #fff3cd; /* Màu nền highlight text tìm kiếm */
-    --highlight-text-color: #664d03; /* Màu chữ highlight */
-    --archive-color: var(--secondary-color); /* Màu cho các yếu tố liên quan archive */
-    --fade-color-start: rgba(255, 255, 255, 0); /* Màu bắt đầu fade-out content */
-    --fade-color-end: rgba(255, 255, 255, 1); /* Màu kết thúc fade-out content */
+    --pin-color: var(--secondary-color);
+    --pinned-color: #ffc107;
+    --highlight-bg-color: #fff3cd;
+    --highlight-text-color: #664d03;
+    --archive-color: var(--secondary-color);
+    --fade-color-start: rgba(255, 255, 255, 0);
+    --fade-color-end: rgba(255, 255, 255, 1);
     --modal-backdrop-color: rgba(0, 0, 0, 0.6);
     --modal-content-bg: #ffffff;
     --modal-border-color: #ccc;
@@ -35,16 +35,16 @@
     --tab-border-color: var(--border-color);
     --tab-hover-bg: rgba(0, 0, 0, 0.03);
     --tab-hover-text: var(--primary-color);
-    --tab-active-bg: var(--card-bg-color); /* Nền tab active giống nền card */
+    --tab-active-bg: var(--card-bg-color);
     --tab-active-border: var(--primary-color);
     --tab-active-text: var(--primary-color);
-    --tab-radius: 6px 6px 0 0; /* Bo góc trên cho tab */
+    --tab-radius: 6px 6px 0 0;
 
 
-    /* Biến cho Font & Layout (Có thể được cập nhật bởi JS) */
-    --content-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; /* Font mặc định */
-    --font-size-scale: 1; /* Tỉ lệ cỡ chữ (1 = 100%) */
-    --note-gap: 20px; /* Khoảng cách giữa các note */
+    /* Biến cho Font & Layout */
+    --content-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-size-scale: 1;
+    --note-gap: 20px;
 
     /* Biến cho Cài đặt Giao diện */
     --setting-section-bg: rgba(0, 0, 0, 0.02);
@@ -54,19 +54,13 @@
     --setting-option-active-text: var(--primary-text-color);
     --setting-option-active-border: var(--primary-color);
 
-    /* Note Color Variables (Light Mode - dùng cho border trái và nền) */
-    --note-color-yellow-bg: #fff9e0;
-    --note-color-yellow-border: #ffecb3;
-    --note-color-blue-bg: #e7f3ff;
-    --note-color-blue-border: #bbdefb;
-    --note-color-green-bg: #e8f5e9;
-    --note-color-green-border: #c8e6c9;
-    --note-color-red-bg: #ffebee;
-    --note-color-red-border: #ffcdd2;
-    --note-color-purple-bg: #f3e5f5;
-    --note-color-purple-border: #e1bee7;
-    --note-color-grey-bg: #f5f5f5;
-    --note-color-grey-border: #e0e0e0;
+    /* Note Color Variables (Light Mode) */
+    --note-color-yellow-bg: #fff9e0; --note-color-yellow-border: #ffecb3;
+    --note-color-blue-bg: #e7f3ff; --note-color-blue-border: #bbdefb;
+    --note-color-green-bg: #e8f5e9; --note-color-green-border: #c8e6c9;
+    --note-color-red-bg: #ffebee; --note-color-red-border: #ffcdd2;
+    --note-color-purple-bg: #f3e5f5; --note-color-purple-border: #e1bee7;
+    --note-color-grey-bg: #f5f5f5; --note-color-grey-border: #e0e0e0;
 }
 
 /* ==================== DARK MODE ==================== */
@@ -75,15 +69,14 @@ body.dark-mode {
      --text-color: #dee2e6;
      --card-bg-color: #343a40;
      --border-color: #495057;
-     /* --primary-color: #0d6efd; */
      --primary-text-color: #ffffff;
      --secondary-color: #adb5bd;
      --danger-color: #f84d5e;
      --success-color: #20c997;
      --input-bg-color: #495057;
      --input-border-color: #6c757d;
-     --shadow-color: rgba(0, 0, 0, 0.25); /* UPDATED: Shadow dark mode */
-     --shadow-hover-color: rgba(0, 0, 0, 0.35); /* UPDATED: Shadow hover dark mode */
+     --shadow-color: rgba(0, 0, 0, 0.25);
+     --shadow-hover-color: rgba(0, 0, 0, 0.35);
      --tag-bg-color: #495057;
      --tag-text-color: #dee2e6;
      --pin-color: var(--secondary-color);
@@ -113,18 +106,12 @@ body.dark-mode {
     --setting-option-hover-bg: rgba(255, 255, 255, 0.1);
 
     /* Note Color Variables (Dark Mode) */
-    --note-color-yellow-bg: #4d4222;
-    --note-color-yellow-border: #806b38;
-    --note-color-blue-bg: #2c3e50;
-    --note-color-blue-border: #5dade2;
-    --note-color-green-bg: #2e4b30;
-    --note-color-green-border: #58d68d;
-    --note-color-red-bg: #5c2b2e;
-    --note-color-red-border: #ec7063;
-    --note-color-purple-bg: #4a235a;
-    --note-color-purple-border: #bb8fce;
-    --note-color-grey-bg: #424242;
-    --note-color-grey-border: #757575;
+    --note-color-yellow-bg: #4d4222; --note-color-yellow-border: #806b38;
+    --note-color-blue-bg: #2c3e50; --note-color-blue-border: #5dade2;
+    --note-color-green-bg: #2e4b30; --note-color-green-border: #58d68d;
+    --note-color-red-bg: #5c2b2e; --note-color-red-border: #ec7063;
+    --note-color-purple-bg: #4a235a; --note-color-purple-border: #bb8fce;
+    --note-color-grey-bg: #424242; --note-color-grey-border: #757575;
 }
 
 /* ==================== CÁC THEME KHÁC (Định nghĩa biến) ==================== */
@@ -139,8 +126,8 @@ body.theme-sepia {
     --success-color: #558b2f;
     --input-bg-color: #fbf5e9;
     --input-border-color: #dcd0ba;
-    --shadow-color: rgba(91, 70, 54, 0.1); /* UPDATED */
-    --shadow-hover-color: rgba(91, 70, 54, 0.15); /* UPDATED */
+    --shadow-color: rgba(91, 70, 54, 0.1);
+    --shadow-hover-color: rgba(91, 70, 54, 0.15);
     --tag-bg-color: #e5dace;
     --tag-text-color: #795548;
     --pin-color: var(--secondary-color);
@@ -186,8 +173,8 @@ body.theme-solarized-light {
     --success-color: #859900; /* green */
     --input-bg-color: #eee8d5;
     --input-border-color: #93a1a1;
-    --shadow-color: rgba(88, 110, 117, 0.1); /* UPDATED */
-    --shadow-hover-color: rgba(88, 110, 117, 0.15); /* UPDATED */
+    --shadow-color: rgba(88, 110, 117, 0.1);
+    --shadow-hover-color: rgba(88, 110, 117, 0.15);
     --tag-bg-color: #eee8d5;
     --tag-text-color: #586e75; /* base01 */
     --pin-color: var(--secondary-color);
@@ -233,8 +220,8 @@ body.theme-solarized-dark {
      --success-color: #859900; /* green */
      --input-bg-color: #073642;
      --input-border-color: #586e75;
-     --shadow-color: rgba(0, 0, 0, 0.25); /* UPDATED */
-     --shadow-hover-color: rgba(0, 0, 0, 0.35); /* UPDATED */
+     --shadow-color: rgba(0, 0, 0, 0.25);
+     --shadow-hover-color: rgba(0, 0, 0, 0.35);
      --tag-bg-color: #586e75;
      --tag-text-color: #eee8d5; /* base2 */
      --pin-color: var(--secondary-color);
@@ -405,12 +392,12 @@ body.dark-mode #manage-templates-btn { background-color: #34a4b7; }
 .note {
     background-color: var(--card-bg-color);
     border: 1px solid var(--border-color);
-    border-radius: 8px; /* Giữ bo góc */
-    padding: 15px 18px; /* Tăng padding ngang chút */
-    box-shadow: 0 1px 3px var(--shadow-color); /* UPDATED: Shadow nhẹ hơn nữa */
+    border-radius: 8px;
+    padding: 15px 18px;
+    box-shadow: 0 1px 3px var(--shadow-color);
     display: flex;
     flex-direction: column;
-    transition: box-shadow 0.25s ease-in-out, transform 0.25s ease-in-out, background-color 0.3s, border-color 0.3s, border-left-color 0.3s; /* Thêm transform vào transition */
+    transition: box-shadow 0.25s ease-in-out, transform 0.25s ease-in-out, background-color 0.3s, border-color 0.3s, border-left-color 0.3s;
     cursor: grab;
     user-select: none;
     -webkit-user-select: none;
@@ -423,8 +410,8 @@ body.dark-mode #manage-templates-btn { background-color: #34a4b7; }
 }
 .note:active { cursor: grabbing; }
 .note:hover {
-    box-shadow: 0 5px 15px var(--shadow-hover-color); /* UPDATED: Shadow hover rõ hơn */
-    transform: translateY(-3px); /* UPDATED: Hiệu ứng nhấc lên */
+    box-shadow: 0 5px 15px var(--shadow-hover-color);
+    transform: translateY(-3px);
 }
 .pinned-bookmark-icon { position: absolute; top: -10px; right: -10px; font-size: 2.8em; color: var(--pinned-color); opacity: 0.5; pointer-events: none; transform: rotate(45deg); z-index: 0; transition: color 0.3s, opacity 0.3s; }
 /* Note color classes */
@@ -434,38 +421,70 @@ body.dark-mode #manage-templates-btn { background-color: #34a4b7; }
 .note.note-color-red { background-color: var(--note-color-red-bg); border-left-color: var(--note-color-red-border); }
 .note.note-color-purple { background-color: var(--note-color-purple-bg); border-left-color: var(--note-color-purple-border); }
 .note.note-color-grey { background-color: var(--note-color-grey-bg); border-left-color: var(--note-color-grey-border); }
-/* Đảm bảo border màu ăn nhập hơn với nền */
-.note[class*="note-color-"] { border-top-color: transparent; border-right-color: transparent; border-bottom-color: transparent; } /* Ẩn các border khác khi có màu */
+.note[class*="note-color-"] { border-top-color: transparent; border-right-color: transparent; border-bottom-color: transparent; }
 
-.note-title { font-size: 1.15em; font-weight: 600; margin: 0 0 10px 0; word-wrap: break-word; color: var(--primary-color); position: relative; z-index: 1; }
-.note-content { flex-grow: 1; margin-bottom: 10px; word-wrap: break-word; white-space: pre-wrap; font-size: 1em; position: relative; z-index: 1; max-height: 200px; overflow: hidden; font-family: var(--content-font-family, inherit); line-height: 1.5; color: var(--text-color); /* Đảm bảo màu chữ content */ }
+.note-title {
+    font-size: 1.15em;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+    word-wrap: break-word;
+    color: var(--primary-color);
+    position: relative;
+    z-index: 1;
+    /* === NEW: Add border bottom === */
+    padding-bottom: 8px; /* Add padding below title */
+    border-bottom: 1px solid var(--border-color); /* Thin border */
+    margin-bottom: 12px; /* Increase margin below border */
+}
+.note-content {
+    flex-grow: 1;
+    /* margin-bottom: 10px; */ /* Removed margin-top handled by title's margin-bottom */
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    font-size: 1em;
+    position: relative;
+    z-index: 1;
+    max-height: 200px;
+    overflow: hidden;
+    font-family: var(--content-font-family, inherit);
+    line-height: 1.5;
+    color: var(--text-color);
+}
 .note-content.has-overflow { position: relative; }
 .note-content.has-overflow::after { content: ""; position: absolute; bottom: 0; left: 0; width: 100%; height: 40px; background: linear-gradient(to top, var(--fade-color-end), var(--fade-color-start)); pointer-events: none; z-index: 2; }
 .read-more-btn { display: block; margin: 5px auto 0 auto; padding: 3px 10px; font-size: 0.8em; color: var(--primary-color); background-color: transparent; border: none; border-radius: 4px; cursor: pointer; text-align: center; z-index: 3; position: relative; text-decoration: underline; opacity: 0.8; }
 .read-more-btn:hover { opacity: 1; }
-.note-timestamp { font-size: 0.8em; color: var(--secondary-color); margin-bottom: 10px; display: block; position: relative; z-index: 1; opacity: 0.8; /* Giảm độ tương phản chút */}
+.note-timestamp { font-size: 0.8em; color: var(--secondary-color); margin-bottom: 10px; display: block; position: relative; z-index: 1; opacity: 0.8; }
 .note-tags { margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 5px; position: relative; z-index: 1; }
-.tag-badge { background-color: var(--tag-bg-color); color: var(--tag-text-color); padding: 3px 8px; border-radius: 10px; font-size: 0.8em; transition: background-color 0.2s, color 0.2s, opacity 0.2s; border: none; cursor: pointer; line-height: 1.4; opacity: 0.9; /* Giảm độ tương phản chút */}
+.tag-badge { background-color: var(--tag-bg-color); color: var(--tag-text-color); padding: 3px 8px; border-radius: 10px; font-size: 0.8em; transition: background-color 0.2s, color 0.2s, opacity 0.2s; border: none; cursor: pointer; line-height: 1.4; opacity: 0.9; }
 .tag-badge:hover { opacity: 1; background-color: var(--primary-color); color: var(--primary-text-color); }
-.note-actions { display: flex; justify-content: flex-end; align-items: center; gap: 5px; /* Giảm gap */ border-top: 1px solid var(--border-color); padding-top: 10px; margin-top: auto; position: relative; z-index: 1; }
-.note-actions button { padding: 5px; /* Giảm padding */ border: none; border-radius: 50%; /* Làm tròn nút */ width: 30px; /* Đặt kích thước cố định */ height: 30px; display: inline-flex; /* Căn giữa icon */ align-items: center; justify-content: center; cursor: pointer; font-size: 1.1em; /* Tăng cỡ icon */ transition: opacity 0.2s, color 0.2s, background-color 0.2s; background-color: transparent; color: var(--secondary-color); line-height: 1; }
+.note-actions { display: flex; justify-content: flex-end; align-items: center; gap: 5px; border-top: 1px solid var(--border-color); padding-top: 10px; margin-top: auto; position: relative; z-index: 1; }
+.note-actions button { padding: 5px; border: none; border-radius: 50%; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1em; transition: opacity 0.2s, color 0.2s, background-color 0.2s; background-color: transparent; color: var(--secondary-color); line-height: 1; }
 .note-actions button:hover {
-    opacity: 1; /* Rõ hơn khi hover */
-    background-color: rgba(128, 128, 128, 0.15); /* Nền hover rõ hơn */
+    opacity: 1;
+    background-color: rgba(128, 128, 128, 0.15);
 }
-/* Giữ lại màu đặc trưng cho các nút quan trọng */
 .note-actions .edit-btn { color: var(--primary-color); }
 .note-actions .delete-btn, .note-actions .delete-permanent-btn { color: var(--danger-color); }
 .note-actions .pin-btn { color: var(--pin-color); }
 .note-actions .pin-btn.pinned { color: var(--pinned-color); }
 .note-actions .unarchive-btn, .note-actions .restore-btn { color: var(--success-color); }
-.note-actions .delete-permanent-btn { font-weight: bold; font-size: 0.8em; /* Chữ nhỏ hơn */ } /* Điều chỉnh lại nút xóa VV */
-.note-actions .edit-btn { font-size: 0.9em; /* Chữ nhỏ hơn */ } /* Điều chỉnh nút sửa */
-.note-actions .delete-btn { font-size: 0.9em; /* Chữ nhỏ hơn */ } /* Điều chỉnh nút xóa */
+.note-actions .delete-permanent-btn { font-weight: bold; font-size: 0.8em; }
+.note-actions .edit-btn { font-size: 0.9em; }
+.note-actions .delete-btn { font-size: 0.9em; }
 
 
 /* --- Note Edit Mode --- */
 .note input[type="text"].edit-title-input, .note textarea.edit-input, .note input[type="text"].edit-tags-input { display: block; width: calc(100% - 12px); margin-bottom: 10px; border: 1px solid var(--input-border-color); border-radius: 5px; background-color: var(--input-bg-color); color: var(--text-color); font-size: 1em; padding: 5px; cursor: text; position: relative; z-index: 2; font-family: inherit; }
+/* === NEW: Remove border bottom from title in edit mode === */
+.note input[type="text"].edit-title-input {
+    font-weight: 600;
+    border-bottom: 1px solid var(--input-border-color); /* Ensure border exists */
+    padding-bottom: 5px; /* Reset padding */
+    margin-bottom: 10px; /* Reset margin */
+}
+.note textarea.edit-input { min-height: 80px; resize: vertical; line-height: 1.5; white-space: pre-wrap; margin-top: 0; /* Ensure no extra top margin */ }
+
 .note input:focus, .note textarea:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(var(--rgb-primary-color, 0, 123, 255), 0.25); }
 .note input[type="text"].edit-title-input { font-weight: 600; }
 .note textarea.edit-input { min-height: 80px; resize: vertical; line-height: 1.5; white-space: pre-wrap; }
@@ -483,9 +502,9 @@ body.dark-mode #manage-templates-btn { background-color: #34a4b7; }
 .empty-state { grid-column: 1 / -1; text-align: center; color: var(--secondary-color); padding: 30px; font-style: italic; }
 #template-list-container .empty-state,
 #notebook-list-container .empty-state { padding: 15px; grid-column: auto; }
-.note.sortable-ghost { opacity: 0.4; background-color: var(--primary-color) !important; border: 1px dashed var(--primary-text-color); transform: translateY(0); /* Reset transform */ }
-.note.sortable-chosen { opacity: 0.9; box-shadow: 0 5px 15px var(--shadow-color); transform: scale(1.02) translateY(-3px); /* Giữ hiệu ứng nâng khi kéo */ cursor: grabbing; }
-.note.sortable-drag { opacity: 0.9; cursor: grabbing; transform: scale(1.02) translateY(-3px); /* Giữ hiệu ứng nâng khi kéo */ }
+.note.sortable-ghost { opacity: 0.4; background-color: var(--primary-color) !important; border: 1px dashed var(--primary-text-color); transform: translateY(0); }
+.note.sortable-chosen { opacity: 0.9; box-shadow: 0 5px 15px var(--shadow-color); transform: scale(1.02) translateY(-3px); cursor: grabbing; }
+.note.sortable-drag { opacity: 0.9; cursor: grabbing; transform: scale(1.02) translateY(-3px); }
 .fab { position: fixed; bottom: 30px; right: 30px; width: 55px; height: 55px; background-color: var(--fab-bg-color); color: var(--fab-text-color); border: none; border-radius: 50%; font-size: 28px; line-height: 55px; text-align: center; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); cursor: pointer; z-index: 1000; transition: transform 0.2s ease-in-out, background-color 0.3s, visibility 0s linear 0.1s, opacity 0.1s linear; }
 .fab:hover { transform: scale(1.1); }
 .fab.hidden { visibility: hidden; opacity: 0; transform: scale(0.5); transition-delay: 0s; }

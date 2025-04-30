@@ -160,12 +160,16 @@
                     <h3>Màu nhấn (Accent Color)</h3>
                      <div class="accent-color-options" role="radiogroup" aria-labelledby="accent-color-label">
                          <span id="accent-color-label" class="sr-only">Chọn màu nhấn</span>
-                         <button class="color-swatch-btn accent-swatch" data-color="default" title="Mặc định" role="radio" aria-checked="true" style="background-color: #ccc; border: 1px dashed;"></button> <button class="color-swatch-btn accent-swatch" data-color="#dc3545" title="Đỏ" style="background-color: #dc3545;" role="radio" aria-checked="false"></button>
+                         <button class="color-swatch-btn accent-swatch" data-color="default" title="Mặc định" role="radio" aria-checked="true" style="background-color: #ccc; border: 1px dashed;"></button>
+                         <button class="color-swatch-btn accent-swatch" data-color="#dc3545" title="Đỏ" style="background-color: #dc3545;" role="radio" aria-checked="false"></button>
                          <button class="color-swatch-btn accent-swatch" data-color="#ffc107" title="Vàng" style="background-color: #ffc107;" role="radio" aria-checked="false"></button>
                          <button class="color-swatch-btn accent-swatch" data-color="#198754" title="Xanh lá" style="background-color: #198754;" role="radio" aria-checked="false"></button>
                          <button class="color-swatch-btn accent-swatch" data-color="#6f42c1" title="Tím" style="background-color: #6f42c1;" role="radio" aria-checked="false"></button>
                          <button class="color-swatch-btn accent-swatch" data-color="#fd7e14" title="Cam" style="background-color: #fd7e14;" role="radio" aria-checked="false"></button>
                          <button class="color-swatch-btn accent-swatch" data-color="#20c997" title="Xanh ngọc" style="background-color: #20c997;" role="radio" aria-checked="false"></button>
+                         <button class="color-swatch-btn accent-swatch" data-color="#d63384" title="Hồng" style="background-color: #d63384;" role="radio" aria-checked="false"></button>
+                         <button class="color-swatch-btn accent-swatch" data-color="#6610f2" title="Chàm (Indigo)" style="background-color: #6610f2;" role="radio" aria-checked="false"></button>
+                         <button class="color-swatch-btn accent-swatch" data-color="#a0522d" title="Nâu (Sienna)" style="background-color: #a0522d;" role="radio" aria-checked="false"></button>
                          </div>
                  </div>
 
@@ -202,3 +206,13 @@
 
 </body>
 </html>
+```
+
+**Thay đổi:**
+
+* Trong `div.accent-color-options` của modal cài đặt (`#settings-modal`), tôi đã thêm 3 nút `button` mới:
+    * Màu Hồng (`#d63384`)
+    * Màu Chàm (`#6610f2`)
+    * Màu Nâu (`#a0522d`)
+
+Các nút này có cấu trúc tương tự các nút màu đã có, sử dụng `data-color` để lưu mã hex và `style` để hiển thị màu nền. JavaScript sẽ tự động nhận diện và xử lý các màu mới này khi người dùng ch

@@ -40,6 +40,11 @@
     --tab-active-text: var(--primary-color);
     --tab-radius: 6px 6px 0 0;
 
+    /* NEW: Dog-ear variables */
+    --dog-ear-size: 20px; /* Kích thước góc gấp */
+    --dog-ear-bg: var(--bg-color); /* Màu nền của góc gấp (giống nền body) */
+    --dog-ear-shadow: rgba(0, 0, 0, 0.1);
+
 
     /* Biến cho Font & Layout */
     --content-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -100,6 +105,10 @@ body.dark-mode {
      --tab-active-border: var(--primary-color);
      --tab-active-text: var(--primary-color);
 
+     /* NEW: Dog-ear variables for Dark Mode */
+     --dog-ear-bg: var(--bg-color);
+     --dog-ear-shadow: rgba(0, 0, 0, 0.3);
+
     /* Biến Cài đặt Dark Mode */
     --setting-section-bg: rgba(255, 255, 255, 0.04);
     --setting-option-border: var(--border-color);
@@ -150,6 +159,10 @@ body.theme-sepia {
     --tab-active-border: var(--primary-color);
     --tab-active-text: var(--primary-color);
 
+    /* NEW: Dog-ear variables for Sepia */
+    --dog-ear-bg: var(--bg-color);
+    --dog-ear-shadow: rgba(91, 70, 54, 0.1);
+
     --setting-section-bg: rgba(91, 70, 54, 0.05);
     --setting-option-hover-bg: rgba(91, 70, 54, 0.1);
 
@@ -196,6 +209,10 @@ body.theme-solarized-light {
     --tab-active-bg: var(--card-bg-color);
     --tab-active-border: var(--primary-color);
     --tab-active-text: var(--primary-color);
+
+    /* NEW: Dog-ear variables for Solarized Light */
+    --dog-ear-bg: var(--bg-color);
+    --dog-ear-shadow: rgba(88, 110, 117, 0.1);
 
     --setting-section-bg: rgba(0, 43, 54, 0.03);
     --setting-option-hover-bg: rgba(0, 43, 54, 0.07);
@@ -244,6 +261,10 @@ body.theme-solarized-dark {
      --tab-active-bg: var(--card-bg-color);
      --tab-active-border: var(--primary-color);
      --tab-active-text: var(--primary-color);
+
+     /* NEW: Dog-ear variables for Solarized Dark */
+     --dog-ear-bg: var(--bg-color);
+     --dog-ear-shadow: rgba(0, 0, 0, 0.3);
 
     --setting-section-bg: rgba(253, 246, 227, 0.05);
     --setting-option-hover-bg: rgba(253, 246, 227, 0.1);
@@ -387,7 +408,7 @@ body.dark-mode #manage-templates-btn { background-color: #34a4b7; }
 #add-note-panel #close-add-panel-btn:hover { opacity: 0.85; }
 
 
-/* --- Notes Container & Note Card (IMPROVED) --- */
+/* --- Notes Container & Note Card (IMPROVED + DOG-EAR) --- */
 #notes-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--note-gap, 20px); }
 .note {
     background-color: var(--card-bg-color);
@@ -403,8 +424,8 @@ body.dark-mode #manage-templates-btn { background-color: #34a4b7; }
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    position: relative;
-    overflow: hidden;
+    position: relative; /* Needed for pseudo-elements */
+    overflow: hidden; /* Needed for pseudo-elements */
     min-height: 150px;
     border-left: 5px solid transparent;
 }
@@ -413,7 +434,34 @@ body.dark-mode #manage-templates-btn { background-color: #34a4b7; }
     box-shadow: 0 5px 15px var(--shadow-hover-color);
     transform: translateY(-3px);
 }
-.pinned-bookmark-icon { position: absolute; top: -10px; right: -10px; font-size: 2.8em; color: var(--pinned-color); opacity: 0.5; pointer-events: none; transform: rotate(45deg); z-index: 0; transition: color 0.3s, opacity 0.3s; }
+
+/* === NEW: Dog-ear effect === */
+.note::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    border-width: 0 var(--dog-ear-size) var(--dog-ear-size) 0; /* Creates the triangle */
+    border-style: solid;
+    /* Colors: top/right transparent, bottom/left the background color */
+    border-color: transparent transparent var(--dog-ear-bg) var(--dog-ear-bg);
+    /* Shadow for the folded part */
+    box-shadow: -1px 1px 2px var(--dog-ear-shadow);
+    /* Ensure it's above the main content but below the pin icon if present */
+    z-index: 1;
+    transition: border-color 0.3s; /* Smooth transition with theme change */
+}
+/* Adjust dog-ear color for colored notes */
+.note.note-color-yellow::before { border-color: transparent transparent var(--note-color-yellow-bg) var(--note-color-yellow-bg); }
+.note.note-color-blue::before { border-color: transparent transparent var(--note-color-blue-bg) var(--note-color-blue-bg); }
+.note.note-color-green::before { border-color: transparent transparent var(--note-color-green-bg) var(--note-color-green-bg); }
+.note.note-color-red::before { border-color: transparent transparent var(--note-color-red-bg) var(--note-color-red-bg); }
+.note.note-color-purple::before { border-color: transparent transparent var(--note-color-purple-bg) var(--note-color-purple-bg); }
+.note.note-color-grey::before { border-color: transparent transparent var(--note-color-grey-bg) var(--note-color-grey-bg); }
+/* ============================ */
+
+
+.pinned-bookmark-icon { position: absolute; top: -10px; right: -10px; font-size: 2.8em; color: var(--pinned-color); opacity: 0.5; pointer-events: none; transform: rotate(45deg); z-index: 2; /* Ensure pin is above dog-ear */ transition: color 0.3s, opacity 0.3s; }
 /* Note color classes */
 .note.note-color-yellow { background-color: var(--note-color-yellow-bg); border-left-color: var(--note-color-yellow-border); }
 .note.note-color-blue { background-color: var(--note-color-blue-bg); border-left-color: var(--note-color-blue-border); }
@@ -430,20 +478,18 @@ body.dark-mode #manage-templates-btn { background-color: #34a4b7; }
     word-wrap: break-word;
     color: var(--primary-color);
     position: relative;
-    z-index: 1;
-    /* === NEW: Add border bottom === */
-    padding-bottom: 8px; /* Add padding below title */
-    border-bottom: 1px solid var(--border-color); /* Thin border */
-    margin-bottom: 12px; /* Increase margin below border */
+    z-index: 1; /* Ensure title is above dog-ear background */
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 12px;
 }
 .note-content {
     flex-grow: 1;
-    /* margin-bottom: 10px; */ /* Removed margin-top handled by title's margin-bottom */
     word-wrap: break-word;
     white-space: pre-wrap;
     font-size: 1em;
     position: relative;
-    z-index: 1;
+    z-index: 1; /* Ensure content is above dog-ear background */
     max-height: 200px;
     overflow: hidden;
     font-family: var(--content-font-family, inherit);
@@ -476,14 +522,13 @@ body.dark-mode #manage-templates-btn { background-color: #34a4b7; }
 
 /* --- Note Edit Mode --- */
 .note input[type="text"].edit-title-input, .note textarea.edit-input, .note input[type="text"].edit-tags-input { display: block; width: calc(100% - 12px); margin-bottom: 10px; border: 1px solid var(--input-border-color); border-radius: 5px; background-color: var(--input-bg-color); color: var(--text-color); font-size: 1em; padding: 5px; cursor: text; position: relative; z-index: 2; font-family: inherit; }
-/* === NEW: Remove border bottom from title in edit mode === */
 .note input[type="text"].edit-title-input {
     font-weight: 600;
-    border-bottom: 1px solid var(--input-border-color); /* Ensure border exists */
-    padding-bottom: 5px; /* Reset padding */
-    margin-bottom: 10px; /* Reset margin */
+    border-bottom: 1px solid var(--input-border-color);
+    padding-bottom: 5px;
+    margin-bottom: 10px;
 }
-.note textarea.edit-input { min-height: 80px; resize: vertical; line-height: 1.5; white-space: pre-wrap; margin-top: 0; /* Ensure no extra top margin */ }
+.note textarea.edit-input { min-height: 80px; resize: vertical; line-height: 1.5; white-space: pre-wrap; margin-top: 0; }
 
 .note input:focus, .note textarea:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(var(--rgb-primary-color, 0, 123, 255), 0.25); }
 .note input[type="text"].edit-title-input { font-weight: 600; }

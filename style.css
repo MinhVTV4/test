@@ -40,10 +40,14 @@
     --tab-active-text: var(--primary-color);
     --tab-radius: 6px 6px 0 0;
 
-    /* NEW: Dog-ear variables */
-    --dog-ear-size: 20px; /* Kích thước góc gấp */
-    --dog-ear-bg: var(--bg-color); /* Màu nền của góc gấp (giống nền body) */
+    /* Dog-ear variables */
+    --dog-ear-size: 20px;
+    --dog-ear-bg: var(--bg-color);
     --dog-ear-shadow: rgba(0, 0, 0, 0.1);
+
+    /* NEW: Noise texture */
+    --noise-opacity: 0.03; /* Độ mờ của noise */
+    --noise-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
 
 
     /* Biến cho Font & Layout */
@@ -105,9 +109,12 @@ body.dark-mode {
      --tab-active-border: var(--primary-color);
      --tab-active-text: var(--primary-color);
 
-     /* NEW: Dog-ear variables for Dark Mode */
+     /* Dog-ear variables for Dark Mode */
      --dog-ear-bg: var(--bg-color);
      --dog-ear-shadow: rgba(0, 0, 0, 0.3);
+
+     /* NEW: Noise texture for Dark Mode */
+     --noise-opacity: 0.04; /* Hơi rõ hơn chút */
 
     /* Biến Cài đặt Dark Mode */
     --setting-section-bg: rgba(255, 255, 255, 0.04);
@@ -159,9 +166,12 @@ body.theme-sepia {
     --tab-active-border: var(--primary-color);
     --tab-active-text: var(--primary-color);
 
-    /* NEW: Dog-ear variables for Sepia */
+    /* Dog-ear variables for Sepia */
     --dog-ear-bg: var(--bg-color);
     --dog-ear-shadow: rgba(91, 70, 54, 0.1);
+
+    /* NEW: Noise texture for Sepia */
+     --noise-opacity: 0.05;
 
     --setting-section-bg: rgba(91, 70, 54, 0.05);
     --setting-option-hover-bg: rgba(91, 70, 54, 0.1);
@@ -210,9 +220,12 @@ body.theme-solarized-light {
     --tab-active-border: var(--primary-color);
     --tab-active-text: var(--primary-color);
 
-    /* NEW: Dog-ear variables for Solarized Light */
+    /* Dog-ear variables for Solarized Light */
     --dog-ear-bg: var(--bg-color);
     --dog-ear-shadow: rgba(88, 110, 117, 0.1);
+
+    /* NEW: Noise texture for Solarized Light */
+     --noise-opacity: 0.03;
 
     --setting-section-bg: rgba(0, 43, 54, 0.03);
     --setting-option-hover-bg: rgba(0, 43, 54, 0.07);
@@ -262,9 +275,12 @@ body.theme-solarized-dark {
      --tab-active-border: var(--primary-color);
      --tab-active-text: var(--primary-color);
 
-     /* NEW: Dog-ear variables for Solarized Dark */
+     /* Dog-ear variables for Solarized Dark */
      --dog-ear-bg: var(--bg-color);
      --dog-ear-shadow: rgba(0, 0, 0, 0.3);
+
+     /* NEW: Noise texture for Solarized Dark */
+     --noise-opacity: 0.04;
 
     --setting-section-bg: rgba(253, 246, 227, 0.05);
     --setting-option-hover-bg: rgba(253, 246, 227, 0.1);
@@ -408,10 +424,10 @@ body.dark-mode #manage-templates-btn { background-color: #34a4b7; }
 #add-note-panel #close-add-panel-btn:hover { opacity: 0.85; }
 
 
-/* --- Notes Container & Note Card (IMPROVED + DOG-EAR) --- */
+/* --- Notes Container & Note Card (IMPROVED + DOG-EAR + NOISE) --- */
 #notes-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--note-gap, 20px); }
 .note {
-    background-color: var(--card-bg-color);
+    /* background-color: var(--card-bg-color); */ /* Color is now handled by background below */
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 15px 18px;
@@ -428,28 +444,51 @@ body.dark-mode #manage-templates-btn { background-color: #34a4b7; }
     overflow: hidden; /* Needed for pseudo-elements */
     min-height: 150px;
     border-left: 5px solid transparent;
+
+    /* === NEW: Apply noise texture === */
+    background-color: var(--card-bg-color); /* Base color */
+    /* Apply the SVG noise filter as a background image */
+    /* The SVG creates a noise pattern using feTurbulence */
+    background-image: var(--noise-url);
+    /* Set the opacity of the noise layer */
+    background-blend-mode: overlay; /* Blend the noise with the background color */
+    /* We control the noise visibility via opacity on the ::after pseudo-element */
 }
+
+/* Create an overlay for the noise texture to control opacity */
+.note::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: var(--noise-url);
+    opacity: var(--noise-opacity);
+    pointer-events: none; /* Allow clicks to pass through */
+    z-index: 0; /* Behind content */
+    transition: opacity 0.3s;
+}
+
+
 .note:active { cursor: grabbing; }
 .note:hover {
     box-shadow: 0 5px 15px var(--shadow-hover-color);
     transform: translateY(-3px);
 }
 
-/* === NEW: Dog-ear effect === */
+/* Dog-ear effect */
 .note::before {
     content: "";
     position: absolute;
     top: 0;
     right: 0;
-    border-width: 0 var(--dog-ear-size) var(--dog-ear-size) 0; /* Creates the triangle */
+    border-width: 0 var(--dog-ear-size) var(--dog-ear-size) 0;
     border-style: solid;
-    /* Colors: top/right transparent, bottom/left the background color */
     border-color: transparent transparent var(--dog-ear-bg) var(--dog-ear-bg);
-    /* Shadow for the folded part */
     box-shadow: -1px 1px 2px var(--dog-ear-shadow);
-    /* Ensure it's above the main content but below the pin icon if present */
     z-index: 1;
-    transition: border-color 0.3s; /* Smooth transition with theme change */
+    transition: border-color 0.3s;
 }
 /* Adjust dog-ear color for colored notes */
 .note.note-color-yellow::before { border-color: transparent transparent var(--note-color-yellow-bg) var(--note-color-yellow-bg); }
@@ -458,17 +497,16 @@ body.dark-mode #manage-templates-btn { background-color: #34a4b7; }
 .note.note-color-red::before { border-color: transparent transparent var(--note-color-red-bg) var(--note-color-red-bg); }
 .note.note-color-purple::before { border-color: transparent transparent var(--note-color-purple-bg) var(--note-color-purple-bg); }
 .note.note-color-grey::before { border-color: transparent transparent var(--note-color-grey-bg) var(--note-color-grey-bg); }
-/* ============================ */
 
 
 .pinned-bookmark-icon { position: absolute; top: -10px; right: -10px; font-size: 2.8em; color: var(--pinned-color); opacity: 0.5; pointer-events: none; transform: rotate(45deg); z-index: 2; /* Ensure pin is above dog-ear */ transition: color 0.3s, opacity 0.3s; }
-/* Note color classes */
-.note.note-color-yellow { background-color: var(--note-color-yellow-bg); border-left-color: var(--note-color-yellow-border); }
-.note.note-color-blue { background-color: var(--note-color-blue-bg); border-left-color: var(--note-color-blue-border); }
-.note.note-color-green { background-color: var(--note-color-green-bg); border-left-color: var(--note-color-green-border); }
-.note.note-color-red { background-color: var(--note-color-red-bg); border-left-color: var(--note-color-red-border); }
-.note.note-color-purple { background-color: var(--note-color-purple-bg); border-left-color: var(--note-color-purple-border); }
-.note.note-color-grey { background-color: var(--note-color-grey-bg); border-left-color: var(--note-color-grey-border); }
+/* Note color classes - Update background property */
+.note.note-color-yellow { background-color: var(--note-color-yellow-bg); border-left-color: var(--note-color-yellow-border); background-image: var(--noise-url); }
+.note.note-color-blue { background-color: var(--note-color-blue-bg); border-left-color: var(--note-color-blue-border); background-image: var(--noise-url); }
+.note.note-color-green { background-color: var(--note-color-green-bg); border-left-color: var(--note-color-green-border); background-image: var(--noise-url); }
+.note.note-color-red { background-color: var(--note-color-red-bg); border-left-color: var(--note-color-red-border); background-image: var(--noise-url); }
+.note.note-color-purple { background-color: var(--note-color-purple-bg); border-left-color: var(--note-color-purple-border); background-image: var(--noise-url); }
+.note.note-color-grey { background-color: var(--note-color-grey-bg); border-left-color: var(--note-color-grey-border); background-image: var(--noise-url); }
 .note[class*="note-color-"] { border-top-color: transparent; border-right-color: transparent; border-bottom-color: transparent; }
 
 .note-title {
@@ -478,7 +516,7 @@ body.dark-mode #manage-templates-btn { background-color: #34a4b7; }
     word-wrap: break-word;
     color: var(--primary-color);
     position: relative;
-    z-index: 1; /* Ensure title is above dog-ear background */
+    z-index: 1;
     padding-bottom: 8px;
     border-bottom: 1px solid var(--border-color);
     margin-bottom: 12px;
@@ -489,7 +527,7 @@ body.dark-mode #manage-templates-btn { background-color: #34a4b7; }
     white-space: pre-wrap;
     font-size: 1em;
     position: relative;
-    z-index: 1; /* Ensure content is above dog-ear background */
+    z-index: 1;
     max-height: 200px;
     overflow: hidden;
     font-family: var(--content-font-family, inherit);
@@ -647,3 +685,4 @@ body.dark-mode #font-family-select option { background-color: var(--card-bg-colo
 
 /* Tiện ích ẩn accessibly */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
+

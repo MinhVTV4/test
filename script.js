@@ -33,12 +33,22 @@ const NOTE_COLORS = [
     { name: 'Grey', value: 'note-color-grey', hex: '#e0e0e0' },
 ];
 
-const VALID_THEMES = ['light', 'dark', 'sepia', 'solarized-light', 'solarized-dark'];
+// === UPDATED: Add new theme names ===
+const VALID_THEMES = [
+    'light', 'dark', 'sepia',
+    'solarized-light', 'solarized-dark',
+    'nord', 'gruvbox-dark', 'gruvbox-light', 'dracula', 'monochrome' // New themes added
+];
 const DEFAULT_THEME = 'light';
 const DEFAULT_FONT_FAMILY = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 const DEFAULT_FONT_SIZE_SCALE = 1;
 const DEFAULT_ACCENT_COLOR = 'default';
-const DARK_THEME_NAMES = ['dark', 'solarized-dark'];
+// === UPDATED: Add new dark theme names ===
+const DARK_THEME_NAMES = [
+    'dark', 'solarized-dark',
+    'nord', 'gruvbox-dark', 'dracula' // New dark themes added
+];
+// ====================================
 
 // =====================================================================
 //  DOM References
@@ -56,9 +66,9 @@ const viewTrashBtn = document.getElementById('view-trash-btn');
 const trashStatusIndicator = document.getElementById('trash-status-indicator');
 const emptyTrashBtn = document.getElementById('empty-trash-btn');
 
-// Notebook Tabs (NEW)
+// Notebook Tabs
 const notebookTabsContainer = document.getElementById('notebook-tabs-container');
-const addNotebookTabBtn = document.getElementById('add-notebook-tab-btn'); // Nút "+" trên thanh tab
+const addNotebookTabBtn = document.getElementById('add-notebook-tab-btn');
 
 // Add Note Panel
 const addNotePanel = document.getElementById('add-note-panel');
@@ -68,13 +78,13 @@ const newNoteTags = document.getElementById('new-note-tags');
 const templateSelect = document.getElementById('template-select');
 const addNoteBtn = document.getElementById('add-note-btn');
 const closeAddPanelBtn = document.getElementById('close-add-panel-btn');
-const showAddPanelBtn = document.getElementById('show-add-panel-btn'); // FAB
+const showAddPanelBtn = document.getElementById('show-add-panel-btn');
 
 // Notes Container
 const notesContainer = document.getElementById('notes-container');
 
 // Template Modal
-const manageTemplatesBtn = document.getElementById('manage-templates-btn'); // Giữ lại nếu cần
+const manageTemplatesBtn = document.getElementById('manage-templates-btn');
 const templateModal = document.getElementById('template-modal');
 const closeTemplateModalBtn = document.getElementById('close-template-modal-btn');
 const templateListContainer = document.getElementById('template-list-container');
@@ -90,13 +100,13 @@ const templateEditTags = document.getElementById('template-edit-tags');
 const saveTemplateBtn = document.getElementById('save-template-btn');
 const cancelEditTemplateBtn = document.getElementById('cancel-edit-template-btn');
 
-// Notebook Management Modal (NEW)
-const manageNotebooksBtn = document.getElementById('manage-notebooks-btn'); // Nút trên header
+// Notebook Management Modal
+const manageNotebooksBtn = document.getElementById('manage-notebooks-btn');
 const notebookModal = document.getElementById('notebook-modal');
 const closeNotebookModalBtn = document.getElementById('close-notebook-modal-btn');
 const notebookListContainer = document.getElementById('notebook-list-container');
 const notebookListSection = document.getElementById('notebook-list-section');
-const showAddNotebookPanelBtn = document.getElementById('show-add-notebook-panel-btn'); // Nút "Tạo mới" trong modal
+const showAddNotebookPanelBtn = document.getElementById('show-add-notebook-panel-btn');
 const notebookEditPanel = document.getElementById('notebook-edit-panel');
 const notebookEditTitle = document.getElementById('notebook-edit-title');
 const notebookEditId = document.getElementById('notebook-edit-id');
@@ -129,14 +139,17 @@ const escapeHTML = (str) => {
 }
 
 // =====================================================================
-//  Theme & Appearance Management (Keep as is)
+//  Theme & Appearance Management
 // =====================================================================
-// ... (Giữ nguyên các hàm quản lý theme, màu, font, cỡ chữ) ...
+
 const getStoredPreference = (key, defaultValue) => {
     return localStorage.getItem(key) ?? defaultValue;
 };
+
+// --- Áp dụng cài đặt tổng thể ---
 const applyAllAppearanceSettings = () => {
     const savedTheme = getStoredPreference(THEME_NAME_KEY, DEFAULT_THEME);
+    // Ensure saved theme is valid before applying
     applyTheme(VALID_THEMES.includes(savedTheme) ? savedTheme : DEFAULT_THEME);
     const savedAccentColor = getStoredPreference(ACCENT_COLOR_KEY, DEFAULT_ACCENT_COLOR);
     applyAccentColor(savedAccentColor);
@@ -145,17 +158,31 @@ const applyAllAppearanceSettings = () => {
     const savedFontSizeScale = parseFloat(getStoredPreference(FONT_SIZE_SCALE_KEY, DEFAULT_FONT_SIZE_SCALE.toString()));
     applyFontSize(isNaN(savedFontSizeScale) ? DEFAULT_FONT_SIZE_SCALE : savedFontSizeScale);
 };
+
+// --- Theme ---
 const applyTheme = (themeName) => {
+    // Ensure the theme name is valid before proceeding
+    if (!VALID_THEMES.includes(themeName)) {
+        console.warn(`Invalid theme name "${themeName}". Falling back to default.`);
+        themeName = DEFAULT_THEME;
+    }
+
     const root = document.documentElement;
+    // Remove all potential theme classes first
     VALID_THEMES.forEach(theme => document.body.classList.remove(`theme-${theme}`));
+    // Remove general light/dark mode classes
     document.body.classList.remove('dark-mode', 'light-mode');
 
-    if (themeName && themeName !== 'light') {
+    // Add the specific theme class (if not default light)
+    if (themeName !== 'light') {
        document.body.classList.add(`theme-${themeName}`);
     }
+
+    // Add the general dark/light mode class based on the theme name
     const isDark = DARK_THEME_NAMES.includes(themeName);
     document.body.classList.add(isDark ? 'dark-mode' : 'light-mode');
 
+    // Update the quick toggle button text and title
     if (quickThemeToggleBtn) {
         if (isDark) {
             quickThemeToggleBtn.innerHTML = '☀️&nbsp;Sáng';
@@ -166,10 +193,13 @@ const applyTheme = (themeName) => {
         }
     }
 
+    // Update the selection UI in the settings modal
     updateThemeSelectionUI(themeName);
+    // Re-apply accent color as its default might change based on the theme
     const currentAccent = getStoredPreference(ACCENT_COLOR_KEY, DEFAULT_ACCENT_COLOR);
     applyAccentColor(currentAccent);
 };
+
 const updateThemeSelectionUI = (selectedTheme) => {
     if (!themeOptionsContainer) return;
     themeOptionsContainer.querySelectorAll('.theme-option-btn').forEach(btn => {
@@ -178,24 +208,33 @@ const updateThemeSelectionUI = (selectedTheme) => {
         btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
     });
 };
+
+// --- Accent Color ---
 const applyAccentColor = (colorValue) => {
-    const lightDefaultAccent = '#007bff';
-    const darkDefaultAccent = '#0d6efd';
+    const lightDefaultAccent = '#007bff'; // Default for light themes
+    const darkDefaultAccent = '#0d6efd'; // Default for dark themes (can be overridden by specific dark themes if needed)
     const currentTheme = getStoredPreference(THEME_NAME_KEY, DEFAULT_THEME);
     const isDarkThemeActive = DARK_THEME_NAMES.includes(currentTheme);
+
+    // Determine the actual default color based on the current theme mode
     const actualDefaultColor = isDarkThemeActive ? darkDefaultAccent : lightDefaultAccent;
+
+    // Use the selected color if it's a valid hex, otherwise use the theme's default
     const actualColor = (colorValue === DEFAULT_ACCENT_COLOR || !colorValue.startsWith('#'))
                        ? actualDefaultColor
                        : colorValue;
+
     document.documentElement.style.setProperty('--primary-color', actualColor);
     updateAccentColorSelectionUI(colorValue);
 };
+
 const updateAccentColorSelectionUI = (selectedColorValue) => {
     if (!accentColorOptionsContainer) return;
     accentColorOptionsContainer.querySelectorAll('.accent-swatch').forEach(swatch => {
         const isSelected = swatch.dataset.color === selectedColorValue;
         swatch.classList.toggle('selected', isSelected);
         swatch.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+        // Update the appearance of the 'default' swatch based on the current theme
         if(swatch.dataset.color === 'default'){
              const lightDefaultAccent = '#007bff';
              const darkDefaultAccent = '#0d6efd';
@@ -204,48 +243,61 @@ const updateAccentColorSelectionUI = (selectedColorValue) => {
              swatch.style.backgroundColor = isDarkThemeActive ? darkDefaultAccent : lightDefaultAccent;
              swatch.style.borderColor = isDarkThemeActive ? darkDefaultAccent : lightDefaultAccent;
              swatch.style.color = '#fff';
-             swatch.innerHTML = '';
+             swatch.innerHTML = ''; // Remove 'X' mark
         }
     });
 };
+
+// --- Font Family ---
 const applyFontFamily = (fontFamilyString) => {
     document.documentElement.style.setProperty('--content-font-family', fontFamilyString);
     updateFontFamilySelectionUI(fontFamilyString);
 };
+
 const updateFontFamilySelectionUI = (selectedFontFamily) => {
     if (fontFamilySelect) { fontFamilySelect.value = selectedFontFamily; }
 };
+
+// --- Font Size ---
 const applyFontSize = (scale) => {
     const clampedScale = Math.max(0.8, Math.min(1.5, scale));
     document.documentElement.style.setProperty('--font-size-scale', clampedScale);
     updateFontSizeUI(clampedScale);
 };
+
 const updateFontSizeUI = (scale) => {
     if (fontSizeSlider) { fontSizeSlider.value = scale; }
     if (fontSizeValueSpan) { fontSizeValueSpan.textContent = `${Math.round(scale * 100)}%`; }
 };
+
+// --- Quick Toggle Theme Logic ---
 const quickToggleTheme = () => {
     const currentTheme = getStoredPreference(THEME_NAME_KEY, DEFAULT_THEME);
-    const lastCustomTheme = getStoredPreference(LAST_CUSTOM_THEME_KEY, null);
-    let targetTheme = DEFAULT_THEME;
-    const isCurrentDark = DARK_THEME_NAMES.includes(currentTheme);
-    const isCurrentLight = !isCurrentDark;
+    const lastCustomTheme = getStoredPreference(LAST_CUSTOM_THEME_KEY, null); // Get the last non-light/dark theme used
+    let targetTheme;
 
-    if (isCurrentLight) {
-        targetTheme = 'dark';
-    } else {
+    const isCurrentDark = DARK_THEME_NAMES.includes(currentTheme);
+
+    if (isCurrentDark) {
+        // If currently dark, try to switch back to the last custom light theme, or default light
         if (lastCustomTheme && !DARK_THEME_NAMES.includes(lastCustomTheme)) {
             targetTheme = lastCustomTheme;
         } else {
-            targetTheme = 'light';
+            targetTheme = 'light'; // Default light if no custom light theme was saved
         }
+    } else {
+        // If currently light (or a custom light theme), switch to default dark
+        targetTheme = 'dark';
     }
+
     applyTheme(targetTheme);
     localStorage.setItem(THEME_NAME_KEY, targetTheme);
+    // Don't update LAST_CUSTOM_THEME_KEY here, only when selecting from settings
 };
 
+
 // =====================================================================
-//  Notebook Data Management (NEW)
+//  Notebook Data Management
 // =====================================================================
 const saveNotebooks = () => {
     try {
@@ -261,8 +313,8 @@ const loadNotebooks = () => {
     if (storedNotebooks) {
         try {
             notebooks = JSON.parse(storedNotebooks).map(nb => ({
-                id: nb.id || Date.now(), // Ensure ID exists
-                name: nb.name || `Sổ tay ${nb.id || Date.now()}` // Ensure name exists
+                id: nb.id || Date.now(),
+                name: nb.name || `Sổ tay ${nb.id || Date.now()}`
             }));
         } catch (e) {
             console.error("Lỗi đọc dữ liệu sổ tay từ localStorage:", e);
@@ -270,7 +322,7 @@ const loadNotebooks = () => {
             notebooks = [];
         }
     } else {
-        notebooks = []; // Khởi tạo mảng rỗng nếu chưa có dữ liệu
+        notebooks = [];
     }
 };
 
@@ -284,7 +336,6 @@ const addOrUpdateNotebook = () => {
         return;
     }
 
-    // Kiểm tra tên trùng lặp (không phân biệt hoa thường)
     const existingNotebook = notebooks.find(nb => nb.name.toLowerCase() === name.toLowerCase() && nb.id !== id);
     if (existingNotebook) {
         alert(`Sổ tay với tên "${name}" đã tồn tại. Vui lòng chọn tên khác.`);
@@ -293,27 +344,27 @@ const addOrUpdateNotebook = () => {
     }
 
 
-    if (id) { // Update existing notebook
+    if (id) {
         const index = notebooks.findIndex(nb => nb.id === id);
         if (index !== -1) {
             notebooks[index].name = name;
         } else {
             console.error("Không tìm thấy sổ tay để cập nhật với ID:", id);
             alert("Lỗi: Không tìm thấy sổ tay để cập nhật.");
-            return; // Exit if notebook not found
+            return;
         }
-    } else { // Add new notebook
+    } else {
         const newNotebook = {
-            id: Date.now(), // Simple ID generation
+            id: Date.now(),
             name: name
         };
         notebooks.push(newNotebook);
     }
 
     saveNotebooks();
-    renderNotebookList(); // Update list in modal
-    renderNotebookTabs(); // Update tabs UI
-    hideNotebookEditPanel(); // Close edit panel
+    renderNotebookList();
+    renderNotebookTabs();
+    hideNotebookEditPanel();
 };
 
 const deleteNotebook = (id) => {
@@ -327,15 +378,13 @@ const deleteNotebook = (id) => {
         }
 
         if (confirm(confirmMessage)) {
-            // Remove notebook
             notebooks.splice(index, 1);
             saveNotebooks();
 
-            // Update notes that were in this notebook
             let notesUpdated = false;
             notes.forEach(note => {
                 if (note.notebookId === id) {
-                    note.notebookId = null; // Or assign to a default notebook ID if you have one
+                    note.notebookId = null;
                     notesUpdated = true;
                 }
             });
@@ -343,17 +392,14 @@ const deleteNotebook = (id) => {
                 saveNotes();
             }
 
-            // Update UI
             renderNotebookList();
             renderNotebookTabs();
 
-            // If the deleted notebook was the current view, switch to "All Notes"
             if (currentNotebookId === id) {
                 currentNotebookId = DEFAULT_NOTEBOOK_ID;
-                displayNotes(); // Refresh notes view
+                displayNotes();
             }
 
-            // Close edit panel if it was editing the deleted notebook
             if (!notebookEditPanel.classList.contains('hidden') && parseInt(notebookEditId.value) === id) {
                 hideNotebookEditPanel();
             }
@@ -366,23 +412,12 @@ const deleteNotebook = (id) => {
 
 
 // =====================================================================
-//  Note Data Management (UPDATED)
+//  Note Data Management
 // =====================================================================
 const saveNotes = () => {
     try {
-        // UPDATED: Include notebookId
         const notesToSave = notes.map(note => ({
-            id: note.id,
-            title: note.title || '',
-            text: note.text || '',
-            tags: note.tags || [],
-            pinned: note.pinned || false,
-            lastModified: note.lastModified || note.id,
-            archived: note.archived || false,
-            color: note.color || null,
-            deleted: note.deleted || false,
-            deletedTimestamp: note.deletedTimestamp || null,
-            notebookId: note.notebookId || null // NEW: Save notebookId
+            id: note.id, title: note.title || '', text: note.text || '', tags: note.tags || [], pinned: note.pinned || false, lastModified: note.lastModified || note.id, archived: note.archived || false, color: note.color || null, deleted: note.deleted || false, deletedTimestamp: note.deletedTimestamp || null, notebookId: note.notebookId || null
         }));
         localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notesToSave));
     } catch (e) { console.error("Lỗi lưu ghi chú vào localStorage:", e); if (e.name === 'QuotaExceededError') { alert("Lỗi: Dung lượng lưu trữ cục bộ đã đầy. Không thể lưu ghi chú."); } else { alert("Đã xảy ra lỗi khi cố gắng lưu ghi chú."); } }
@@ -392,43 +427,21 @@ const loadNotes = () => {
     const storedNotes = localStorage.getItem(NOTES_STORAGE_KEY);
     if (storedNotes) {
         try {
-             // UPDATED: Map notebookId, default to null if missing
              notes = JSON.parse(storedNotes).map(note => ({
-                id: note.id,
-                title: note.title || '',
-                text: note.text || '',
-                tags: note.tags || [],
-                pinned: note.pinned || false,
-                lastModified: note.lastModified || note.id,
-                archived: note.archived || false,
-                color: note.color || null,
-                deleted: note.deleted || false,
-                deletedTimestamp: note.deletedTimestamp || null,
-                notebookId: note.notebookId || null // NEW: Load notebookId, default null
+                id: note.id, title: note.title || '', text: note.text || '', tags: note.tags || [], pinned: note.pinned || false, lastModified: note.lastModified || note.id, archived: note.archived || false, color: note.color || null, deleted: note.deleted || false, deletedTimestamp: note.deletedTimestamp || null, notebookId: note.notebookId || null
              }));
          }
         catch (e) { console.error("Lỗi đọc dữ liệu ghi chú từ localStorage:", e); alert("Lỗi khi đọc dữ liệu ghi chú đã lưu. Dữ liệu có thể bị lỗi. Sử dụng dữ liệu mặc định."); notes = []; }
     } else {
-        // Check for old data format without _v2 suffix
         const oldStoredNotes = localStorage.getItem('startNotesData');
         if (oldStoredNotes) {
             console.log("Đang chuyển đổi dữ liệu ghi chú cũ...");
             try {
                 notes = JSON.parse(oldStoredNotes).map(note => ({
-                    id: note.id,
-                    title: note.title || '',
-                    text: note.text || '',
-                    tags: note.tags || [],
-                    pinned: note.pinned || false,
-                    lastModified: note.lastModified || note.id,
-                    archived: note.archived || false,
-                    color: note.color || null,
-                    deleted: note.deleted || false,
-                    deletedTimestamp: note.deletedTimestamp || null,
-                    notebookId: null // Assign null notebookId to old notes
+                    id: note.id, title: note.title || '', text: note.text || '', tags: note.tags || [], pinned: note.pinned || false, lastModified: note.lastModified || note.id, archived: note.archived || false, color: note.color || null, deleted: note.deleted || false, deletedTimestamp: note.deletedTimestamp || null, notebookId: null
                  }));
-                 saveNotes(); // Save in new format
-                 localStorage.removeItem('startNotesData'); // Remove old key
+                 saveNotes();
+                 localStorage.removeItem('startNotesData');
                  console.log("Chuyển đổi dữ liệu cũ thành công.");
             } catch(e) {
                 console.error("Lỗi chuyển đổi dữ liệu ghi chú cũ:", e);
@@ -449,35 +462,21 @@ const addNote = () => {
     if (noteText.trim() || noteTitle) {
         const tags = parseTags(tagString);
         const now = Date.now();
-        // UPDATED: Assign notebookId based on current view
         const assignedNotebookId = (currentNotebookId !== 'all' && !isViewingArchived && !isViewingTrash)
                                     ? parseInt(currentNotebookId)
-                                    : null; // Assign null if in "All Notes" or special views
+                                    : null;
 
         const newNote = {
-            id: now,
-            title: noteTitle,
-            text: noteText,
-            tags: tags,
-            pinned: false,
-            lastModified: now,
-            archived: false,
-            color: null,
-            deleted: false,
-            deletedTimestamp: null,
-            notebookId: assignedNotebookId // NEW: Assign notebookId
+            id: now, title: noteTitle, text: noteText, tags: tags, pinned: false, lastModified: now, archived: false, color: null, deleted: false, deletedTimestamp: null, notebookId: assignedNotebookId
         };
         notes.unshift(newNote);
         saveNotes();
 
-        // If the user was in Archive or Trash, switch back to the notebook (or 'all')
         if (isViewingArchived || isViewingTrash) {
             isViewingArchived = false;
             isViewingTrash = false;
-            // No need to change currentNotebookId here, displayNotes will handle it
             searchInput.value = '';
         }
-        // Ensure the correct tab is active after adding
         renderNotebookTabs();
         displayNotes(searchInput.value);
         hideAddPanel();
@@ -486,9 +485,8 @@ const addNote = () => {
 };
 
 // =====================================================================
-//  Template Data Management (Keep as is)
+//  Template Data Management
 // =====================================================================
-// ... (Giữ nguyên các hàm saveTemplates, loadTemplates, addOrUpdateTemplate, deleteTemplate) ...
 const saveTemplates = () => { try { localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(templates)); } catch (e) { console.error("Lỗi lưu mẫu vào localStorage:", e); alert("Đã xảy ra lỗi khi cố gắng lưu các mẫu ghi chú."); } };
 const loadTemplates = () => { const storedTemplates = localStorage.getItem(TEMPLATES_STORAGE_KEY); if (storedTemplates) { try { templates = JSON.parse(storedTemplates).map(t => ({ id: t.id || Date.now(), name: t.name || `Mẫu ${t.id || Date.now()}`, title: t.title || '', text: t.text || '', tags: Array.isArray(t.tags) ? t.tags.map(String).filter(tag => tag.trim() !== '') : [], })); } catch (e) { console.error("Lỗi đọc dữ liệu mẫu từ localStorage:", e); alert("Lỗi khi đọc dữ liệu Mẫu đã lưu. Dữ liệu có thể bị lỗi."); templates = []; } } else { templates = []; } };
 const addOrUpdateTemplate = () => { const name = templateEditName.value.trim(); const title = templateEditTitleInput.value.trim(); const text = templateEditText.value; const tags = parseTags(templateEditTags.value); const id = templateEditId.value ? parseInt(templateEditId.value) : null; if (!name) { alert("Vui lòng nhập Tên Mẫu!"); templateEditName.focus(); return; } if (id) { const index = templates.findIndex(t => t.id === id); if (index !== -1) { templates[index] = { ...templates[index], name, title, text, tags }; } else { console.error("Không tìm thấy mẫu để cập nhật với ID:", id); alert("Lỗi: Không tìm thấy mẫu để cập nhật."); return; } } else { const newTemplate = { id: Date.now(), name, title, text, tags }; templates.push(newTemplate); } saveTemplates(); renderTemplateList(); populateTemplateDropdown(); hideTemplateEditPanel(); };
@@ -496,15 +494,21 @@ const deleteTemplate = (id) => { const index = templates.findIndex(t => t.id ===
 
 
 // =====================================================================
-//  Helper Functions & Event Handlers (Minor Updates Needed)
+//  Helper Functions & Event Handlers
 // =====================================================================
-// ... (hideTagSuggestions, handleClickOutsideSuggestions, handleNotePin, etc. remain mostly the same) ...
-// UPDATED: updateNoteData needs to handle notebookId if we add editing later
+const hideTagSuggestions = () => { const suggestionBox = document.getElementById(SUGGESTION_BOX_ID); if (suggestionBox) { suggestionBox.remove(); } if(activeTagInputElement) { activeTagInputElement.removeAttribute('aria-activedescendant'); activeTagInputElement.removeAttribute('aria-controls'); } activeTagInputElement = null; document.removeEventListener('mousedown', handleClickOutsideSuggestions); };
+const handleClickOutsideSuggestions = (event) => { const suggestionBox = document.getElementById(SUGGESTION_BOX_ID); if (suggestionBox && !suggestionBox.contains(event.target) && activeTagInputElement && !activeTagInputElement.contains(event.target)) { hideTagSuggestions(); } };
+const handleNotePin = (noteId, noteIndex) => { if (notes[noteIndex]) { notes[noteIndex].pinned = !notes[noteIndex].pinned; notes[noteIndex].lastModified = Date.now(); saveNotes(); displayNotes(searchInput.value); } };
+const handleNoteDelete = (noteId, noteIndex) => { if (notes[noteIndex]) { if (confirm('Bạn chắc chắn muốn chuyển ghi chú này vào thùng rác?')) { notes[noteIndex].deleted = true; notes[noteIndex].deletedTimestamp = Date.now(); notes[noteIndex].pinned = false; notes[noteIndex].archived = false; saveNotes(); displayNotes(searchInput.value); } } };
+const handleNoteRestore = (noteId, noteIndex) => { if (notes[noteIndex]) { notes[noteIndex].deleted = false; notes[noteIndex].deletedTimestamp = null; notes[noteIndex].lastModified = Date.now(); saveNotes(); displayNotes(searchInput.value); } };
+const handleNoteDeletePermanent = (noteId, noteIndex) => { if (notes[noteIndex]) { const noteTitle = notes[noteIndex].title || 'Ghi chú không tiêu đề'; if (confirm(`Bạn chắc chắn muốn xóa vĩnh viễn "${escapeHTML(noteTitle)}"? Hành động này không thể hoàn tác.`)) { notes.splice(noteIndex, 1); saveNotes(); displayNotes(searchInput.value); } } };
+const handleEmptyTrash = () => { const trashNotesCount = notes.filter(note => note.deleted).length; if (trashNotesCount === 0) { alert("Thùng rác đang trống."); return; } if (confirm(`Bạn chắc chắn muốn xóa vĩnh viễn ${trashNotesCount} ghi chú trong thùng rác? Hành động này không thể hoàn tác.`)) { notes = notes.filter(note => !note.deleted); saveNotes(); displayNotes(searchInput.value); } };
+const handleNoteArchive = (noteId, noteIndex) => { if (notes[noteIndex]) { notes[noteIndex].archived = true; notes[noteIndex].pinned = false; notes[noteIndex].lastModified = Date.now(); saveNotes(); displayNotes(searchInput.value); } };
+const handleNoteUnarchive = (noteId, noteIndex) => { if (notes[noteIndex]) { notes[noteIndex].archived = false; notes[noteIndex].lastModified = Date.now(); saveNotes(); displayNotes(searchInput.value); } };
 const updateNoteData = (noteIndex, newData) => {
     if (noteIndex < 0 || noteIndex >= notes.length) return false;
     const note = notes[noteIndex];
     if (!note) return false;
-    // Destructure potentially including notebookId in the future
     const { title, text, tags, color /*, notebookId */ } = newData;
     let changed = false;
 
@@ -512,12 +516,10 @@ const updateNoteData = (noteIndex, newData) => {
     const cleanText = text ?? '';
     const cleanColor = (color === '' || color === null || color === 'null' || color === 'default') ? null : color;
     const cleanTags = Array.isArray(tags) ? tags.map(t => t.trim().toLowerCase()).filter(t => t) : [];
-    // const cleanNotebookId = (notebookId === 'default' || notebookId === null) ? null : parseInt(notebookId); // Example if editing notebookId
 
     if (note.title !== cleanTitle) { note.title = cleanTitle; changed = true; }
     if (note.text !== cleanText) { note.text = cleanText; changed = true; }
     if (note.color !== cleanColor) { note.color = cleanColor; changed = true; }
-    // if (note.notebookId !== cleanNotebookId) { note.notebookId = cleanNotebookId; changed = true; } // Example
 
     const currentTags = note.tags || [];
     const tagsChanged = !(currentTags.length === cleanTags.length && currentTags.slice().sort().every((value, index) => value === cleanTags.slice().sort()[index]));
@@ -530,17 +532,6 @@ const updateNoteData = (noteIndex, newData) => {
     }
     return false;
 };
-// ... (debouncedAutoSave, handleNoteEdit, handleNoteSaveEdit need adjustment if notebook editing is added) ...
-// ... (showFullNoteModal remains the same) ...
-const hideTagSuggestions = () => { const suggestionBox = document.getElementById(SUGGESTION_BOX_ID); if (suggestionBox) { suggestionBox.remove(); } if(activeTagInputElement) { activeTagInputElement.removeAttribute('aria-activedescendant'); activeTagInputElement.removeAttribute('aria-controls'); } activeTagInputElement = null; document.removeEventListener('mousedown', handleClickOutsideSuggestions); };
-const handleClickOutsideSuggestions = (event) => { const suggestionBox = document.getElementById(SUGGESTION_BOX_ID); if (suggestionBox && !suggestionBox.contains(event.target) && activeTagInputElement && !activeTagInputElement.contains(event.target)) { hideTagSuggestions(); } };
-const handleNotePin = (noteId, noteIndex) => { if (notes[noteIndex]) { notes[noteIndex].pinned = !notes[noteIndex].pinned; notes[noteIndex].lastModified = Date.now(); saveNotes(); displayNotes(searchInput.value); } };
-const handleNoteDelete = (noteId, noteIndex) => { if (notes[noteIndex]) { if (confirm('Bạn chắc chắn muốn chuyển ghi chú này vào thùng rác?')) { notes[noteIndex].deleted = true; notes[noteIndex].deletedTimestamp = Date.now(); notes[noteIndex].pinned = false; notes[noteIndex].archived = false; saveNotes(); displayNotes(searchInput.value); } } };
-const handleNoteRestore = (noteId, noteIndex) => { if (notes[noteIndex]) { notes[noteIndex].deleted = false; notes[noteIndex].deletedTimestamp = null; notes[noteIndex].lastModified = Date.now(); saveNotes(); displayNotes(searchInput.value); } };
-const handleNoteDeletePermanent = (noteId, noteIndex) => { if (notes[noteIndex]) { const noteTitle = notes[noteIndex].title || 'Ghi chú không tiêu đề'; if (confirm(`Bạn chắc chắn muốn xóa vĩnh viễn "${escapeHTML(noteTitle)}"? Hành động này không thể hoàn tác.`)) { notes.splice(noteIndex, 1); saveNotes(); displayNotes(searchInput.value); } } };
-const handleEmptyTrash = () => { const trashNotesCount = notes.filter(note => note.deleted).length; if (trashNotesCount === 0) { alert("Thùng rác đang trống."); return; } if (confirm(`Bạn chắc chắn muốn xóa vĩnh viễn ${trashNotesCount} ghi chú trong thùng rác? Hành động này không thể hoàn tác.`)) { notes = notes.filter(note => !note.deleted); saveNotes(); displayNotes(searchInput.value); } };
-const handleNoteArchive = (noteId, noteIndex) => { if (notes[noteIndex]) { notes[noteIndex].archived = true; notes[noteIndex].pinned = false; notes[noteIndex].lastModified = Date.now(); saveNotes(); displayNotes(searchInput.value); } };
-const handleNoteUnarchive = (noteId, noteIndex) => { if (notes[noteIndex]) { notes[noteIndex].archived = false; notes[noteIndex].lastModified = Date.now(); saveNotes(); displayNotes(searchInput.value); } };
 const debouncedAutoSave = debounce((noteElement, noteIndex) => { const editTitleInputCheck = noteElement.querySelector('input.edit-title-input'); const editInputCheck = noteElement.querySelector('textarea.edit-input'); const editTagsInputCheck = noteElement.querySelector('input.edit-tags-input'); if (!editTitleInputCheck || !editInputCheck || !editTagsInputCheck || !noteElement.isConnected) { return; } const newTitle = editTitleInputCheck.value; const newText = editInputCheck.value; const newTagString = editTagsInputCheck.value; const newTags = parseTags(newTagString); const selectedColorValue = noteElement.dataset.selectedColor ?? notes[noteIndex]?.color; const newColor = selectedColorValue; const wasPreviouslyEmpty = !notes[noteIndex]?.title?.trim() && !notes[noteIndex]?.text?.trim(); const isNowEmpty = !newTitle.trim() && !newText.trim(); if (!wasPreviouslyEmpty && isNowEmpty) { return; } const saved = updateNoteData(noteIndex, { title: newTitle, text: newText, tags: newTags, color: newColor }); if (saved) { noteElement.classList.add('note-autosaved'); setTimeout(() => { noteElement?.classList.remove('note-autosaved'); }, 600); } }, DEBOUNCE_DELAY);
 const handleNoteEdit = (noteElement, noteId, noteIndex) => { if (isViewingArchived || isViewingTrash) return; const currentlyEditing = notesContainer.querySelector('.note .edit-input'); if (currentlyEditing && currentlyEditing.closest('.note') !== noteElement) { alert("Vui lòng Lưu hoặc Hủy thay đổi ở ghi chú đang sửa trước khi sửa ghi chú khác."); currentlyEditing.closest('.note').querySelector('textarea.edit-input')?.focus(); return; } hideTagSuggestions(); if (sortableInstance) sortableInstance.option('disabled', true); showAddPanelBtn.classList.add('hidden'); const noteData = notes[noteIndex]; if (!noteData) return; const actionsElementOriginal = noteElement.querySelector('.note-actions'); let originalActionsHTML = ''; if (actionsElementOriginal) { originalActionsHTML = Array.from(actionsElementOriginal.children).filter(btn => !btn.classList.contains('save-edit-btn')).map(btn => btn.outerHTML).join(''); } const editTitleInput = document.createElement('input'); editTitleInput.type = 'text'; editTitleInput.classList.add('edit-title-input'); editTitleInput.placeholder = 'Tiêu đề...'; editTitleInput.value = noteData.title || ''; const editInput = document.createElement('textarea'); editInput.classList.add('edit-input'); editInput.value = noteData.text; editInput.rows = 5; const editTagsInput = document.createElement('input'); editTagsInput.type = 'text'; editTagsInput.classList.add('edit-tags-input'); editTagsInput.placeholder = 'Tags (cách nhau bằng dấu phẩy)...'; editTagsInput.value = (noteData.tags || []).join(', '); editTagsInput.autocomplete = 'off'; const colorSelectorContainer = document.createElement('div'); colorSelectorContainer.classList.add('color-selector-container'); colorSelectorContainer.setAttribute('role', 'radiogroup'); colorSelectorContainer.setAttribute('aria-label', 'Chọn màu ghi chú'); noteElement.dataset.selectedColor = noteData.color || ''; NOTE_COLORS.forEach(color => { const swatchBtn = document.createElement('button'); swatchBtn.type = 'button'; swatchBtn.classList.add('color-swatch-btn'); swatchBtn.dataset.colorValue = color.value || ''; swatchBtn.title = color.name; swatchBtn.setAttribute('role', 'radio'); const isCurrentColor = (noteData.color === color.value) || (!noteData.color && !color.value); swatchBtn.setAttribute('aria-checked', isCurrentColor ? 'true' : 'false'); if (isCurrentColor) swatchBtn.classList.add('selected'); if (color.value) { swatchBtn.style.backgroundColor = color.hex; } else { swatchBtn.classList.add('default-color-swatch'); swatchBtn.innerHTML = '&#x2715;'; swatchBtn.setAttribute('aria-label', 'Màu mặc định'); } swatchBtn.addEventListener('click', () => { const selectedValue = swatchBtn.dataset.colorValue; noteElement.dataset.selectedColor = selectedValue; colorSelectorContainer.querySelectorAll('.color-swatch-btn').forEach(btn => { const isSelected = btn === swatchBtn; btn.classList.toggle('selected', isSelected); btn.setAttribute('aria-checked', isSelected ? 'true' : 'false'); }); applyNoteColor(noteElement, { ...noteData, color: selectedValue }); debouncedAutoSave(noteElement, noteIndex); }); colorSelectorContainer.appendChild(swatchBtn); }); const saveBtn = document.createElement('button'); saveBtn.classList.add('save-edit-btn', 'modal-button', 'primary'); saveBtn.textContent = 'Lưu'; saveBtn.title = 'Lưu thay đổi (Ctrl+S)'; const bookmarkIcon = noteElement.querySelector('.pinned-bookmark-icon'); noteElement.innerHTML = ''; if (bookmarkIcon) { noteElement.appendChild(bookmarkIcon); bookmarkIcon.style.display = 'inline-block'; } noteElement.appendChild(editTitleInput); noteElement.appendChild(editInput); noteElement.appendChild(editTagsInput); noteElement.appendChild(colorSelectorContainer); const editActionsContainer = document.createElement('div'); editActionsContainer.classList.add('note-actions'); editActionsContainer.innerHTML = originalActionsHTML; editActionsContainer.appendChild(saveBtn); noteElement.appendChild(editActionsContainer); const triggerAutoSave = () => debouncedAutoSave(noteElement, noteIndex); editTitleInput.addEventListener('input', triggerAutoSave); editInput.addEventListener('input', triggerAutoSave); editTagsInput.addEventListener('input', (event) => { handleTagInput(event); triggerAutoSave(); }); editTagsInput.addEventListener('blur', handleTagInputBlur, true); editTagsInput.addEventListener('keydown', handleTagInputKeydown); editTitleInput.focus(); editTitleInput.setSelectionRange(editTitleInput.value.length, editTitleInput.value.length); };
 const handleNoteSaveEdit = (noteElement, noteId, noteIndex) => { const editTitleInput = noteElement.querySelector('input.edit-title-input'); const editInput = noteElement.querySelector('textarea.edit-input'); const editTagsInput = noteElement.querySelector('input.edit-tags-input'); if (!editTitleInput || !editInput || !editTagsInput) { console.error("Lỗi lưu: Không tìm thấy các thành phần sửa ghi chú."); displayNotes(searchInput.value); return; } const newTitle = editTitleInput.value; const newText = editInput.value; const newTagString = editTagsInput.value; const newTags = parseTags(newTagString); const selectedColorValue = noteElement.dataset.selectedColor ?? notes[noteIndex]?.color; const newColor = selectedColorValue; const wasInitiallyEmpty = !notes[noteIndex]?.title?.trim() && !notes[noteIndex]?.text?.trim(); const isNowEmpty = !newTitle.trim() && !newText.trim(); if (!wasInitiallyEmpty && isNowEmpty) { if (!confirm("Ghi chú gần như trống. Bạn vẫn muốn lưu?")) { return; } } updateNoteData(noteIndex, { title: newTitle, text: newText, tags: newTags, color: newColor }); const updatedNoteData = notes[noteIndex]; const bookmarkIcon = noteElement.querySelector('.pinned-bookmark-icon'); noteElement.innerHTML = ''; if (bookmarkIcon) noteElement.appendChild(bookmarkIcon); applyNoteColor(noteElement, updatedNoteData); applyPinnedStatus(noteElement, updatedNoteData, isViewingArchived, isViewingTrash); const titleEl = createNoteTitleElement(updatedNoteData, searchInput.value); if(titleEl) noteElement.appendChild(titleEl); const contentEl = createNoteContentElement(updatedNoteData, searchInput.value, noteElement); if(contentEl) noteElement.appendChild(contentEl); const tagsEl = createNoteTagsElement(updatedNoteData); if(tagsEl) noteElement.appendChild(tagsEl); const timestampEl = createNoteTimestampElement(updatedNoteData); if(timestampEl) noteElement.appendChild(timestampEl); const actionsEl = createNoteActionsElement(updatedNoteData); if(actionsEl) noteElement.appendChild(actionsEl); delete noteElement.dataset.selectedColor; hideTagSuggestions(); if (sortableInstance) sortableInstance.option('disabled', false); if (addNotePanel.classList.contains('hidden')) showAddPanelBtn.classList.remove('hidden'); noteElement.classList.add('note-saved-flash'); setTimeout(() => { noteElement?.classList.remove('note-saved-flash'); }, 600); };
@@ -548,24 +539,22 @@ const showFullNoteModal = (title, noteText) => { const existingModal = document.
 
 
 // =====================================================================
-//  Note Element Rendering Helper Functions (Keep as is)
+//  Note Element Rendering Helper Functions
 // =====================================================================
-// ... (applyNoteColor, applyPinnedStatus, createNoteTitleElement, etc. remain the same) ...
-// ... (createMainViewNoteActions, createArchiveViewNoteActions, createTrashViewNoteActions, createNoteActionsElement remain the same) ...
 function applyNoteColor(noteElement, note) { NOTE_COLORS.forEach(color => { if (color.value) noteElement.classList.remove(color.value); }); const noteColor = note?.color; if (noteColor && NOTE_COLORS.some(c => c.value === noteColor)) { noteElement.classList.add(noteColor); } const colorData = NOTE_COLORS.find(c => c.value === noteColor); noteElement.style.borderLeftColor = colorData?.hex && colorData.value ? colorData.hex : 'transparent'; noteElement.style.borderColor = ''; }
-function applyPinnedStatus(noteElement, note, isViewingArchived, isViewingTrash) { const isPinned = note?.pinned ?? false; const shouldShowPin = isPinned && !isViewingArchived && !isViewingTrash && currentNotebookId === 'all'; /* Chỉ hiện pin ở view All Notes */ const existingBookmark = noteElement.querySelector('.pinned-bookmark-icon'); noteElement.classList.toggle('pinned-note', shouldShowPin); if (shouldShowPin) { if (!existingBookmark) { const bookmarkIcon = document.createElement('span'); bookmarkIcon.classList.add('pinned-bookmark-icon'); bookmarkIcon.innerHTML = '&#128278;'; bookmarkIcon.setAttribute('aria-hidden', 'true'); noteElement.insertBefore(bookmarkIcon, noteElement.firstChild); } else { existingBookmark.style.display = 'inline-block'; } } else { if (existingBookmark) { existingBookmark.style.display = 'none'; } } }
+function applyPinnedStatus(noteElement, note, isViewingArchived, isViewingTrash) { const isPinned = note?.pinned ?? false; const shouldShowPin = isPinned && !isViewingArchived && !isViewingTrash && currentNotebookId === 'all'; const existingBookmark = noteElement.querySelector('.pinned-bookmark-icon'); noteElement.classList.toggle('pinned-note', shouldShowPin); if (shouldShowPin) { if (!existingBookmark) { const bookmarkIcon = document.createElement('span'); bookmarkIcon.classList.add('pinned-bookmark-icon'); bookmarkIcon.innerHTML = '&#128278;'; bookmarkIcon.setAttribute('aria-hidden', 'true'); noteElement.insertBefore(bookmarkIcon, noteElement.firstChild); } else { existingBookmark.style.display = 'inline-block'; } } else { if (existingBookmark) { existingBookmark.style.display = 'none'; } } }
 function createNoteTitleElement(note, filter) { const title = note?.title?.trim(); if (!title) return null; const titleElement = document.createElement('h3'); titleElement.classList.add('note-title'); let titleHTML = escapeHTML(title); const lowerCaseFilter = (filter || '').toLowerCase().trim(); const isTagSearch = lowerCaseFilter.startsWith('#'); if (!isTagSearch && lowerCaseFilter) { try { const highlightRegex = new RegExp(`(${escapeRegExp(lowerCaseFilter)})`, 'gi'); titleHTML = titleHTML.replace(highlightRegex, '<mark>$1</mark>'); } catch(e) { console.warn("Lỗi highlight tiêu đề:", e); } } titleElement.innerHTML = titleHTML; return titleElement; }
 function createNoteContentElement(note, filter, noteElementForOverflowCheck) { const textContent = note?.text ?? ''; const contentElement = document.createElement('div'); contentElement.classList.add('note-content'); let displayHTML = escapeHTML(textContent); const lowerCaseFilter = (filter || '').toLowerCase().trim(); const isTagSearchContent = lowerCaseFilter.startsWith('#'); if (!isTagSearchContent && lowerCaseFilter) { try { const highlightRegexContent = new RegExp(`(${escapeRegExp(lowerCaseFilter)})`, 'gi'); displayHTML = displayHTML.replace(highlightRegexContent, '<mark>$1</mark>'); } catch (e) { console.warn("Lỗi highlight nội dung:", e); } } displayHTML = displayHTML.replace(/\n/g, '<br>'); contentElement.innerHTML = displayHTML; requestAnimationFrame(() => { if (!noteElementForOverflowCheck || !noteElementForOverflowCheck.isConnected) return; const currentContentEl = noteElementForOverflowCheck.querySelector('.note-content'); if (!currentContentEl) return; const existingBtn = noteElementForOverflowCheck.querySelector('.read-more-btn'); if (existingBtn) existingBtn.remove(); const hasOverflow = currentContentEl.scrollHeight > currentContentEl.clientHeight + 2; currentContentEl.classList.toggle('has-overflow', hasOverflow); if (hasOverflow) { const readMoreBtn = document.createElement('button'); readMoreBtn.textContent = 'Xem thêm'; readMoreBtn.classList.add('read-more-btn'); readMoreBtn.type = 'button'; readMoreBtn.title = 'Xem toàn bộ nội dung ghi chú'; readMoreBtn.addEventListener('click', (e) => { e.stopPropagation(); showFullNoteModal(note.title, note.text); }); noteElementForOverflowCheck.insertBefore(readMoreBtn, currentContentEl.nextSibling); } }); return contentElement; }
 function createNoteTagsElement(note) { const tags = note?.tags; if (!tags || tags.length === 0) return null; const tagsElement = document.createElement('div'); tagsElement.classList.add('note-tags'); tags.forEach(tag => { const tagBadge = document.createElement('button'); tagBadge.classList.add('tag-badge'); tagBadge.textContent = `#${tag}`; tagBadge.dataset.tag = tag; tagBadge.type = 'button'; tagBadge.title = `Lọc theo tag: ${tag}`; tagsElement.appendChild(tagBadge); }); return tagsElement; }
 function createNoteTimestampElement(note) { const timestampElement = document.createElement('small'); timestampElement.classList.add('note-timestamp'); const creationDate = formatTimestamp(note.id); let timestampText = `Tạo: ${creationDate}`; if (note.lastModified && note.lastModified > note.id + 60000) { const modifiedDate = formatTimestamp(note.lastModified); timestampText += ` (Sửa: ${modifiedDate})`; } if (isViewingTrash && note.deletedTimestamp) { const deletedDate = formatTimestamp(note.deletedTimestamp); timestampText += ` (Xóa: ${deletedDate})`; } timestampElement.textContent = timestampText; return timestampElement; }
-function createMainViewNoteActions(note) { const fragment = document.createDocumentFragment(); const pinBtn = document.createElement('button'); pinBtn.classList.add('pin-btn'); pinBtn.innerHTML = '&#128204;'; pinBtn.title = note.pinned ? "Bỏ ghim" : "Ghim ghi chú"; pinBtn.setAttribute('aria-label', note.pinned ? "Bỏ ghim ghi chú" : "Ghim ghi chú"); pinBtn.setAttribute('aria-pressed', note.pinned ? 'true' : 'false'); if (note.pinned) pinBtn.classList.add('pinned'); if(currentNotebookId !== 'all') pinBtn.style.display = 'none'; /* Chỉ hiện pin ở view All Notes */ fragment.appendChild(pinBtn); const editBtn = document.createElement('button'); editBtn.classList.add('edit-btn'); editBtn.textContent = 'Sửa'; editBtn.title = 'Sửa ghi chú'; editBtn.setAttribute('aria-label', 'Sửa ghi chú'); fragment.appendChild(editBtn); const archiveBtn = document.createElement('button'); archiveBtn.classList.add('archive-btn'); archiveBtn.innerHTML = '&#128451;'; archiveBtn.title = 'Lưu trữ ghi chú'; archiveBtn.setAttribute('aria-label', 'Lưu trữ ghi chú'); fragment.appendChild(archiveBtn); const deleteBtn = document.createElement('button'); deleteBtn.classList.add('delete-btn'); deleteBtn.textContent = 'Xóa'; deleteBtn.title = 'Chuyển vào thùng rác'; deleteBtn.setAttribute('aria-label', 'Chuyển vào thùng rác'); fragment.appendChild(deleteBtn); return fragment; }
+function createMainViewNoteActions(note) { const fragment = document.createDocumentFragment(); const pinBtn = document.createElement('button'); pinBtn.classList.add('pin-btn'); pinBtn.innerHTML = '&#128204;'; pinBtn.title = note.pinned ? "Bỏ ghim" : "Ghim ghi chú"; pinBtn.setAttribute('aria-label', note.pinned ? "Bỏ ghim ghi chú" : "Ghim ghi chú"); pinBtn.setAttribute('aria-pressed', note.pinned ? 'true' : 'false'); if (note.pinned) pinBtn.classList.add('pinned'); if(currentNotebookId !== 'all') pinBtn.style.display = 'none'; fragment.appendChild(pinBtn); const editBtn = document.createElement('button'); editBtn.classList.add('edit-btn'); editBtn.textContent = 'Sửa'; editBtn.title = 'Sửa ghi chú'; editBtn.setAttribute('aria-label', 'Sửa ghi chú'); fragment.appendChild(editBtn); const archiveBtn = document.createElement('button'); archiveBtn.classList.add('archive-btn'); archiveBtn.innerHTML = '&#128451;'; archiveBtn.title = 'Lưu trữ ghi chú'; archiveBtn.setAttribute('aria-label', 'Lưu trữ ghi chú'); fragment.appendChild(archiveBtn); const deleteBtn = document.createElement('button'); deleteBtn.classList.add('delete-btn'); deleteBtn.textContent = 'Xóa'; deleteBtn.title = 'Chuyển vào thùng rác'; deleteBtn.setAttribute('aria-label', 'Chuyển vào thùng rác'); fragment.appendChild(deleteBtn); return fragment; }
 function createArchiveViewNoteActions(note) { const fragment = document.createDocumentFragment(); const unarchiveBtn = document.createElement('button'); unarchiveBtn.classList.add('unarchive-btn'); unarchiveBtn.innerHTML = '&#x1F5C4;&#xFE0F;'; unarchiveBtn.title = 'Khôi phục từ Lưu trữ'; unarchiveBtn.setAttribute('aria-label', 'Khôi phục từ Lưu trữ'); fragment.appendChild(unarchiveBtn); const deleteBtn = document.createElement('button'); deleteBtn.classList.add('delete-btn'); deleteBtn.textContent = 'Xóa'; deleteBtn.title = 'Chuyển vào thùng rác'; deleteBtn.setAttribute('aria-label', 'Chuyển vào thùng rác'); fragment.appendChild(deleteBtn); return fragment; }
 function createTrashViewNoteActions(note) { const fragment = document.createDocumentFragment(); const restoreBtn = document.createElement('button'); restoreBtn.classList.add('restore-btn'); restoreBtn.innerHTML = '&#x21A9;&#xFE0F;'; restoreBtn.title = 'Khôi phục ghi chú'; restoreBtn.setAttribute('aria-label', 'Khôi phục ghi chú'); fragment.appendChild(restoreBtn); const deletePermanentBtn = document.createElement('button'); deletePermanentBtn.classList.add('delete-permanent-btn'); deletePermanentBtn.textContent = 'Xóa VV'; deletePermanentBtn.title = 'Xóa ghi chú vĩnh viễn'; deletePermanentBtn.setAttribute('aria-label', 'Xóa ghi chú vĩnh viễn'); fragment.appendChild(deletePermanentBtn); return fragment; }
 function createNoteActionsElement(note) { const actionsElement = document.createElement('div'); actionsElement.classList.add('note-actions'); let actionButtonsFragment; if (isViewingTrash) { actionButtonsFragment = createTrashViewNoteActions(note); } else if (isViewingArchived) { actionButtonsFragment = createArchiveViewNoteActions(note); } else { actionButtonsFragment = createMainViewNoteActions(note); } actionsElement.appendChild(actionButtonsFragment); return actionsElement; }
 
 
 // =====================================================================
-//  Core Note Rendering Function (Uses Helpers)
+//  Core Note Rendering Function
 // =====================================================================
 const renderNoteElement = (note) => {
     const noteElement = document.createElement('div');
@@ -573,7 +562,6 @@ const renderNoteElement = (note) => {
     noteElement.dataset.id = note.id;
 
     applyNoteColor(noteElement, note);
-    // Pass currentNotebookId to applyPinnedStatus
     applyPinnedStatus(noteElement, note, isViewingArchived, isViewingTrash);
 
     const titleEl = createNoteTitleElement(note, searchInput.value);
@@ -595,40 +583,33 @@ const renderNoteElement = (note) => {
 };
 
 // =====================================================================
-//  Drag & Drop (UPDATED)
+//  Drag & Drop
 // =====================================================================
 const handleDragEnd = (evt) => {
-    // Chỉ cho phép sắp xếp lại trong view "All Notes" hoặc một sổ tay cụ thể (không phải Archive/Trash)
     if (isViewingArchived || isViewingTrash) return;
 
     const newOrderIds = Array.from(notesContainer.children)
         .map(el => el.classList.contains('note') ? parseInt(el.dataset.id) : null)
         .filter(id => id !== null);
 
-    // Lấy ra các ghi chú đang hiển thị (đã lọc theo sổ tay hiện tại)
     const currentViewNotes = notes.filter(note =>
         !note.deleted && !note.archived &&
         (currentNotebookId === 'all' || note.notebookId === parseInt(currentNotebookId))
     );
 
-    // Tạo map từ ID sang note cho các ghi chú đang hiển thị
     const currentViewNoteMap = new Map(currentViewNotes.map(note => [note.id, note]));
 
-    // Sắp xếp lại các ghi chú đang hiển thị theo thứ tự mới
     const reorderedCurrentViewNotes = newOrderIds
         .map(id => currentViewNoteMap.get(id))
-        .filter(Boolean); // Lọc ra các note thực sự thuộc view hiện tại
+        .filter(Boolean);
 
-    // Lấy ra các ghi chú không hiển thị trong view hiện tại
     const otherNotes = notes.filter(note =>
         note.deleted || note.archived ||
         (currentNotebookId !== 'all' && note.notebookId !== parseInt(currentNotebookId))
     );
 
-    // Kết hợp lại mảng notes
     notes = [...reorderedCurrentViewNotes, ...otherNotes];
     saveNotes();
-    // Không cần gọi displayNotes() vì Sortable đã cập nhật DOM trực tiếp
 };
 
 const initSortable = () => {
@@ -636,7 +617,6 @@ const initSortable = () => {
         sortableInstance.destroy();
         sortableInstance = null;
     }
-    // UPDATED: Chỉ bật kéo thả khi ở view chính hoặc sổ tay cụ thể
     const canInitSortable = typeof Sortable === 'function' &&
                             notesContainer &&
                             notesContainer.children.length > 0 &&
@@ -645,16 +625,7 @@ const initSortable = () => {
 
     if (canInitSortable) {
         sortableInstance = new Sortable(notesContainer, {
-            animation: 150,
-            handle: '.note', // Kéo thả bằng cách nắm vào cả note
-            filter: 'input, textarea, button, .tag-badge, .note-content a, .read-more-btn, .color-swatch-btn', // Không bắt đầu kéo từ các element này
-            preventOnFilter: true,
-            ghostClass: 'sortable-ghost',
-            chosenClass: 'sortable-chosen',
-            dragClass: 'sortable-drag',
-            onEnd: handleDragEnd,
-            delay: 50, // Delay nhỏ để tránh xung đột với click
-            delayOnTouchOnly: true
+            animation: 150, handle: '.note', filter: 'input, textarea, button, .tag-badge, .note-content a, .read-more-btn, .color-swatch-btn', preventOnFilter: true, ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen', dragClass: 'sortable-drag', onEnd: handleDragEnd, delay: 50, delayOnTouchOnly: true
         });
     } else if (typeof Sortable !== 'function' && !isViewingArchived && !isViewingTrash && notes.some(n => !n.archived && !n.deleted)) {
         console.warn("Thư viện Sortable.js chưa được tải.");
@@ -663,9 +634,8 @@ const initSortable = () => {
 
 
 // =====================================================================
-//  Tag Handling (Keep as is)
+//  Tag Handling
 // =====================================================================
-// ... (getAllUniqueTags, showTagSuggestions, handleTagInput, etc. remain the same) ...
 const getAllUniqueTags = () => { const allTags = notes.reduce((acc, note) => { if (!note.deleted && !note.archived && note.tags && note.tags.length > 0) { const validTags = note.tags.map(t => t.trim()).filter(t => t); acc.push(...validTags); } return acc; }, []); return [...new Set(allTags)].sort((a, b) => a.localeCompare(b)); };
 const showTagSuggestions = (inputElement, currentTagFragment, suggestions) => { hideTagSuggestions(); if (suggestions.length === 0 || !currentTagFragment) return; activeTagInputElement = inputElement; const suggestionBox = document.createElement('div'); suggestionBox.id = SUGGESTION_BOX_ID; suggestionBox.classList.add('tag-suggestions'); suggestionBox.setAttribute('role', 'listbox'); inputElement.setAttribute('aria-controls', SUGGESTION_BOX_ID); suggestions.forEach((tag, index) => { const item = document.createElement('div'); item.classList.add('suggestion-item'); item.textContent = tag; item.setAttribute('role', 'option'); item.id = `suggestion-${index}`; item.tabIndex = -1; item.addEventListener('mousedown', (e) => { e.preventDefault(); const currentValue = inputElement.value; const lastCommaIndex = currentValue.lastIndexOf(','); let baseValue = ''; if (lastCommaIndex !== -1) { baseValue = currentValue.substring(0, lastCommaIndex + 1).trimStart() + (currentValue[lastCommaIndex+1] === ' ' ? '' : ' '); } inputElement.value = baseValue + tag + ', '; hideTagSuggestions(); inputElement.focus(); inputElement.setSelectionRange(inputElement.value.length, inputElement.value.length); inputElement.dispatchEvent(new Event('input', { bubbles: true })); }); suggestionBox.appendChild(item); }); const inputRect = inputElement.getBoundingClientRect(); document.body.appendChild(suggestionBox); suggestionBox.style.position = 'absolute'; suggestionBox.style.top = `${inputRect.bottom + window.scrollY}px`; suggestionBox.style.left = `${inputRect.left + window.scrollX}px`; suggestionBox.style.minWidth = `${inputRect.width}px`; suggestionBox.style.width = 'auto'; setTimeout(() => { document.addEventListener('mousedown', handleClickOutsideSuggestions); }, 0); };
 const handleTagInput = (event) => { const inputElement = event.target; const value = inputElement.value; const cursorPosition = inputElement.selectionStart; const lastCommaIndexBeforeCursor = value.substring(0, cursorPosition).lastIndexOf(','); const currentTagFragment = value.substring(lastCommaIndexBeforeCursor + 1, cursorPosition).trim().toLowerCase(); if (currentTagFragment.length >= 1) { const allTags = getAllUniqueTags(); const precedingTagsString = value.substring(0, lastCommaIndexBeforeCursor + 1); const currentEnteredTags = parseTags(precedingTagsString); const filteredSuggestions = allTags.filter(tag => tag.toLowerCase().startsWith(currentTagFragment) && !currentEnteredTags.includes(tag) ); showTagSuggestions(inputElement, currentTagFragment, filteredSuggestions); } else { hideTagSuggestions(); } };
@@ -674,9 +644,8 @@ const handleTagInputKeydown = (event) => { const suggestionBox = document.getEle
 
 
 // =====================================================================
-//  Template UI Handlers (Keep as is)
+//  Template UI Handlers
 // =====================================================================
-// ... (renderTemplateList, showTemplateEditPanel, etc. remain the same) ...
 const renderTemplateList = () => { templateListContainer.innerHTML = ''; if (templates.length === 0) { templateListContainer.innerHTML = `<p class="empty-state">Chưa có mẫu nào.</p>`; return; } templates.sort((a, b) => a.name.localeCompare(b.name)).forEach(template => { const item = document.createElement('div'); item.classList.add('template-list-item'); item.innerHTML = `<span>${escapeHTML(template.name)}</span><div class="template-item-actions"><button class="edit-template-btn modal-button secondary small-button" data-id="${template.id}" title="Sửa mẫu ${escapeHTML(template.name)}">Sửa</button><button class="delete-template-btn modal-button danger small-button" data-id="${template.id}" title="Xóa mẫu ${escapeHTML(template.name)}">Xóa</button></div>`; item.querySelector('.edit-template-btn').addEventListener('click', () => showTemplateEditPanel(template.id)); item.querySelector('.delete-template-btn').addEventListener('click', () => deleteTemplate(template.id)); templateListContainer.appendChild(item); }); };
 const showTemplateEditPanel = (templateId = null) => { templateListSection.classList.add('hidden'); templateEditPanel.classList.remove('hidden'); if (templateId !== null) { const template = templates.find(t => t.id === templateId); if (template) { templateEditTitle.textContent = "Sửa Mẫu"; templateEditId.value = template.id; templateEditName.value = template.name; templateEditTitleInput.value = template.title; templateEditText.value = template.text; templateEditTags.value = (template.tags || []).join(', '); } else { console.error("Không tìm thấy mẫu để sửa ID:", templateId); hideTemplateEditPanel(); return; } } else { templateEditTitle.textContent = "Tạo Mẫu Mới"; templateEditId.value = ''; templateEditName.value = ''; templateEditTitleInput.value = ''; templateEditText.value = ''; templateEditTags.value = ''; } templateEditName.focus(); };
 const hideTemplateEditPanel = () => { templateEditPanel.classList.add('hidden'); templateListSection.classList.remove('hidden'); templateEditId.value = ''; templateEditName.value = ''; templateEditTitleInput.value = ''; templateEditText.value = ''; templateEditTags.value = ''; };
@@ -687,17 +656,17 @@ const applyTemplate = () => { const selectedId = templateSelect.value ? parseInt
 
 
 // =====================================================================
-//  Notebook UI Handlers (NEW)
+//  Notebook UI Handlers
 // =====================================================================
 const renderNotebookList = () => {
-    notebookListContainer.innerHTML = ''; // Clear previous list
+    notebookListContainer.innerHTML = '';
     if (notebooks.length === 0) {
         notebookListContainer.innerHTML = `<p class="empty-state">Chưa có sổ tay nào.</p>`;
         return;
     }
     notebooks.sort((a, b) => a.name.localeCompare(b.name)).forEach(notebook => {
         const item = document.createElement('div');
-        item.classList.add('notebook-list-item'); // Use similar class as templates for styling
+        item.classList.add('notebook-list-item');
         item.innerHTML = `
             <span>${escapeHTML(notebook.name)}</span>
             <div class="notebook-item-actions">
@@ -705,7 +674,6 @@ const renderNotebookList = () => {
                 <button class="delete-notebook-btn modal-button danger small-button" data-id="${notebook.id}" title="Xóa sổ tay ${escapeHTML(notebook.name)}">Xóa</button>
             </div>
         `;
-        // Add event listeners for edit/delete buttons
         item.querySelector('.edit-notebook-btn').addEventListener('click', () => showNotebookEditPanel(notebook.id));
         item.querySelector('.delete-notebook-btn').addEventListener('click', () => deleteNotebook(notebook.id));
         notebookListContainer.appendChild(item);
@@ -713,8 +681,8 @@ const renderNotebookList = () => {
 };
 
 const showNotebookEditPanel = (notebookId = null) => {
-    notebookListSection.classList.add('hidden'); // Hide the list
-    notebookEditPanel.classList.remove('hidden'); // Show the edit form
+    notebookListSection.classList.add('hidden');
+    notebookEditPanel.classList.remove('hidden');
     if (notebookId !== null) {
         const notebook = notebooks.find(nb => nb.id === notebookId);
         if (notebook) {
@@ -723,32 +691,30 @@ const showNotebookEditPanel = (notebookId = null) => {
             notebookEditName.value = notebook.name;
         } else {
             console.error("Không tìm thấy sổ tay để sửa ID:", notebookId);
-            hideNotebookEditPanel(); // Hide panel if notebook not found
+            hideNotebookEditPanel();
             return;
         }
     } else {
-        // Prepare for adding a new notebook
         notebookEditTitle.textContent = "Tạo Sổ tay Mới";
-        notebookEditId.value = ''; // Clear ID
-        notebookEditName.value = ''; // Clear name
+        notebookEditId.value = '';
+        notebookEditName.value = '';
     }
-    notebookEditName.focus(); // Focus on the name input
+    notebookEditName.focus();
 };
 
 const hideNotebookEditPanel = () => {
-    notebookEditPanel.classList.add('hidden'); // Hide the edit form
-    notebookListSection.classList.remove('hidden'); // Show the list again
-    // Clear the form fields
+    notebookEditPanel.classList.add('hidden');
+    notebookListSection.classList.remove('hidden');
     notebookEditId.value = '';
     notebookEditName.value = '';
 };
 
 const showNotebookModal = () => {
-    renderNotebookList(); // Populate the list
-    hideNotebookEditPanel(); // Ensure edit panel is hidden initially
+    renderNotebookList();
+    hideNotebookEditPanel();
     notebookModal.classList.add('visible');
     notebookModal.classList.remove('hidden');
-    showAddNotebookPanelBtn.focus(); // Focus on the "Create New" button
+    showAddNotebookPanelBtn.focus();
 };
 
 const hideNotebookModal = () => {
@@ -759,64 +725,58 @@ const hideNotebookModal = () => {
 };
 
 // =====================================================================
-//  Notebook Tab Rendering (NEW)
+//  Notebook Tab Rendering
 // =====================================================================
 const renderNotebookTabs = () => {
     if (!notebookTabsContainer) return;
 
-    // Clear existing tabs except the "+" button if it exists
     const addButton = notebookTabsContainer.querySelector('#add-notebook-tab-btn');
-    notebookTabsContainer.innerHTML = ''; // Clear all
+    notebookTabsContainer.innerHTML = '';
 
-    // 1. Add "All Notes" Tab
     const allNotesTab = document.createElement('button');
     allNotesTab.classList.add('tab-button');
     allNotesTab.dataset.notebookId = 'all';
     allNotesTab.textContent = 'Tất cả Ghi chú';
-    if (currentNotebookId === 'all') {
+    // Active state depends on currentNotebookId AND not being in archive/trash
+    if (currentNotebookId === 'all' && !isViewingArchived && !isViewingTrash) {
         allNotesTab.classList.add('active');
     }
     notebookTabsContainer.appendChild(allNotesTab);
 
-    // 2. Add Tabs for each Notebook
     notebooks.sort((a, b) => a.name.localeCompare(b.name)).forEach(notebook => {
         const tab = document.createElement('button');
         tab.classList.add('tab-button');
         tab.dataset.notebookId = notebook.id;
         tab.textContent = escapeHTML(notebook.name);
-        if (currentNotebookId === notebook.id) { // Compare with number ID
+        // Active state depends on currentNotebookId AND not being in archive/trash
+        if (currentNotebookId === notebook.id && !isViewingArchived && !isViewingTrash) {
             tab.classList.add('active');
         }
         notebookTabsContainer.appendChild(tab);
     });
 
-    // 3. Re-add the "+" button
-    if (addButton) {
-        notebookTabsContainer.appendChild(addButton);
-    } else {
-        // Create "+" button if it wasn't found (first render)
-        const newAddButton = document.createElement('button');
-        newAddButton.id = 'add-notebook-tab-btn';
-        newAddButton.classList.add('add-tab-button');
-        newAddButton.title = 'Thêm Sổ tay mới';
-        newAddButton.textContent = '+';
-        notebookTabsContainer.appendChild(newAddButton);
-        // Add listener for the newly created button
-        newAddButton.addEventListener('click', () => {
+    // Re-add or create the "+" button
+    const finalAddButton = addButton || document.createElement('button');
+    if (!addButton) { // If creating new
+        finalAddButton.id = 'add-notebook-tab-btn';
+        finalAddButton.classList.add('add-tab-button');
+        finalAddButton.title = 'Thêm Sổ tay mới';
+        finalAddButton.textContent = '+';
+        finalAddButton.addEventListener('click', () => {
             showNotebookModal();
-            showNotebookEditPanel(); // Directly show edit panel
+            showNotebookEditPanel();
         });
     }
+    notebookTabsContainer.appendChild(finalAddButton);
 };
 
 
 // =====================================================================
-//  Other Panel/Import/Export (UPDATED)
+//  Other Panel/Import/Export
 // =====================================================================
 const showAddPanel = () => { const currentlyEditing = notesContainer.querySelector('.note .edit-input'); if (currentlyEditing) { alert("Vui lòng Lưu hoặc Hủy thay đổi ở ghi chú đang sửa trước khi thêm ghi chú mới."); currentlyEditing.closest('.note').querySelector('textarea.edit-input')?.focus(); return; } hideTagSuggestions(); addNotePanel.classList.remove('hidden'); showAddPanelBtn.classList.add('hidden'); templateSelect.value = ""; newNoteTitle.focus(); };
 const hideAddPanel = () => { hideTagSuggestions(); addNotePanel.classList.add('hidden'); if (!notesContainer.querySelector('.note .edit-input')) showAddPanelBtn.classList.remove('hidden'); newNoteTitle.value = ''; newNoteText.value = ''; newNoteTags.value = ''; templateSelect.value = ""; };
 
-// UPDATED: Export includes notebooks
 const exportNotes = () => {
     if (notes.length === 0 && templates.length === 0 && notebooks.length === 0) {
         alert("Không có ghi chú, mẫu, hoặc sổ tay nào để xuất.");
@@ -825,13 +785,12 @@ const exportNotes = () => {
     try {
         const dataToExport = {
             notes: notes.map(note => ({
-                id: note.id, title: note.title || '', text: note.text || '', tags: note.tags || [], pinned: note.pinned || false, lastModified: note.lastModified || note.id, archived: note.archived || false, color: note.color || null, deleted: note.deleted || false, deletedTimestamp: note.deletedTimestamp || null,
-                notebookId: note.notebookId || null // Include notebookId
+                id: note.id, title: note.title || '', text: note.text || '', tags: note.tags || [], pinned: note.pinned || false, lastModified: note.lastModified || note.id, archived: note.archived || false, color: note.color || null, deleted: note.deleted || false, deletedTimestamp: note.deletedTimestamp || null, notebookId: note.notebookId || null
             })),
             templates: templates.map(template => ({
                 id: template.id, name: template.name, title: template.title || '', text: template.text || '', tags: template.tags || []
             })),
-            notebooks: notebooks.map(notebook => ({ // Include notebooks
+            notebooks: notebooks.map(notebook => ({
                 id: notebook.id, name: notebook.name
             }))
         };
@@ -852,7 +811,6 @@ const exportNotes = () => {
     }
 };
 
-// UPDATED: Import handles notebooks and notebookId
 const importNotes = (file) => {
     if (!file) { alert("Vui lòng chọn một file JSON hợp lệ."); return; }
     if (!confirm("CẢNH BÁO:\nThao tác này sẽ THAY THẾ TOÀN BỘ ghi chú, mẫu và sổ tay hiện tại bằng nội dung từ file đã chọn.\nDữ liệu cũ sẽ bị mất.\n\nBạn chắc chắn muốn tiếp tục?")) { importFileInput.value = null; return; }
@@ -860,46 +818,40 @@ const importNotes = (file) => {
     reader.onload = (event) => {
         let importedNotesCount = 0;
         let importedTemplatesCount = 0;
-        let importedNotebooksCount = 0; // NEW
+        let importedNotebooksCount = 0;
         try {
             const importedData = JSON.parse(event.target.result);
             if (typeof importedData !== 'object' || importedData === null) throw new Error("Dữ liệu trong file không phải là một đối tượng JSON.");
 
             let tempNotes = [];
             let tempTemplates = [];
-            let tempNotebooks = []; // NEW
+            let tempNotebooks = [];
 
-            // Import Notebooks first (NEW)
             if (importedData.notebooks && Array.isArray(importedData.notebooks)) {
                 tempNotebooks = importedData.notebooks.map((nb, index) => {
                     if (typeof nb !== 'object' || nb === null) return null;
-                    const validId = typeof nb.id === 'number' ? nb.id : Date.now() + index + 2000; // Ensure unique ID
+                    const validId = typeof nb.id === 'number' ? nb.id : Date.now() + index + 2000;
                     const validName = typeof nb.name === 'string' && nb.name.trim() ? nb.name.trim() : `Sổ tay import ${validId}`;
                     return { id: validId, name: validName };
-                }).filter(Boolean); // Remove null entries
+                }).filter(Boolean);
                 importedNotebooksCount = tempNotebooks.length;
             }
 
-            // Create a set of valid notebook IDs for checking note assignment
             const validNotebookIds = new Set(tempNotebooks.map(nb => nb.id));
 
-            // Import Notes
             if (importedData.notes && Array.isArray(importedData.notes)) {
                 tempNotes = importedData.notes.map((note, index) => {
                     if (typeof note !== 'object' || note === null) return null;
                     const validId = typeof note.id === 'number' ? note.id : Date.now() + index;
                     const validLastModified = typeof note.lastModified === 'number' ? note.lastModified : validId;
-                    // Validate notebookId - assign null if invalid or not present
                     const validNotebookId = typeof note.notebookId === 'number' && validNotebookIds.has(note.notebookId) ? note.notebookId : null;
                     return {
-                        id: validId, title: typeof note.title === 'string' ? note.title : '', text: typeof note.text === 'string' ? note.text : '', tags: Array.isArray(note.tags) ? note.tags.map(String).map(t => t.trim().toLowerCase()).filter(t => t) : [], pinned: typeof note.pinned === 'boolean' ? note.pinned : false, lastModified: validLastModified, archived: typeof note.archived === 'boolean' ? note.archived : false, color: typeof note.color === 'string' && NOTE_COLORS.some(c => c.value === note.color) ? note.color : null, deleted: typeof note.deleted === 'boolean' ? note.deleted : false, deletedTimestamp: typeof note.deletedTimestamp === 'number' ? note.deletedTimestamp : null,
-                        notebookId: validNotebookId // Assign validated notebookId
+                        id: validId, title: typeof note.title === 'string' ? note.title : '', text: typeof note.text === 'string' ? note.text : '', tags: Array.isArray(note.tags) ? note.tags.map(String).map(t => t.trim().toLowerCase()).filter(t => t) : [], pinned: typeof note.pinned === 'boolean' ? note.pinned : false, lastModified: validLastModified, archived: typeof note.archived === 'boolean' ? note.archived : false, color: typeof note.color === 'string' && NOTE_COLORS.some(c => c.value === note.color) ? note.color : null, deleted: typeof note.deleted === 'boolean' ? note.deleted : false, deletedTimestamp: typeof note.deletedTimestamp === 'number' ? note.deletedTimestamp : null, notebookId: validNotebookId
                     };
                 }).filter(Boolean);
                 importedNotesCount = tempNotes.length;
             }
 
-            // Import Templates
             if (importedData.templates && Array.isArray(importedData.templates)) {
                 tempTemplates = importedData.templates.map((template, index) => {
                     if (typeof template !== 'object' || template === null) return null;
@@ -910,14 +862,13 @@ const importNotes = (file) => {
                 importedTemplatesCount = tempTemplates.length;
             }
 
-            // Handle old format (array of notes only)
             if (importedNotesCount === 0 && importedTemplatesCount === 0 && importedNotebooksCount === 0 && Array.isArray(importedData)) {
                 console.log("Attempting to import old format (array of notes)...");
                 tempNotes = importedData.map((note, index) => {
                      if (typeof note !== 'object' || note === null) return null;
                      const validId = typeof note.id === 'number' ? note.id : Date.now() + index;
                      const validLastModified = typeof note.lastModified === 'number' ? note.lastModified : validId;
-                     return { id: validId, title: typeof note.title === 'string' ? note.title : '', text: typeof note.text === 'string' ? note.text : '', tags: Array.isArray(note.tags) ? note.tags.map(String).map(t => t.trim().toLowerCase()).filter(t => t) : [], pinned: typeof note.pinned === 'boolean' ? note.pinned : false, lastModified: validLastModified, archived: typeof note.archived === 'boolean' ? note.archived : false, color: typeof note.color === 'string' && NOTE_COLORS.some(c => c.value === note.color) ? note.color : null, deleted: typeof note.deleted === 'boolean' ? note.deleted : false, deletedTimestamp: typeof note.deletedTimestamp === 'number' ? note.deletedTimestamp : null, notebookId: null }; // Assign null notebookId
+                     return { id: validId, title: typeof note.title === 'string' ? note.title : '', text: typeof note.text === 'string' ? note.text : '', tags: Array.isArray(note.tags) ? note.tags.map(String).map(t => t.trim().toLowerCase()).filter(t => t) : [], pinned: typeof note.pinned === 'boolean' ? note.pinned : false, lastModified: validLastModified, archived: typeof note.archived === 'boolean' ? note.archived : false, color: typeof note.color === 'string' && NOTE_COLORS.some(c => c.value === note.color) ? note.color : null, deleted: typeof note.deleted === 'boolean' ? note.deleted : false, deletedTimestamp: typeof note.deletedTimestamp === 'number' ? note.deletedTimestamp : null, notebookId: null };
                 }).filter(Boolean);
                 tempTemplates = [];
                 tempNotebooks = [];
@@ -927,24 +878,20 @@ const importNotes = (file) => {
                 throw new Error("File JSON không chứa key 'notes', 'templates', hoặc 'notebooks' hợp lệ, hoặc không phải là mảng dữ liệu cũ.");
             }
 
-            // Replace current data
             notes = tempNotes;
             templates = tempTemplates;
-            notebooks = tempNotebooks; // NEW
+            notebooks = tempNotebooks;
 
-            // Save all data
             saveNotes();
             saveTemplates();
-            saveNotebooks(); // NEW
+            saveNotebooks();
 
-            // Reset view state
             isViewingArchived = false;
             isViewingTrash = false;
-            currentNotebookId = DEFAULT_NOTEBOOK_ID; // Reset to "All Notes"
+            currentNotebookId = DEFAULT_NOTEBOOK_ID;
             searchInput.value = '';
 
-            // Update UI
-            renderNotebookTabs(); // NEW
+            renderNotebookTabs();
             displayNotes();
             populateTemplateDropdown();
 
@@ -954,7 +901,7 @@ const importNotes = (file) => {
             console.error("Lỗi nhập file:", error);
             alert(`Lỗi nhập file: ${error.message}\n\nVui lòng kiểm tra xem file có đúng định dạng JSON và cấu trúc dữ liệu hợp lệ không.`);
         } finally {
-            importFileInput.value = null; // Reset file input
+            importFileInput.value = null;
         }
     };
     reader.onerror = (event) => {
@@ -967,25 +914,22 @@ const importNotes = (file) => {
 
 
 // =====================================================================
-//  Note Filtering and Sorting Logic (UPDATED)
+//  Note Filtering and Sorting Logic
 // =====================================================================
 const getFilteredNotes = (allNotes, filter) => {
-    // 1. Lọc theo trạng thái view (main, archive, trash) - Ưu tiên Archive/Trash
     let viewFilteredNotes = allNotes.filter(note => {
         if (isViewingTrash) {
             return note.deleted;
         } else if (isViewingArchived) {
             return note.archived && !note.deleted;
         } else {
-            // Nếu không ở Archive/Trash, thì lọc theo sổ tay hiện tại
             return !note.deleted && !note.archived &&
                    (currentNotebookId === 'all' || note.notebookId === parseInt(currentNotebookId));
         }
     });
 
-    // 2. Lọc theo từ khóa tìm kiếm (nếu có)
     if (filter) {
-        const lowerCaseFilter = filter.toLowerCase().trim(); // Ensure filter is lowercase here
+        const lowerCaseFilter = filter.toLowerCase().trim();
         const isTagSearch = lowerCaseFilter.startsWith('#');
         const tagSearchTerm = isTagSearch ? lowerCaseFilter.substring(1) : null;
 
@@ -1013,9 +957,7 @@ const sortNotes = (filteredNotes) => {
     } else if (isViewingArchived) {
         return filteredNotes.sort((a, b) => (b.lastModified || b.id) - (a.lastModified || a.id));
     } else {
-        // Sắp xếp view chính/sổ tay: ghim lên đầu (chỉ khi ở view 'all'), sau đó theo thời gian sửa đổi
         return filteredNotes.sort((a, b) => {
-            // Chỉ ưu tiên ghim nếu đang ở view "All Notes"
             if (currentNotebookId === 'all' && a.pinned !== b.pinned) {
                 return b.pinned - a.pinned;
             }
@@ -1025,19 +967,16 @@ const sortNotes = (filteredNotes) => {
 };
 
 // =====================================================================
-//  Core Display Function (UPDATED)
+//  Core Display Function
 // =====================================================================
 const displayNotes = (filter = '') => {
     hideTagSuggestions();
     const scrollY = window.scrollY;
     notesContainer.innerHTML = '';
 
-    // 1. Lọc và Sắp xếp
     const filteredNotes = getFilteredNotes(notes, filter.toLowerCase().trim());
     const notesToDisplay = sortNotes(filteredNotes);
 
-    // 3. Cập nhật UI phụ trợ (header buttons, status indicators)
-    // Reset trạng thái nút Archive/Trash trước
     viewArchiveBtn.classList.remove('viewing-archive');
     viewTrashBtn.classList.remove('viewing-trash');
     viewArchiveBtn.textContent = 'Xem Lưu trữ';
@@ -1046,29 +985,24 @@ const displayNotes = (filter = '') => {
     trashStatusIndicator.classList.add('hidden');
     emptyTrashBtn.classList.add('hidden');
 
-    // Đặt trạng thái nếu đang xem Archive hoặc Trash
     if (isViewingTrash) {
         trashStatusIndicator.classList.remove('hidden');
-        viewTrashBtn.textContent = 'Xem Ghi chú Chính'; // Hoặc tên sổ tay trước đó? Tạm để thế này
+        viewTrashBtn.textContent = 'Xem Ghi chú';
         viewTrashBtn.classList.add('viewing-trash');
         if(notesToDisplay.length > 0) {
             emptyTrashBtn.classList.remove('hidden');
         }
-        // Đảm bảo tab sổ tay không active khi xem Trash/Archive
-        renderNotebookTabs(); // Gọi lại để bỏ active tab sổ tay
+        renderNotebookTabs(); // Update tabs to show none active
     } else if (isViewingArchived) {
         archiveStatusIndicator.classList.remove('hidden');
-        viewArchiveBtn.textContent = 'Xem Ghi chú Chính'; // Hoặc tên sổ tay trước đó?
+        viewArchiveBtn.textContent = 'Xem Ghi chú';
         viewArchiveBtn.classList.add('viewing-archive');
-        // Đảm bảo tab sổ tay không active khi xem Trash/Archive
-        renderNotebookTabs(); // Gọi lại để bỏ active tab sổ tay
+        renderNotebookTabs(); // Update tabs to show none active
     } else {
-        // Nếu không phải Archive/Trash, đảm bảo tab sổ tay đúng được active
-        renderNotebookTabs();
+        renderNotebookTabs(); // Ensure correct tab is active
     }
 
 
-    // 4. Render danh sách ghi chú hoặc thông báo rỗng
     if (notesToDisplay.length === 0) {
         let emptyMessage = '';
         if (isViewingTrash) {
@@ -1092,7 +1026,7 @@ const displayNotes = (filter = '') => {
             const noteElement = renderNoteElement(note);
             notesContainer.appendChild(noteElement);
         });
-        initSortable(); // Khởi tạo hoặc cập nhật Sortable
+        initSortable();
     }
 
     window.scrollTo({ top: scrollY, behavior: 'instant' });
@@ -1102,13 +1036,12 @@ const displayNotes = (filter = '') => {
 // =====================================================================
 //  Modal Handling Functions
 // =====================================================================
-// ... (showSettingsModal, hideSettingsModal, showTemplateModal, hideTemplateModal remain the same) ...
 const showSettingsModal = () => { const currentTheme = getStoredPreference(THEME_NAME_KEY, DEFAULT_THEME); const currentAccent = getStoredPreference(ACCENT_COLOR_KEY, DEFAULT_ACCENT_COLOR); const currentFont = getStoredPreference(FONT_FAMILY_KEY, DEFAULT_FONT_FAMILY); const currentSizeScale = parseFloat(getStoredPreference(FONT_SIZE_SCALE_KEY, DEFAULT_FONT_SIZE_SCALE.toString())); updateThemeSelectionUI(currentTheme); updateAccentColorSelectionUI(currentAccent); updateFontFamilySelectionUI(currentFont); updateFontSizeUI(isNaN(currentSizeScale) ? DEFAULT_FONT_SIZE_SCALE : currentSizeScale); settingsModal.classList.add('visible'); settingsModal.classList.remove('hidden'); closeSettingsModalBtn.focus(); };
 const hideSettingsModal = () => { settingsModal.classList.remove('visible'); settingsModal.addEventListener('transitionend', (e) => { if (e.target === settingsModal) settingsModal.classList.add('hidden'); }, { once: true }); };
 
 
 // =====================================================================
-//  Event Listener Setup Functions (UPDATED)
+//  Event Listener Setup Functions
 // =====================================================================
 
 const setupThemeAndAppearanceListeners = () => {
@@ -1122,12 +1055,15 @@ const setupThemeAndAppearanceListeners = () => {
             const targetButton = event.target.closest('.theme-option-btn');
             if (targetButton?.dataset.theme) {
                 const selectedTheme = targetButton.dataset.theme;
-                if (VALID_THEMES.includes(selectedTheme)) {
+                if (VALID_THEMES.includes(selectedTheme)) { // Check if theme is valid
                     applyTheme(selectedTheme);
                     localStorage.setItem(THEME_NAME_KEY, selectedTheme);
+                    // Only update LAST_CUSTOM_THEME_KEY if it's not light or dark
                     if (selectedTheme !== 'light' && selectedTheme !== 'dark') {
                         localStorage.setItem(LAST_CUSTOM_THEME_KEY, selectedTheme);
                     }
+                } else {
+                    console.warn(`Attempted to apply invalid theme: ${selectedTheme}`);
                 }
             }
         });
@@ -1197,22 +1133,19 @@ const setupHeaderActionListeners = () => {
         e.target.value = null;
     });
 
-    // Chuyển view Archive/Trash
     viewArchiveBtn.addEventListener('click', () => {
-        isViewingArchived = true; // Luôn set true khi click
+        isViewingArchived = true;
         isViewingTrash = false;
-        currentNotebookId = 'archive'; // Sử dụng ID đặc biệt cho state
+        currentNotebookId = 'archive'; // Use special ID for state, not a real notebook ID
         searchInput.value = '';
         displayNotes();
-        // Không cần renderNotebookTabs vì displayNotes sẽ làm
     });
     viewTrashBtn.addEventListener('click', () => {
-        isViewingTrash = true; // Luôn set true khi click
+        isViewingTrash = true;
         isViewingArchived = false;
-        currentNotebookId = 'trash'; // Sử dụng ID đặc biệt cho state
+        currentNotebookId = 'trash'; // Use special ID for state
         searchInput.value = '';
         displayNotes();
-        // Không cần renderNotebookTabs vì displayNotes sẽ làm
     });
     emptyTrashBtn.addEventListener('click', handleEmptyTrash);
 };
@@ -1259,7 +1192,7 @@ const setupNoteActionListeners = () => {
         if (isEditingThisNote) {
              if (target.closest('.save-edit-btn')) {
                  handleNoteSaveEdit(noteElement, noteId, noteIndex);
-             } else if (target.closest('.pin-btn') && currentNotebookId === 'all') { // Chỉ cho phép pin/unpin khi đang sửa ở view 'all'
+             } else if (target.closest('.pin-btn') && currentNotebookId === 'all') {
                  handleNotePin(noteId, noteIndex);
                  const pinBtn = target.closest('.pin-btn');
                  if (pinBtn) {
@@ -1273,7 +1206,7 @@ const setupNoteActionListeners = () => {
              return;
         }
 
-        if (target.closest('.pin-btn') && !isViewingArchived && !isViewingTrash && currentNotebookId === 'all') handleNotePin(noteId, noteIndex); // Chỉ pin/unpin ở view 'all'
+        if (target.closest('.pin-btn') && !isViewingArchived && !isViewingTrash && currentNotebookId === 'all') handleNotePin(noteId, noteIndex);
         else if (target.closest('.delete-btn')) handleNoteDelete(noteId, noteIndex);
         else if (target.closest('.archive-btn') && !isViewingTrash && !isViewingArchived) handleNoteArchive(noteId, noteIndex);
         else if (target.closest('.unarchive-btn') && isViewingArchived) handleNoteUnarchive(noteId, noteIndex);
@@ -1283,9 +1216,8 @@ const setupNoteActionListeners = () => {
     });
 };
 
-// UPDATED: Listener for Template Modal (kept separate for clarity)
 const setupTemplateModalListeners = () => {
-    if(manageTemplatesBtn) manageTemplatesBtn.addEventListener('click', showTemplateModal); // Giữ lại nếu nút còn tồn tại
+    if(manageTemplatesBtn) manageTemplatesBtn.addEventListener('click', showTemplateModal);
     closeTemplateModalBtn.addEventListener('click', hideTemplateModal);
     templateModal.addEventListener('click', (event) => {
         if (event.target === templateModal && templateEditPanel.classList.contains('hidden')) {
@@ -1298,47 +1230,40 @@ const setupTemplateModalListeners = () => {
     templateSelect.addEventListener('change', applyTemplate);
 };
 
-// NEW: Listener for Notebook Modal and Tabs
 const setupNotebookListeners = () => {
-    // Button on header to open modal
     if(manageNotebooksBtn) manageNotebooksBtn.addEventListener('click', showNotebookModal);
 
-    // Buttons inside modal
     closeNotebookModalBtn.addEventListener('click', hideNotebookModal);
     notebookModal.addEventListener('click', (event) => {
         if (event.target === notebookModal && notebookEditPanel.classList.contains('hidden')) {
             hideNotebookModal();
         }
     });
-    showAddNotebookPanelBtn.addEventListener('click', () => showNotebookEditPanel()); // Button "Tạo mới" trong modal
+    showAddNotebookPanelBtn.addEventListener('click', () => showNotebookEditPanel());
     cancelEditNotebookBtn.addEventListener('click', hideNotebookEditPanel);
     saveNotebookBtn.addEventListener('click', addOrUpdateNotebook);
-    // Edit/Delete listeners are added dynamically in renderNotebookList
 
-    // Listener for Tabs (Event Delegation)
     if (notebookTabsContainer) {
         notebookTabsContainer.addEventListener('click', (event) => {
             const target = event.target;
-            // Handle click on a notebook tab button
             if (target.matches('.tab-button') && target.dataset.notebookId) {
+                // Use string 'all' or number for IDs
                 const selectedNotebookId = target.dataset.notebookId === 'all' ? 'all' : parseInt(target.dataset.notebookId);
 
-                // If already active, do nothing (or maybe reload?)
+                // Prevent re-rendering if already on the active tab (and not in archive/trash)
                 if (selectedNotebookId === currentNotebookId && !isViewingArchived && !isViewingTrash) return;
 
-                // Update state
                 currentNotebookId = selectedNotebookId;
-                isViewingArchived = false; // Exit archive/trash view
+                isViewingArchived = false;
                 isViewingTrash = false;
-                searchInput.value = ''; // Clear search on tab change
+                searchInput.value = '';
 
-                // Update UI (displayNotes will call renderNotebookTabs)
-                displayNotes();
+                displayNotes(); // This will call renderNotebookTabs internally
             }
-            // Handle click on the "+" button in the tab bar
+            // Button '+' on tab bar
             else if (target.matches('#add-notebook-tab-btn')) {
                 showNotebookModal();
-                showNotebookEditPanel(); // Go directly to add panel
+                showNotebookEditPanel();
             }
         });
     }
@@ -1368,25 +1293,24 @@ const setupGlobalKeydownListeners = () => {
         const isTemplateModalOpen = templateModal.classList.contains('visible');
         const isNoteModalOpen = !!document.querySelector('.note-modal.visible');
         const isSettingsModalOpen = settingsModal.classList.contains('visible');
-        const isNotebookModalOpen = notebookModal.classList.contains('visible'); // NEW check
+        const isNotebookModalOpen = notebookModal.classList.contains('visible');
         const isSuggestionBoxOpen = !!document.getElementById(SUGGESTION_BOX_ID);
         const isEditingNote = activeElement?.closest('.note')?.querySelector('.edit-input, .edit-title-input, .edit-tags-input') === activeElement;
         const isEditingTemplate = templateEditPanel.contains(activeElement);
-        const isEditingNotebook = notebookEditPanel.contains(activeElement); // NEW check
+        const isEditingNotebook = notebookEditPanel.contains(activeElement);
 
         if (event.key === 'Escape') {
              if (isSuggestionBoxOpen) hideTagSuggestions();
              else if (isSettingsModalOpen) hideSettingsModal();
              else if (isNoteModalOpen) document.querySelector('.note-modal.visible .close-modal-btn')?.click();
              else if (isTemplateModalOpen) { if (!templateEditPanel.classList.contains('hidden')) hideTemplateEditPanel(); else hideTemplateModal(); }
-             else if (isNotebookModalOpen) { if (!notebookEditPanel.classList.contains('hidden')) hideNotebookEditPanel(); else hideNotebookModal(); } // NEW check
+             else if (isNotebookModalOpen) { if (!notebookEditPanel.classList.contains('hidden')) hideNotebookEditPanel(); else hideNotebookModal(); }
              else if (!addNotePanel.classList.contains('hidden')) hideAddPanel();
              else if (isEditingNote) { const editingNoteElement = activeElement.closest('.note'); if (editingNoteElement && confirm("Bạn có muốn hủy bỏ các thay đổi và đóng chỉnh sửa ghi chú không?")) { displayNotes(searchInput.value); if (addNotePanel.classList.contains('hidden')) showAddPanelBtn.classList.remove('hidden'); if (sortableInstance) sortableInstance.option('disabled', false); } }
              else if (activeElement === searchInput && searchInput.value !== '') { searchInput.value = ''; displayNotes(); }
              event.preventDefault(); event.stopPropagation(); return;
         }
 
-        // Prevent other shortcuts if a modal is open (except specific save actions)
         const isAnyModalOpen = isNoteModalOpen || isTemplateModalOpen || isSettingsModalOpen || isNotebookModalOpen;
         const allowSaveInModal = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's' && (isEditingTemplate || isEditingNotebook);
 
@@ -1403,7 +1327,7 @@ const setupGlobalKeydownListeners = () => {
             if (isEditingNote) { event.preventDefault(); activeElement.closest('.note')?.querySelector('.save-edit-btn')?.click(); }
             else if (addNotePanel.contains(activeElement)) { event.preventDefault(); addNoteBtn.click(); }
             else if (isEditingTemplate) { event.preventDefault(); saveTemplateBtn.click(); }
-            else if (isEditingNotebook) { event.preventDefault(); saveNotebookBtn.click(); } // NEW check
+            else if (isEditingNotebook) { event.preventDefault(); saveNotebookBtn.click(); }
         } else if (isCtrlOrCmd && event.key.toLowerCase() === 'f') {
             event.preventDefault();
             searchInput.focus();
@@ -1413,7 +1337,7 @@ const setupGlobalKeydownListeners = () => {
 };
 
 // =====================================================================
-//  Main Event Listener Setup Function (REFACTORED)
+//  Main Event Listener Setup Function
 // =====================================================================
 const setupEventListeners = () => {
     setupThemeAndAppearanceListeners();
@@ -1421,26 +1345,26 @@ const setupEventListeners = () => {
     setupAddNotePanelListeners();
     setupSearchListener();
     setupNoteActionListeners();
-    setupTemplateModalListeners(); // Keep if needed
-    setupNotebookListeners(); // NEW
+    setupTemplateModalListeners();
+    setupNotebookListeners();
     setupTagInputListeners();
     setupGlobalKeydownListeners();
 };
 
 
 // =====================================================================
-//  Initial Load Function (UPDATED)
+//  Initial Load Function
 // =====================================================================
 const loadNotesAndInit = () => {
-     loadNotes(); // Load notes (handles notebookId)
+     loadNotes();
      loadTemplates();
-     loadNotebooks(); // NEW: Load notebooks
+     loadNotebooks();
      applyAllAppearanceSettings();
      isViewingArchived = false;
      isViewingTrash = false;
-     currentNotebookId = DEFAULT_NOTEBOOK_ID; // Start with "All Notes"
-     renderNotebookTabs(); // NEW: Render initial tabs
-     displayNotes(); // Display initial notes based on state
+     currentNotebookId = DEFAULT_NOTEBOOK_ID;
+     renderNotebookTabs();
+     displayNotes();
      populateTemplateDropdown();
      setupEventListeners();
 };

@@ -1,0 +1,551 @@
+/* --- Biến màu --- */
+:root {
+    /* Màu cơ bản & Giao diện */
+    --bg-color: #f4f7f6;
+    --text-color: #333;
+    --card-bg-color: #ffffff;
+    --border-color: #e0e0e0;
+    --primary-color: #007bff; /* Màu nhấn - Sẽ được cập nhật bởi JS */
+    --primary-text-color: #ffffff; /* Màu chữ trên nền màu nhấn */
+    --secondary-color: #6c757d; /* Màu phụ (vd: timestamp, nút thường) */
+    --danger-color: #dc3545; /* Màu cảnh báo/xóa */
+    --success-color: #198754; /* Màu thành công/khôi phục */
+    --input-bg-color: #ffffff;
+    --input-border-color: #ced4da;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --fab-bg-color: var(--primary-color); /* FAB dùng màu nhấn */
+    --fab-text-color: var(--primary-text-color);
+    --tag-bg-color: #e9ecef;
+    --tag-text-color: #495057;
+    --pin-color: var(--secondary-color); /* Màu icon pin chưa ghim */
+    --pinned-color: #ffc107; /* Màu icon pin đã ghim (vàng) */
+    --highlight-bg-color: #fff3cd; /* Màu nền highlight text tìm kiếm */
+    --highlight-text-color: #664d03; /* Màu chữ highlight */
+    --archive-color: var(--secondary-color); /* Màu cho các yếu tố liên quan archive */
+    --fade-color-start: rgba(255, 255, 255, 0); /* Màu bắt đầu fade-out content */
+    --fade-color-end: rgba(255, 255, 255, 1); /* Màu kết thúc fade-out content */
+    --modal-backdrop-color: rgba(0, 0, 0, 0.6);
+    --modal-content-bg: #ffffff;
+    --modal-border-color: #ccc;
+    --tab-border-color: var(--border-color);
+    --tab-hover-bg: rgba(0, 0, 0, 0.05);
+    --tab-active-bg: var(--card-bg-color);
+    --tab-active-border: var(--primary-color);
+    --tab-active-text: var(--primary-color);
+
+
+    /* Biến cho Font & Layout (Có thể được cập nhật bởi JS) */
+    --content-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; /* Font mặc định */
+    --font-size-scale: 1; /* Tỉ lệ cỡ chữ (1 = 100%) */
+    --note-gap: 20px; /* Khoảng cách giữa các note */
+
+    /* Biến cho Cài đặt Giao diện */
+    --setting-section-bg: rgba(0, 0, 0, 0.02);
+    --setting-option-border: var(--border-color);
+    --setting-option-hover-bg: rgba(0, 0, 0, 0.05);
+    --setting-option-active-bg: var(--primary-color);
+    --setting-option-active-text: var(--primary-text-color);
+    --setting-option-active-border: var(--primary-color);
+
+    /* Note Color Variables (Light Mode - dùng cho border trái và nền) */
+    --note-color-yellow-bg: #fff9e0;
+    --note-color-yellow-border: #ffecb3;
+    --note-color-blue-bg: #e7f3ff;
+    --note-color-blue-border: #bbdefb;
+    --note-color-green-bg: #e8f5e9;
+    --note-color-green-border: #c8e6c9;
+    --note-color-red-bg: #ffebee;
+    --note-color-red-border: #ffcdd2;
+    --note-color-purple-bg: #f3e5f5;
+    --note-color-purple-border: #e1bee7;
+    --note-color-grey-bg: #f5f5f5;
+    --note-color-grey-border: #e0e0e0;
+}
+
+/* ==================== DARK MODE ==================== */
+body.dark-mode {
+     --bg-color: #212529;
+     --text-color: #dee2e6;
+     --card-bg-color: #343a40;
+     --border-color: #495057;
+     /* --primary-color: #0d6efd; */ /* Sẽ bị ghi đè bởi JS nếu chọn màu nhấn khác */
+     --primary-text-color: #ffffff;
+     --secondary-color: #adb5bd;
+     --danger-color: #f84d5e;
+     --success-color: #20c997;
+     --input-bg-color: #495057;
+     --input-border-color: #6c757d;
+     --shadow-color: rgba(0, 0, 0, 0.3);
+     --tag-bg-color: #495057;
+     --tag-text-color: #dee2e6;
+     --pin-color: var(--secondary-color);
+     --pinned-color: #FFD700;
+     --highlight-bg-color: #a08a00;
+     --highlight-text-color: #fff;
+     --archive-color: var(--secondary-color);
+     --fade-color-start: rgba(52, 58, 64, 0);
+     --fade-color-end: rgba(52, 58, 64, 1);
+     --modal-backdrop-color: rgba(0, 0, 0, 0.7);
+     --modal-content-bg: #343a40;
+     --modal-border-color: #495057;
+     --tab-border-color: var(--border-color);
+     --tab-hover-bg: rgba(255, 255, 255, 0.1);
+     --tab-active-bg: var(--card-bg-color);
+     /* Active tab border/text color giữ nguyên là primary */
+
+    /* Biến Cài đặt Dark Mode */
+    --setting-section-bg: rgba(255, 255, 255, 0.04);
+    --setting-option-border: var(--border-color);
+    --setting-option-hover-bg: rgba(255, 255, 255, 0.1);
+    /* Active state vẫn dùng primary color */
+
+    /* Note Color Variables (Dark Mode) */
+    --note-color-yellow-bg: #4d4222;
+    --note-color-yellow-border: #806b38;
+    --note-color-blue-bg: #2c3e50;
+    --note-color-blue-border: #5dade2;
+    --note-color-green-bg: #2e4b30;
+    --note-color-green-border: #58d68d;
+    --note-color-red-bg: #5c2b2e;
+    --note-color-red-border: #ec7063;
+    --note-color-purple-bg: #4a235a;
+    --note-color-purple-border: #bb8fce;
+    --note-color-grey-bg: #424242;
+    --note-color-grey-border: #757575;
+}
+
+/* ==================== CÁC THEME KHÁC (Định nghĩa biến) ==================== */
+body.theme-sepia {
+    --bg-color: #f4ecd8;
+    --text-color: #5b4636;
+    --card-bg-color: #fbf5e9;
+    --border-color: #dcd0ba;
+    /* --primary-color: #8d6e63; */ /* Giữ màu nhấn đã chọn hoặc đổi */
+    --primary-text-color: #ffffff;
+    --secondary-color: #a1887f;
+    --danger-color: #c62828;
+    --success-color: #558b2f;
+    --input-bg-color: #fbf5e9;
+    --input-border-color: #dcd0ba;
+    --shadow-color: rgba(91, 70, 54, 0.15);
+    --tag-bg-color: #e5dace;
+    --tag-text-color: #795548;
+    --pin-color: var(--secondary-color);
+    --pinned-color: #bcaaa4; /* Màu pin sepia */
+    --highlight-bg-color: #efebe9;
+    --highlight-text-color: #3e2723;
+    --fade-color-start: rgba(251, 245, 233, 0);
+    --fade-color-end: rgba(251, 245, 233, 1);
+    --modal-backdrop-color: rgba(91, 70, 54, 0.6);
+    --modal-content-bg: #fbf5e9;
+    --modal-border-color: #dcd0ba;
+    --tab-border-color: var(--border-color);
+    --tab-hover-bg: rgba(91, 70, 54, 0.1);
+    --tab-active-bg: var(--card-bg-color);
+
+    --setting-section-bg: rgba(91, 70, 54, 0.05);
+    --setting-option-hover-bg: rgba(91, 70, 54, 0.1);
+
+    /* Note Colors Sepia (Ví dụ) */
+    --note-color-yellow-bg: #f9f3d6;
+    --note-color-yellow-border: #d7ccc8;
+    --note-color-blue-bg: #e8eaf6;
+    --note-color-blue-border: #b0bec5;
+    --note-color-green-bg: #e8f5e9;
+    --note-color-green-border: #a5d6a7;
+    --note-color-red-bg: #ffebee;
+    --note-color-red-border: #ef9a9a;
+    --note-color-purple-bg: #f3e5f5;
+    --note-color-purple-border: #ce93d8;
+    --note-color-grey-bg: #f5f5f5;
+    --note-color-grey-border: #dcd0ba;
+}
+
+body.theme-solarized-light {
+    --bg-color: #fdf6e3; /* base3 */
+    --text-color: #657b83; /* base00 */
+    --card-bg-color: #eee8d5; /* base2 */
+    --border-color: #93a1a1; /* base01 */
+    /* --primary-color: #268bd2; */ /* blue - Sẽ bị ghi đè bởi JS */
+    --primary-text-color: #fdf6e3; /* base3 */
+    --secondary-color: #839496; /* base0 */
+    --danger-color: #dc322f; /* red */
+    --success-color: #859900; /* green */
+    --input-bg-color: #eee8d5;
+    --input-border-color: #93a1a1;
+    --shadow-color: rgba(88, 110, 117, 0.15); /* base01 với alpha */
+    --tag-bg-color: #eee8d5;
+    --tag-text-color: #586e75; /* base01 */
+    --pin-color: var(--secondary-color);
+    --pinned-color: #b58900; /* yellow */
+    --highlight-bg-color: #eee8d5;
+    --highlight-text-color: #cb4b16; /* orange */
+    --fade-color-start: rgba(238, 232, 213, 0);
+    --fade-color-end: rgba(238, 232, 213, 1);
+    --modal-backdrop-color: rgba(238, 232, 213, 0.6); /* base2 với alpha */
+    --modal-content-bg: #fdf6e3; /* base3 */
+    --modal-border-color: #eee8d5; /* base2 */
+    --tab-border-color: var(--border-color);
+    --tab-hover-bg: rgba(0, 43, 54, 0.07);
+    --tab-active-bg: var(--card-bg-color);
+
+    --setting-section-bg: rgba(0, 43, 54, 0.03);
+    --setting-option-hover-bg: rgba(0, 43, 54, 0.07);
+
+     /* Note Colors Solarized Light (Ví dụ) */
+    --note-color-yellow-bg: #fcf4b3;
+    --note-color-yellow-border: #b58900; /* yellow */
+    --note-color-blue-bg: #dfefff;
+    --note-color-blue-border: #268bd2; /* blue */
+    --note-color-green-bg: #edf8d7;
+    --note-color-green-border: #859900; /* green */
+    --note-color-red-bg: #ffe4e1;
+    --note-color-red-border: #dc322f; /* red */
+    --note-color-purple-bg: #efebff;
+    --note-color-purple-border: #6c71c4; /* violet */
+    --note-color-grey-bg: #eee8d5;
+    --note-color-grey-border: #93a1a1;
+}
+
+body.theme-solarized-dark {
+     --bg-color: #002b36; /* base03 */
+     --text-color: #839496; /* base0 */
+     --card-bg-color: #073642; /* base02 */
+     --border-color: #586e75; /* base01 */
+     /* --primary-color: #268bd2; */ /* blue */
+     --primary-text-color: #fdf6e3; /* base3 */
+     --secondary-color: #586e75; /* base01 */
+     --danger-color: #dc322f; /* red */
+     --success-color: #859900; /* green */
+     --input-bg-color: #073642;
+     --input-border-color: #586e75;
+     --shadow-color: rgba(0, 0, 0, 0.3);
+     --tag-bg-color: #586e75;
+     --tag-text-color: #eee8d5; /* base2 */
+     --pin-color: var(--secondary-color);
+     --pinned-color: #b58900; /* yellow */
+     --highlight-bg-color: #586e75;
+     --highlight-text-color: #fdf6e3;
+     --archive-color: var(--secondary-color);
+     --fade-color-start: rgba(7, 54, 66, 0);
+     --fade-color-end: rgba(7, 54, 66, 1);
+     --modal-backdrop-color: rgba(0, 0, 0, 0.7);
+     --modal-content-bg: #073642;
+     --modal-border-color: #586e75;
+     --tab-border-color: var(--border-color);
+     --tab-hover-bg: rgba(253, 246, 227, 0.1);
+     --tab-active-bg: var(--card-bg-color);
+
+    --setting-section-bg: rgba(253, 246, 227, 0.05);
+    --setting-option-hover-bg: rgba(253, 246, 227, 0.1);
+    /* Active state vẫn dùng primary color */
+
+    /* Note Color Variables (Solarized Dark) */
+    --note-color-yellow-bg: #3a300a;
+    --note-color-yellow-border: #b58900;
+    --note-color-blue-bg: #0d3f54;
+    --note-color-blue-border: #268bd2;
+    --note-color-green-bg: #2a3d00;
+    --note-color-green-border: #859900;
+    --note-color-red-bg: #4d1c1a;
+    --note-color-red-border: #dc322f;
+    --note-color-purple-bg: #2d2f51;
+    --note-color-purple-border: #6c71c4;
+    --note-color-grey-bg: #073642;
+    --note-color-grey-border: #586e75;
+}
+
+
+/* --- CSS Cơ bản --- */
+body {
+    font-family: var(--content-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
+    margin: 0;
+    padding: 20px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-size: calc(1rem * var(--font-size-scale, 1));
+    line-height: 1.6;
+    transition: background-color 0.3s, color 0.3s, font-size 0.1s linear;
+}
+
+/* --- Header & Controls --- */
+.app-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+.app-header h1 { margin: 0; font-size: 1.8em; color: var(--primary-color); white-space: nowrap; }
+.header-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.header-actions button { padding: 8px 12px; background-color: var(--secondary-color); color: var(--primary-text-color); border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.2s, opacity 0.2s; font-size: 0.9em; white-space: nowrap; line-height: 1.4; } /* Thêm line-height */
+.header-actions button:hover { opacity: 0.85; }
+#export-notes-btn { background-color: var(--success-color); }
+#import-notes-btn { background-color: var(--primary-color); }
+/* Nút quản lý sổ tay mới */
+#manage-notebooks-btn { background-color: #6f42c1; }
+body.dark-mode #manage-notebooks-btn { background-color: #8a63d2; }
+#empty-trash-btn { background-color: var(--danger-color); }
+#empty-trash-btn.hidden { display: none !important; }
+#view-archive-btn { background-color: var(--secondary-color); }
+#view-archive-btn.viewing-archive { background-color: var(--primary-color); font-weight: bold; }
+#view-trash-btn { background-color: var(--secondary-color); }
+#view-trash-btn.viewing-trash { background-color: var(--danger-color); font-weight: bold; }
+#settings-btn { background-color: #ffc107; color: #333; }
+#theme-toggle-btn { background-color: var(--secondary-color); min-width: 110px; text-align: center; } /* Đảm bảo đủ rộng cho icon + text */
+
+.archive-status, .trash-status { width: 100%; text-align: center; padding: 8px; margin-top: 5px; margin-bottom: 15px; font-size: 0.9em; font-style: italic; color: var(--secondary-color); border-radius: 4px; background-color: var(--setting-section-bg); }
+
+/* ==================== NEW: Notebook Tabs Styles ==================== */
+.notebook-tabs {
+    display: flex;
+    flex-wrap: nowrap; /* Ngăn các tab xuống dòng */
+    gap: 5px;
+    padding: 10px 0 0 0; /* Thêm padding trên */
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--tab-border-color);
+    overflow-x: auto; /* Cho phép cuộn ngang nếu cần */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: var(--secondary-color) var(--bg-color); /* Firefox */
+}
+/* Webkit scrollbar styles */
+.notebook-tabs::-webkit-scrollbar {
+    height: 6px;
+}
+.notebook-tabs::-webkit-scrollbar-track {
+    background: var(--bg-color);
+    border-radius: 3px;
+}
+.notebook-tabs::-webkit-scrollbar-thumb {
+    background-color: var(--secondary-color);
+    border-radius: 3px;
+}
+.notebook-tabs::-webkit-scrollbar-thumb:hover {
+    background-color: var(--primary-color);
+}
+
+.tab-button {
+    padding: 8px 15px;
+    border: none;
+    border-bottom: 2px solid transparent; /* Border dưới để tạo hiệu ứng active */
+    background-color: transparent;
+    color: var(--secondary-color);
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: 500;
+    white-space: nowrap; /* Giữ tên tab trên một dòng */
+    transition: color 0.2s, border-color 0.2s, background-color 0.2s;
+    margin-bottom: -2px; /* Nâng nút lên để border dưới trùng với border của container */
+    flex-shrink: 0; /* Ngăn nút bị co lại khi cuộn */
+}
+
+.tab-button:hover {
+    color: var(--primary-color);
+    background-color: var(--tab-hover-bg);
+    border-bottom-color: var(--primary-color); /* Nhấn mạnh border khi hover */
+}
+
+.tab-button.active {
+    color: var(--tab-active-text);
+    border-bottom-color: var(--tab-active-border);
+    font-weight: bold;
+}
+
+.add-tab-button {
+    padding: 5px 10px;
+    margin-left: 5px; /* Khoảng cách với tab cuối */
+    border: 1px dashed var(--secondary-color);
+    border-radius: 5px;
+    background-color: transparent;
+    color: var(--secondary-color);
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, background-color 0.2s;
+    line-height: 1.2;
+    flex-shrink: 0;
+}
+
+.add-tab-button:hover {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    border-style: solid;
+    background-color: var(--tab-hover-bg);
+}
+/* ================================================================== */
+
+
+.controls-container { margin-bottom: 30px; position: relative; }
+#search-input { display: block; width: calc(100% - 22px); padding: 10px; margin-bottom: 20px; border: 1px solid var(--input-border-color); border-radius: 5px; background-color: var(--input-bg-color); color: var(--text-color); font-size: 1em; }
+#search-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(var(--rgb-primary-color, 0, 123, 255), 0.25); }
+
+
+/* --- Panel Thêm Note --- */
+#add-note-panel { padding: 20px; margin-bottom: 20px; background-color: var(--card-bg-color); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 3px 8px var(--shadow-color); position: relative; }
+.hidden { display: none !important; }
+#add-note-panel .form-group { margin-bottom: 15px; }
+#add-note-panel label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.9em; color: var(--secondary-color); }
+#add-note-panel select, #add-note-panel textarea, #add-note-panel input[type="text"] { display: block; width: calc(100% - 22px); padding: 10px; border: 1px solid var(--input-border-color); border-radius: 5px; background-color: var(--input-bg-color); color: var(--text-color); font-size: 1em; font-family: inherit; }
+#add-note-panel select { width: 100%; cursor: pointer; }
+#add-note-panel textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
+#add-note-panel input:focus, #add-note-panel textarea:focus, #add-note-panel select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(var(--rgb-primary-color, 0, 123, 255), 0.25); }
+#add-note-panel .panel-actions { display: flex; justify-content: flex-end; align-items: center; margin-top: 15px; gap: 10px; }
+#add-note-panel #add-note-btn { padding: 10px 20px; background-color: var(--primary-color); color: var(--primary-text-color); border: none; border-radius: 5px; cursor: pointer; font-size: 1em; transition: background-color 0.2s, opacity 0.2s; }
+#add-note-panel #add-note-btn:hover { opacity: 0.85; }
+#add-note-panel #close-add-panel-btn { padding: 8px 15px; background-color: var(--secondary-color); color: var(--primary-text-color); border: none; border-radius: 5px; cursor: pointer; font-size: 0.9em; transition: background-color 0.2s, opacity 0.2s; }
+#add-note-panel #close-add-panel-btn:hover { opacity: 0.85; }
+
+
+/* --- Notes Container & Note Card --- */
+#notes-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--note-gap, 20px); }
+.note { background-color: var(--card-bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; box-shadow: 0 2px 5px var(--shadow-color); display: flex; flex-direction: column; transition: box-shadow 0.2s, background-color 0.3s, border-color 0.3s, border-left-color 0.3s; cursor: grab; user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; position: relative; overflow: hidden; min-height: 150px; border-left: 5px solid transparent; }
+.note:active { cursor: grabbing; }
+.note:hover { box-shadow: 0 4px 10px var(--shadow-color); }
+.pinned-bookmark-icon { position: absolute; top: -10px; right: -10px; font-size: 2.8em; color: var(--pinned-color); opacity: 0.5; pointer-events: none; transform: rotate(45deg); z-index: 0; transition: color 0.3s, opacity 0.3s; }
+.note.note-color-yellow { background-color: var(--note-color-yellow-bg); border-left-color: var(--note-color-yellow-border); }
+.note.note-color-blue { background-color: var(--note-color-blue-bg); border-left-color: var(--note-color-blue-border); }
+.note.note-color-green { background-color: var(--note-color-green-bg); border-left-color: var(--note-color-green-border); }
+.note.note-color-red { background-color: var(--note-color-red-bg); border-left-color: var(--note-color-red-border); }
+.note.note-color-purple { background-color: var(--note-color-purple-bg); border-left-color: var(--note-color-purple-border); }
+.note.note-color-grey { background-color: var(--note-color-grey-bg); border-left-color: var(--note-color-grey-border); }
+.note-title { font-size: 1.15em; font-weight: 600; margin: 0 0 10px 0; word-wrap: break-word; color: var(--primary-color); position: relative; z-index: 1; }
+.note-content { flex-grow: 1; margin-bottom: 10px; word-wrap: break-word; white-space: pre-wrap; font-size: 1em; position: relative; z-index: 1; max-height: 200px; overflow: hidden; font-family: var(--content-font-family, inherit); line-height: 1.5; }
+.note-content.has-overflow { position: relative; }
+.note-content.has-overflow::after { content: ""; position: absolute; bottom: 0; left: 0; width: 100%; height: 40px; background: linear-gradient(to top, var(--fade-color-end), var(--fade-color-start)); pointer-events: none; z-index: 2; }
+.read-more-btn { display: block; margin: 5px auto 0 auto; padding: 3px 10px; font-size: 0.8em; color: var(--primary-color); background-color: transparent; border: none; border-radius: 4px; cursor: pointer; text-align: center; z-index: 3; position: relative; text-decoration: underline; opacity: 0.8; }
+.read-more-btn:hover { opacity: 1; }
+.note-timestamp { font-size: 0.8em; color: var(--secondary-color); margin-bottom: 10px; display: block; position: relative; z-index: 1; }
+.note-tags { margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 5px; position: relative; z-index: 1; }
+.tag-badge { background-color: var(--tag-bg-color); color: var(--tag-text-color); padding: 3px 8px; border-radius: 10px; font-size: 0.8em; transition: background-color 0.2s, color 0.2s, opacity 0.2s; border: none; cursor: pointer; line-height: 1.4; }
+.tag-badge:hover { opacity: 0.8; background-color: var(--primary-color); color: var(--primary-text-color); }
+.note-actions { display: flex; justify-content: flex-end; align-items: center; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 10px; margin-top: auto; position: relative; z-index: 1; }
+.note-actions button { padding: 5px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em; transition: opacity 0.2s, color 0.2s, background-color 0.2s; background-color: transparent; color: var(--secondary-color); line-height: 1; }
+.note-actions button:hover { opacity: 0.7; background-color: rgba(128, 128, 128, 0.1); }
+.note-actions .edit-btn { color: var(--primary-color); }
+.note-actions .delete-btn, .note-actions .delete-permanent-btn { color: var(--danger-color); }
+.note-actions .pin-btn { color: var(--pin-color); font-size: 1.1em; }
+.note-actions .pin-btn.pinned { color: var(--pinned-color); }
+.note-actions .archive-btn { color: var(--secondary-color); }
+.note-actions .unarchive-btn { color: var(--success-color); font-size: 1.2em; }
+.note-actions .restore-btn { color: var(--success-color); font-size: 1.2em; }
+.note-actions .delete-permanent-btn { font-weight: bold; }
+
+/* --- Note Edit Mode --- */
+.note input[type="text"].edit-title-input, .note textarea.edit-input, .note input[type="text"].edit-tags-input { display: block; width: calc(100% - 12px); margin-bottom: 10px; border: 1px solid var(--input-border-color); border-radius: 5px; background-color: var(--input-bg-color); color: var(--text-color); font-size: 1em; padding: 5px; cursor: text; position: relative; z-index: 2; font-family: inherit; }
+.note input:focus, .note textarea:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(var(--rgb-primary-color, 0, 123, 255), 0.25); }
+.note input[type="text"].edit-title-input { font-weight: 600; }
+.note textarea.edit-input { min-height: 80px; resize: vertical; line-height: 1.5; white-space: pre-wrap; }
+
+/* --- Color Selector Styles --- */
+.color-selector-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; margin-bottom: 12px; padding: 5px 0; position: relative; z-index: 2; }
+.color-swatch-btn { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; font-size: 0; transition: transform 0.1s ease-out, border-color 0.2s, box-shadow 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; }
+.color-swatch-btn:hover { transform: scale(1.1); }
+.color-swatch-btn.selected { border-color: var(--primary-color); transform: scale(1.15); box-shadow: 0 0 0 2px var(--bg-color), 0 0 0 4px var(--primary-color); }
+.color-swatch-btn.default-color-swatch { background-color: var(--card-bg-color); border: 1px dashed var(--secondary-color); color: var(--secondary-color); font-size: 14px; line-height: 20px; text-align: center; box-shadow: none; }
+.color-swatch-btn.default-color-swatch:hover { border-style: solid; border-color: var(--secondary-color); }
+.color-swatch-btn.default-color-swatch.selected { border: 2px solid var(--primary-color) !important; box-shadow: 0 0 0 2px var(--bg-color), 0 0 0 4px var(--primary-color); background-color: var(--card-bg-color); color: var(--primary-color); }
+
+/* --- Other Styles --- */
+.empty-state { grid-column: 1 / -1; text-align: center; color: var(--secondary-color); padding: 30px; font-style: italic; }
+#template-list-container .empty-state,
+#notebook-list-container .empty-state { padding: 15px; grid-column: auto; } /* Áp dụng cho cả notebook */
+.note.sortable-ghost { opacity: 0.4; background-color: var(--primary-color) !important; border: 1px dashed var(--primary-text-color); }
+.note.sortable-chosen { opacity: 0.9; box-shadow: 0 5px 15px var(--shadow-color); transform: scale(1.02); cursor: grabbing; }
+.note.sortable-drag { opacity: 0.9; cursor: grabbing; }
+.fab { position: fixed; bottom: 30px; right: 30px; width: 55px; height: 55px; background-color: var(--fab-bg-color); color: var(--fab-text-color); border: none; border-radius: 50%; font-size: 28px; line-height: 55px; text-align: center; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); cursor: pointer; z-index: 1000; transition: transform 0.2s ease-in-out, background-color 0.3s, visibility 0s linear 0.1s, opacity 0.1s linear; }
+.fab:hover { transform: scale(1.1); }
+.fab.hidden { visibility: hidden; opacity: 0; transform: scale(0.5); transition-delay: 0s; }
+.tag-suggestions { position: absolute; background-color: var(--card-bg-color); border: 1px solid var(--border-color); border-radius: 4px; box-shadow: 0 4px 8px var(--shadow-color); max-height: 150px; overflow-y: auto; z-index: 1001; width: auto; min-width: 150px; margin-top: 2px; }
+.suggestion-item { padding: 8px 12px; cursor: pointer; font-size: 0.9em; color: var(--text-color); border-bottom: 1px solid var(--border-color); white-space: nowrap; outline: none; }
+.suggestion-item:last-child { border-bottom: none; }
+.suggestion-item:hover, .suggestion-item:focus { background-color: var(--setting-option-hover-bg); color: var(--primary-color); }
+mark { background-color: var(--highlight-bg-color); color: var(--highlight-text-color); padding: 0.1em 0.2em; border-radius: 3px; box-shadow: 0 0 0 1px var(--highlight-bg-color); }
+
+/* --- Modal Styles (Generic) --- */
+.modal { position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; background-color: var(--modal-backdrop-color); display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s linear 0.3s; }
+.modal.visible { opacity: 1; visibility: visible; transition: opacity 0.3s ease, visibility 0s linear 0s; overflow-y: auto; }
+.modal:not(.hidden) { display: flex; }
+.modal-content { background-color: var(--modal-content-bg); color: var(--text-color); margin: 5vh auto; padding: 20px 25px; border: 1px solid var(--modal-border-color); border-radius: 8px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.2); position: relative; display: flex; flex-direction: column; transition: transform 0.3s ease; transform: scale(0.95); }
+.modal.visible .modal-content { transform: scale(1); }
+.note-modal .modal-content { max-width: 700px; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 20px; flex-shrink: 0; }
+.modal-header h2 { margin: 0; font-size: 1.4em; color: var(--primary-color); }
+.modal-body { line-height: 1.6; flex-grow: 1; padding-top: 5px; }
+.note-modal .modal-body { white-space: pre-wrap; }
+.close-modal-btn { background: none; border: none; color: var(--secondary-color); font-size: 28px; font-weight: bold; cursor: pointer; padding: 0 5px; line-height: 1; }
+.close-modal-btn:hover, .close-modal-btn:focus { color: var(--text-color); opacity: 0.8; outline: none; }
+
+/* --- Auto-save / Manual Save Visual Feedback --- */
+@keyframes flash-border { 0% { box-shadow: 0 0 0 0 rgba(var(--rgb-success-color, 25, 135, 84), 0.5); } 70% { box-shadow: 0 0 0 5px rgba(var(--rgb-success-color, 25, 135, 84), 0); } 100% { box-shadow: 0 0 0 0 rgba(var(--rgb-success-color, 25, 135, 84), 0); } }
+.note.note-autosaved, .note.note-saved-flash { box-shadow: 0 0 0 2px var(--success-color); transition: box-shadow 0.2s ease-out; }
+body.dark-mode .note.note-autosaved, body.dark-mode .note.note-saved-flash { box-shadow: 0 0 0 2px var(--success-color); }
+
+
+/* --- Template Management Modal --- */
+.template-modal-content { max-width: 600px; }
+#template-list-section { margin-bottom: 20px; }
+#template-list-section h3, #template-edit-panel h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.2em; color: var(--primary-color); }
+#template-list-container { margin-top: 15px; margin-bottom: 15px; max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 5px; padding: 5px; }
+.template-list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--border-color); }
+.template-list-item:last-child { border-bottom: none; }
+.template-list-item span { font-weight: 500; margin-right: 10px; word-break: break-word; }
+.template-item-actions { display: flex; gap: 8px; flex-shrink: 0; }
+#template-edit-panel { padding: 15px; border: 1px solid var(--border-color); border-radius: 5px; background-color: var(--setting-section-bg); }
+#template-edit-panel .form-group { margin-bottom: 12px; }
+#template-edit-panel label { display: block; margin-bottom: 4px; font-weight: 500; font-size: 0.9em; color: var(--secondary-color); }
+#template-edit-panel input[type="text"], #template-edit-panel textarea { width: calc(100% - 22px); padding: 8px 10px; border: 1px solid var(--input-border-color); border-radius: 4px; background-color: var(--input-bg-color); color: var(--text-color); font-size: 1em; font-family: inherit; }
+#template-edit-panel input:focus, #template-edit-panel textarea:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(var(--rgb-primary-color, 0, 123, 255), 0.25); }
+#template-edit-panel textarea { min-height: 70px; resize: vertical; line-height: 1.5; }
+#template-edit-panel .panel-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
+
+/* ==================== NEW: Notebook Modal Styles ==================== */
+.notebook-modal-content { max-width: 550px; } /* Có thể điều chỉnh */
+#notebook-list-section { margin-bottom: 20px; }
+#notebook-list-section h3, #notebook-edit-panel h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.2em; color: var(--primary-color); }
+#notebook-list-container { margin-top: 15px; margin-bottom: 15px; max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 5px; padding: 5px; }
+/* Cần class cho item trong JS, ví dụ: .notebook-list-item */
+.notebook-list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--border-color); }
+.notebook-list-item:last-child { border-bottom: none; }
+.notebook-list-item span { font-weight: 500; margin-right: 10px; word-break: break-word; }
+.notebook-item-actions { display: flex; gap: 8px; flex-shrink: 0; }
+/* Style cho nút edit/delete trong notebook list sẽ dùng lại .modal-button .small-button */
+
+#notebook-edit-panel { padding: 15px; border: 1px solid var(--border-color); border-radius: 5px; background-color: var(--setting-section-bg); }
+#notebook-edit-panel .form-group { margin-bottom: 12px; }
+#notebook-edit-panel label { display: block; margin-bottom: 4px; font-weight: 500; font-size: 0.9em; color: var(--secondary-color); }
+#notebook-edit-panel input[type="text"] { width: calc(100% - 22px); padding: 8px 10px; border: 1px solid var(--input-border-color); border-radius: 4px; background-color: var(--input-bg-color); color: var(--text-color); font-size: 1em; font-family: inherit; }
+#notebook-edit-panel input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(var(--rgb-primary-color, 0, 123, 255), 0.25); }
+#notebook-edit-panel .panel-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
+/* Nút save/cancel trong notebook edit panel sẽ dùng lại .modal-button */
+/* ================================================================== */
+
+
+/* Generic Modal Button Styles */
+.modal-button { padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 0.95em; transition: background-color 0.2s, opacity 0.2s, border-color 0.2s, color 0.2s; border: 1px solid transparent; background-color: transparent; line-height: 1.4; }
+.modal-button.primary { background-color: var(--primary-color); color: var(--primary-text-color); border-color: var(--primary-color); }
+.modal-button.primary:hover { opacity: 0.85; }
+.modal-button.secondary { background-color: var(--secondary-color); color: var(--primary-text-color); border-color: var(--secondary-color); }
+.modal-button.secondary:hover { opacity: 0.85; }
+.modal-button.danger { background-color: transparent; color: var(--danger-color); border-color: var(--danger-color); }
+.modal-button.danger:hover { background-color: var(--danger-color); color: var(--primary-text-color); opacity: 0.9; }
+.modal-button.small-button { padding: 5px 10px !important; font-size: 0.85em !important; }
+#show-add-template-panel-btn,
+#show-add-notebook-panel-btn { background-color: var(--success-color); color: var(--primary-text-color); border: none; margin-top: 10px; }
+#show-add-template-panel-btn:hover,
+#show-add-notebook-panel-btn:hover { opacity: 0.9; }
+
+/* === CSS CHO MODAL CÀI ĐẶT === */
+.settings-modal-content { max-width: 650px; }
+.setting-section { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+.setting-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+.setting-section h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.2em; color: var(--primary-color); }
+.setting-options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; } /* Tăng minmax */
+.setting-option-button { padding: 10px 15px; border: 1px solid var(--setting-option-border); border-radius: 5px; background-color: var(--card-bg-color); color: var(--text-color); cursor: pointer; text-align: center; font-size: 0.95em; transition: background-color 0.2s, border-color 0.2s, color 0.2s; }
+.setting-option-button:hover { background-color: var(--setting-option-hover-bg); }
+.setting-option-button.active { background-color: var(--setting-option-active-bg); color: var(--setting-option-active-text); border-color: var(--setting-option-active-border); font-weight: bold; }
+.accent-color-options { display: flex; flex-wrap: wrap; gap: 10px; }
+/* Style cho .accent-swatch.selected đã dùng lại .selected từ color-swatch-btn */
+#font-family-select { width: 100%; padding: 8px 10px; border: 1px solid var(--input-border-color); border-radius: 5px; background-color: var(--input-bg-color); color: var(--text-color); font-size: 0.95em; cursor: pointer; }
+body.dark-mode #font-family-select option { background-color: var(--card-bg-color); color: var(--text-color); }
+.font-size-control { display: flex; align-items: center; gap: 15px; }
+#font-size-slider { flex-grow: 1; cursor: pointer; accent-color: var(--primary-color); }
+#font-size-value { min-width: 45px; text-align: right; font-weight: 500; color: var(--secondary-color); }
+#reset-font-size-btn {} /* Đã có class modal-button secondary small-button */
+
+/* Tiện ích ẩn accessibly */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
+

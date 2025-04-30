@@ -153,7 +153,12 @@
                         <button class="theme-option-btn setting-option-button" data-theme="sepia" role="radio" aria-checked="false">Nâu đỏ</button>
                         <button class="theme-option-btn setting-option-button" data-theme="solarized-light" role="radio" aria-checked="false">Solarized Sáng</button>
                         <button class="theme-option-btn setting-option-button" data-theme="solarized-dark" role="radio" aria-checked="false">Solarized Tối</button>
-                         </div>
+                        <button class="theme-option-btn setting-option-button" data-theme="nord" role="radio" aria-checked="false">Nord</button>
+                        <button class="theme-option-btn setting-option-button" data-theme="gruvbox-dark" role="radio" aria-checked="false">Gruvbox Tối</button>
+                        <button class="theme-option-btn setting-option-button" data-theme="gruvbox-light" role="radio" aria-checked="false">Gruvbox Sáng</button>
+                        <button class="theme-option-btn setting-option-button" data-theme="dracula" role="radio" aria-checked="false">Dracula</button>
+                        <button class="theme-option-btn setting-option-button" data-theme="monochrome" role="radio" aria-checked="false">Monochrome</button>
+                        </div>
                 </div>
 
                 <div class="setting-section">
@@ -210,9 +215,11 @@
 
 **Thay đổi:**
 
-* Trong `div.accent-color-options` của modal cài đặt (`#settings-modal`), tôi đã thêm 3 nút `button` mới:
-    * Màu Hồng (`#d63384`)
-    * Màu Chàm (`#6610f2`)
-    * Màu Nâu (`#a0522d`)
+* Trong `div.theme-options` của modal cài đặt (`#settings-modal`), đã thêm 5 nút `<button>` mới:
+    * Nord (`data-theme="nord"`)
+    * Gruvbox Tối (`data-theme="gruvbox-dark"`)
+    * Gruvbox Sáng (`data-theme="gruvbox-light"`)
+    * Dracula (`data-theme="dracula"`)
+    * Monochrome (`data-theme="monochrome"`)
 
-Các nút này có cấu trúc tương tự các nút màu đã có, sử dụng `data-color` để lưu mã hex và `style` để hiển thị màu nền. JavaScript sẽ tự động nhận diện và xử lý các màu mới này khi người dùng ch
+Bây giờ, chúng ta cần cập nhật file JavaScri

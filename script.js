@@ -669,6 +669,8 @@ const setupNoteActionListeners = () => {
 const setupTemplateModalListeners = () => { if(manageTemplatesBtn) manageTemplatesBtn.addEventListener('click', showTemplateModal); closeTemplateModalBtn.addEventListener('click', hideTemplateModal); templateModal.addEventListener('click', (event) => { if (event.target === templateModal && templateEditPanel.classList.contains('hidden')) { hideTemplateModal(); } }); showAddTemplatePanelBtn.addEventListener('click', () => showTemplateEditPanel()); cancelEditTemplateBtn.addEventListener('click', hideTemplateEditPanel); saveTemplateBtn.addEventListener('click', addOrUpdateTemplate); templateSelect.addEventListener('change', applyTemplate); };
 const setupNotebookListeners = () => { if(manageNotebooksBtn) manageNotebooksBtn.addEventListener('click', showNotebookModal); closeNotebookModalBtn.addEventListener('click', hideNotebookModal); notebookModal.addEventListener('click', (event) => { if (event.target === notebookModal && notebookEditPanel.classList.contains('hidden')) { hideNotebookModal(); } }); showAddNotebookPanelBtn.addEventListener('click', () => showNotebookEditPanel()); cancelEditNotebookBtn.addEventListener('click', hideNotebookEditPanel); saveNotebookBtn.addEventListener('click', addOrUpdateNotebook); if (notebookTabsContainer) { notebookTabsContainer.addEventListener('click', (event) => { const target = event.target; if (target.matches('.tab-button') && target.dataset.notebookId) { const selectedNotebookId = target.dataset.notebookId === 'all' ? 'all' : parseInt(target.dataset.notebookId); if (selectedNotebookId === currentNotebookId && !isViewingArchived && !isViewingTrash) return; currentNotebookId = selectedNotebookId; isViewingArchived = false; isViewingTrash = false; searchInput.value = ''; displayNotes(); } else if (target.matches('#add-notebook-tab-btn')) { showNotebookModal(); showNotebookEditPanel(); } }); } };
 const setupTagInputListeners = () => { newNoteTags.addEventListener('input', handleTagInput); newNoteTags.addEventListener('blur', handleTagInputBlur, true); newNoteTags.addEventListener('keydown', handleTagInputKeydown); notesContainer.addEventListener('input', (e) => { if (e.target.matches('.edit-tags-input')) handleTagInput(e); }); notesContainer.addEventListener('blur', (e) => { if (e.target.matches('.edit-tags-input')) handleTagInputBlur(e); }, true); notesContainer.addEventListener('keydown', (e) => { if (e.target.matches('.edit-tags-input')) handleTagInputKeydown(e); }); };
+
+// Hàm setupGlobalListeners gọi các hàm setup khác và listener toàn cục
 const setupGlobalListeners = () => {
      document.addEventListener('mousedown', (event) => {
          if (activeMoveMenu && !activeMoveMenu.contains(event.target) && !event.target.closest('.move-note-btn')) {
@@ -679,10 +681,12 @@ const setupGlobalListeners = () => {
               hideTagSuggestions();
           }
      }, true);
-     setupGlobalKeydownListeners();
+     setupGlobalKeydownListeners(); // Gọi hàm setup keydown
      // Thêm listener cho resize window
      window.addEventListener('resize', debouncedLayoutUpdate);
-};
+}; // **Đảm bảo có dấu ; hoặc không có gì bất thường trước hàm tiếp theo**
+
+// Hàm setupGlobalKeydownListeners xử lý các phím tắt toàn cục
 const setupGlobalKeydownListeners = () => {
     document.addEventListener('keydown', (event) => {
         const activeElement = document.activeElement;
@@ -733,7 +737,7 @@ const setupGlobalKeydownListeners = () => {
             searchInput.select();
         }
     });
-}; // <-- **ĐÂY LÀ DẤU NGOẶC NHỌN BỊ THIẾU**
+}; // **Đã thêm dấu ; ở đây**
 
 // =====================================================================
 //  Main Event Listener Setup Function
@@ -772,8 +776,7 @@ const loadNotesAndInit = () => {
 //  Start the application
 // =====================================================================
 loadNotesAndInit();
+
 ```
 
-Tôi đã tìm thấy lỗi! Có vẻ như hàm `setupGlobalKeydownListeners` bị thiếu dấu ngoặc nhọn đóng `}` ở cuối. Tôi đã bổ sung nó vào trong mã trên (có đánh dấu comment).
-
-Bạn hãy thử thay thế toàn bộ nội dung file `script.js` của bạn bằng mã trong tài liệu này và kiểm tra lại xem lỗi đã được khắc phục chưa n
+Tôi đã thêm dấu chấm phẩy `;` vào cuối hàm `setupGlobalListeners`. Hy vọng lần này sẽ khắc phục được lỗi cú pháp. Bạn hãy thử lại n

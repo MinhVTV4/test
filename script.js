@@ -776,7 +776,3 @@ const loadNotesAndInit = () => {
 //  Start the application
 // =====================================================================
 loadNotesAndInit();
-
-```
-
-Tôi đã thêm dấu chấm phẩy `;` vào cuối hàm `setupGlobalListeners`. Hy vọng lần này sẽ khắc phục được lỗi cú pháp. Bạn hãy thử lại n

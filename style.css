@@ -59,8 +59,7 @@
     /* Biến cho Font & Layout */
     --content-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --font-size-scale: 1;
-    --note-gap: 20px; /* Sẽ được dùng bởi Masonry JS hoặc làm margin cho note */
-    --note-width-desktop: 250px; /* Chiều rộng cố định cho note trên desktop */
+    --note-gap: 20px;
 
     /* Biến cho Cài đặt Giao diện */
     --setting-section-bg: rgba(0, 0, 0, 0.02);
@@ -542,36 +541,31 @@ body.dark-mode #manage-templates-btn { background-color: #34a4b7; }
 #add-note-panel #close-add-panel-btn:hover { opacity: 0.85; }
 
 
-/* --- Notes Container & Note Card (UPDATED for Masonry) --- */
+/* --- Notes Container & Note Card (IMPROVED + DOG-EAR + NOISE) --- */
 #notes-container {
-    /* display: grid; */ /* Bỏ grid */
-    /* grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); */ /* Bỏ grid columns */
-    /* gap: var(--note-gap, 20px); */ /* Gap sẽ được xử lý bởi JS hoặc margin */
-    position: relative; /* Cần thiết cho việc định vị tuyệt đối các note con */
-    margin: 0 auto; /* Căn giữa container nếu cần */
+    display: grid;
+    /* Tự động điều chỉnh số cột, mỗi cột tối thiểu 250px, tối đa 1 phần bằng nhau */
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--note-gap, 20px); /* Khoảng cách giữa các note */
 }
 .note {
-    /* position: absolute; */ /* JS sẽ đặt vị trí này */
-    width: var(--note-width-desktop); /* Chiều rộng cố định cho desktop */
-    margin-bottom: var(--note-gap, 20px); /* Khoảng cách dọc giữa các note */
-    /* Các style khác giữ nguyên */
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 15px 18px;
     box-shadow: 0 1px 3px var(--shadow-color);
     display: flex;
     flex-direction: column;
-    transition: box-shadow 0.25s ease-in-out, transform 0.25s ease-in-out, background-color 0.3s, border-color 0.3s, border-left-color 0.3s, top 0.3s ease, left 0.3s ease; /* Thêm transition cho top/left */
-    cursor: grab;
-    user-select: none;
+    transition: box-shadow 0.25s ease-in-out, transform 0.25s ease-in-out, background-color 0.3s, border-color 0.3s, border-left-color 0.3s;
+    cursor: grab; /* Con trỏ kéo thả */
+    user-select: none; /* Ngăn chọn text khi kéo */
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    overflow: hidden;
-    /* min-height: 150px; */ /* Bỏ min-height để chiều cao linh hoạt */
-    border-left: 5px solid transparent;
+    position: relative;
+    overflow: hidden; /* Quan trọng cho dog-ear và noise */
+    min-height: 150px; /* Chiều cao tối thiểu */
+    border-left: 5px solid transparent; /* Viền màu bên trái */
     background-color: var(--card-bg-color);
-    box-sizing: border-box; /* Đảm bảo padding/border không làm tăng kích thước */
 }
 
 /* Noise texture overlay */
@@ -648,17 +642,43 @@ body.dark-mode #manage-templates-btn { background-color: #34a4b7; }
     font-size: 1em;
     position: relative;
     z-index: 1;
-    /* max-height: 200px; */ /* Bỏ max-height để chiều cao linh hoạt */
-    overflow: visible; /* Cho phép nội dung tràn ra */
+    max-height: 200px; /* Giới hạn chiều cao ban đầu */
+    overflow: hidden; /* Ẩn phần nội dung thừa */
     font-family: var(--content-font-family, inherit);
     line-height: 1.5;
     color: var(--text-color);
 }
-/* Lớp phủ mờ dần cho nội dung bị tràn - Có thể không cần thiết với Masonry */
+/* Lớp phủ mờ dần cho nội dung bị tràn */
 .note-content.has-overflow { position: relative; }
-.note-content.has-overflow::after { display: none; /* Tắt lớp phủ */ }
-/* Nút "Xem thêm" - Có thể không cần thiết với Masonry */
-.read-more-btn { display: none; /* Tắt nút xem thêm */ }
+.note-content.has-overflow::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    background: linear-gradient(to top, var(--fade-color-end), var(--fade-color-start));
+    pointer-events: none;
+    z-index: 2; /* Nằm trên cả nội dung */
+}
+/* Nút "Xem thêm" */
+.read-more-btn {
+    display: block;
+    margin: 5px auto 0 auto;
+    padding: 3px 10px;
+    font-size: 0.8em;
+    color: var(--primary-color);
+    background-color: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    z-index: 3; /* Nằm trên lớp phủ mờ */
+    position: relative;
+    text-decoration: underline;
+    opacity: 0.8;
+}
+.read-more-btn:hover { opacity: 1; }
 
 .note-timestamp { font-size: 0.8em; color: var(--secondary-color); margin-bottom: 10px; display: block; position: relative; z-index: 1; opacity: 0.8; }
 .note-tags { margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 5px; position: relative; z-index: 1; }
@@ -678,6 +698,144 @@ body.dark-mode #manage-templates-btn { background-color: #34a4b7; }
 .note-actions .delete-permanent-btn { font-weight: bold; font-size: 0.8em; }
 .note-actions .edit-btn { font-size: 0.9em; }
 .note-actions .delete-btn { font-size: 0.9em; }
+
+
+/* --- START: Auth Styles --- */
+.auth-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 15px; /* Khoảng cách với các nút khác */
+    flex-wrap: wrap; /* Cho phép xuống dòng nếu không đủ chỗ */
+    flex-shrink: 0; /* Ngăn co lại quá mức */
+    justify-content: flex-end; /* Căn về bên phải nếu wrap */
+}
+
+.auth-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: var(--input-bg-color); /* Dùng màu input nền */
+    flex-wrap: wrap; /* Cho phép wrap trong form */
+}
+
+.auth-form input[type="email"],
+.auth-form input[type="password"] {
+    padding: 6px 8px;
+    border: 1px solid var(--input-border-color);
+    border-radius: 4px;
+    font-size: 0.9em;
+    background-color: var(--input-bg-color);
+    color: var(--text-color);
+    min-width: 120px; /* Chiều rộng tối thiểu */
+}
+.auth-form input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(var(--rgb-primary-color, 0, 123, 255), 0.25);
+}
+
+.auth-form button[type="submit"] {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    background-color: var(--primary-color);
+    color: var(--primary-text-color);
+    transition: opacity 0.2s;
+    white-space: nowrap;
+}
+.auth-form button[type="submit"]:hover {
+    opacity: 0.85;
+}
+/* Nút chuyển form (link-button) */
+.auth-form .link-button {
+    background-color: transparent;
+    color: var(--primary-color);
+    text-decoration: underline;
+    padding: 6px 5px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85em;
+    white-space: nowrap;
+}
+.auth-form .link-button:hover {
+    opacity: 0.8;
+}
+
+/* Nút Google */
+.google-btn {
+    background-color: #fff !important;
+    color: #757575 !important;
+    border: 1px solid #ccc !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px !important; /* Quan trọng để ghi đè */
+    font-size: 0.9em;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s, opacity 0.2s;
+    white-space: nowrap;
+}
+.google-btn:hover {
+    background-color: #f5f5f5 !important;
+    opacity: 1;
+}
+body.dark-mode .google-btn {
+     background-color: #424242 !important;
+     color: #e0e0e0 !important;
+     border-color: #616161 !important;
+}
+body.dark-mode .google-btn:hover {
+    background-color: #505050 !important;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9em;
+    padding: 5px;
+    border: 1px solid transparent; /* Giữ chỗ */
+    border-radius: 5px;
+}
+.user-info span {
+    font-weight: 500;
+    color: var(--secondary-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px; /* Giới hạn chiều rộng email hiển thị */
+}
+.user-info button {
+    padding: 5px 10px;
+    background-color: var(--secondary-color);
+    color: var(--primary-text-color);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+}
+.user-info button:hover {
+    opacity: 0.85;
+}
+
+.auth-error {
+    color: var(--danger-color);
+    font-size: 0.85em;
+    font-style: italic;
+    width: 100%; /* Cho lỗi chiếm 1 dòng nếu wrap */
+    text-align: left;
+    padding: 2px 5px; /* Thêm padding nhỏ */
+}
+/* --- END: Auth Styles --- */
 
 
 /* --- Note Edit Mode --- */
@@ -725,22 +883,14 @@ body.dark-mode #manage-templates-btn { background-color: #34a4b7; }
 .color-swatch-btn.default-color-swatch.selected { border: 2px solid var(--primary-color) !important; box-shadow: 0 0 0 2px var(--bg-color), 0 0 0 4px var(--primary-color); background-color: var(--card-bg-color); color: var(--primary-color); }
 
 /* --- Other Styles --- */
-.empty-state {
-    /* grid-column: 1 / -1; */ /* Bỏ grid-column */
-    width: 100%; /* Chiếm toàn bộ chiều rộng container */
-    text-align: center;
-    color: var(--secondary-color);
-    padding: 30px;
-    font-style: italic;
-}
+.empty-state { grid-column: 1 / -1; /* Chiếm toàn bộ grid */ text-align: center; color: var(--secondary-color); padding: 30px; font-style: italic; }
 #template-list-container .empty-state,
-#notebook-list-container .empty-state { padding: 15px; /* grid-column: auto; */ /* Bỏ grid-column */ }
+#notebook-list-container .empty-state { padding: 15px; grid-column: auto; /* Reset grid-column trong modal */ }
 
 /* --- SortableJS Styles --- */
-/* Cần kiểm tra lại sự tương thích với Masonry sau khi tích hợp JS */
-.note.sortable-ghost { opacity: 0.4; background-color: var(--primary-color) !important; border: 1px dashed var(--primary-text-color); transform: translateY(0); z-index: 100; /* Đảm bảo ghost nằm trên */ }
-.note.sortable-chosen { opacity: 0.9; box-shadow: 0 5px 15px var(--shadow-color); /* transform: scale(1.02) translateY(-3px); */ cursor: grabbing; z-index: 100; }
-.note.sortable-drag { opacity: 0.9; cursor: grabbing; /* transform: scale(1.02) translateY(-3px); */ z-index: 100; }
+.note.sortable-ghost { opacity: 0.4; background-color: var(--primary-color) !important; border: 1px dashed var(--primary-text-color); transform: translateY(0); }
+.note.sortable-chosen { opacity: 0.9; box-shadow: 0 5px 15px var(--shadow-color); transform: scale(1.02) translateY(-3px); cursor: grabbing; }
+.note.sortable-drag { opacity: 0.9; cursor: grabbing; transform: scale(1.02) translateY(-3px); }
 
 /* --- Floating Action Button (FAB) --- */
 .fab { position: fixed; bottom: 30px; right: 30px; width: 55px; height: 55px; background-color: var(--fab-bg-color); color: var(--fab-text-color); border: none; border-radius: 50%; font-size: 28px; line-height: 55px; text-align: center; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); cursor: pointer; z-index: 1000; transition: transform 0.2s ease-in-out, background-color 0.3s, visibility 0s linear 0.1s, opacity 0.1s linear; }
@@ -907,13 +1057,17 @@ body.dark-mode #font-family-select option { background-color: var(--card-bg-colo
 
     :root {
          --note-gap: 12px; /* Giảm khoảng cách giữa các note */
-         --note-width-desktop: 48%; /* Chuyển sang % cho mobile, 2 cột */
     }
+
+    /* Grid cho notes thường tự xử lý tốt, nhưng có thể giảm minmax nếu cần */
+    /* #notes-container {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    } */
 
     /* --- Header cho Mobile --- */
     .app-header {
         flex-direction: column; /* Chuyển sang bố cục cột */
-        align-items: center; /* Căn giữa các thành phần */
+        align-items: stretch; /* Cho các phần tử con giãn ra */
         padding-bottom: 10px;
     }
 
@@ -925,7 +1079,7 @@ body.dark-mode #font-family-select option { background-color: var(--card-bg-colo
     }
 
     .header-actions {
-        width: 100%; /* Cho phép các nút chiếm toàn bộ chiều rộng */
+        /* width: 100%; Không cần width 100% nữa */
         justify-content: center; /* Căn giữa các nút */
         gap: 8px; /* Giảm khoảng cách nút */
     }
@@ -933,7 +1087,34 @@ body.dark-mode #font-family-select option { background-color: var(--card-bg-colo
     .header-actions button {
         padding: 6px 10px; /* Làm nút nhỏ hơn */
         font-size: 0.85em;
+        flex-grow: 1; /* Cho phép nút giãn ra một chút */
+        text-align: center; /* Căn giữa text trong nút */
     }
+    #theme-toggle-btn, #settings-btn {
+        flex-grow: 0; /* Không cho nút theme/setting giãn ra */
+    }
+
+    /* Auth container và form trên mobile */
+    .auth-container {
+        order: 1; /* Đẩy xuống dưới các nút actions khác nếu cần */
+        margin-left: 0; /* Bỏ margin trái */
+        margin-top: 10px; /* Thêm khoảng cách trên */
+        justify-content: center; /* Căn giữa */
+    }
+    .auth-form {
+        justify-content: center; /* Căn giữa các thành phần trong form */
+        width: 100%; /* Cho form chiếm full width */
+    }
+     .auth-form input[type="email"],
+     .auth-form input[type="password"] {
+         flex-grow: 1; /* Cho input giãn ra */
+         min-width: 100px; /* Giảm min-width */
+     }
+     .user-info {
+         width: 100%;
+         justify-content: center;
+     }
+
 
     /* Chỉ báo trạng thái */
     .archive-status, .trash-status {
@@ -965,17 +1146,6 @@ body.dark-mode #font-family-select option { background-color: var(--card-bg-colo
     .add-tab-button {
         margin-left: 4px; /* Giảm margin */
         margin-bottom: 4px; /* Căn với các tab khác */
-    }
-
-    /* --- Notes Container & Note Card cho Mobile (Masonry) --- */
-     #notes-container {
-        /* JS sẽ xử lý layout */
-     }
-    .note {
-        width: calc(50% - (var(--note-gap, 12px) / 2)); /* 2 cột trên mobile, trừ đi nửa gap */
-        /* Hoặc dùng calc(100% / 2 - ...) nếu muốn chính xác hơn */
-        margin-bottom: var(--note-gap, 12px); /* Giữ margin dưới */
-        /* position: absolute !important; */ /* Đảm bảo JS có thể ghi đè */
     }
 
 
@@ -1049,12 +1219,21 @@ body.dark-mode #font-family-select option { background-color: var(--card-bg-colo
 
 @media (max-width: 600px) { /* Breakpoint nhỏ hơn cho nội dung modal và form */
 
-    :root {
-         --note-width-desktop: 47%; /* Điều chỉnh lại nếu cần */
+    /* Auth form inputs stack */
+    .auth-form {
+        flex-direction: column;
+        align-items: stretch; /* Make inputs full width */
     }
-    .note {
-         width: calc(50% - (var(--note-gap, 12px) / 2));
+    .auth-form input[type="email"],
+    .auth-form input[type="password"],
+    .auth-form button {
+        width: 100%; /* Allow buttons to take full width */
+        box-sizing: border-box; /* Include padding and border in width */
     }
+    .auth-form .google-btn {
+        justify-content: center; /* Center google button content */
+    }
+
 
     /* --- Tối ưu Form trong Modal --- */
     #template-edit-panel .form-group,
@@ -1092,30 +1271,36 @@ body.dark-mode #font-family-select option { background-color: var(--card-bg-colo
      .modal-button.small-button {
         padding: 4px 8px !important;
         font-size: 0.8em !important;
-    }
+     }
 
     /* --- Font Size Control trong Cài đặt --- */
     .font-size-control {
         gap: 10px; /* Giảm khoảng cách */
+        flex-wrap: wrap; /* Allow wrapping */
+        justify-content: center;
     }
-    #font-size-value {
+    #font-size-slider {
+        width: 100%; /* Full width slider */
+        order: 1; /* Slider first */
+    }
+     #font-size-value {
         min-width: 40px;
-    }
+        order: 2;
+     }
+     #reset-font-size-btn {
+         order: 3;
+     }
+
 }
 
-@media (max-width: 480px) { /* Breakpoint cho màn hình rất nhỏ (thay 400px) */
+@media (max-width: 400px) { /* Breakpoint cho màn hình rất nhỏ */
      :root {
          --note-gap: 8px; /* Giảm thêm khoảng cách note */
-         --note-width-desktop: 100%; /* Chuyển thành 1 cột */
      }
      #notes-container {
-        /* JS sẽ xử lý layout */
+        /* Đảm bảo ít nhất 1 cột hiển thị tốt */
+        grid-template-columns: repeat(auto-fill, minmax(calc(100% - 20px), 1fr)); /* Chiếm gần hết chiều rộng */
      }
-     .note {
-        width: 100%; /* 1 cột trên màn hình rất nhỏ */
-        margin-bottom: var(--note-gap, 8px);
-     }
-
 
      .app-header h1 {
         font-size: 1.4em; /* Giảm thêm cỡ chữ tiêu đề */
@@ -1125,6 +1310,12 @@ body.dark-mode #font-family-select option { background-color: var(--card-bg-colo
         padding: 5px 8px;
         font-size: 0.8em;
      }
+     /* Adjust auth elements further if needed */
+      .auth-form input[type="email"],
+      .auth-form input[type="password"] {
+          font-size: 0.85em;
+      }
+
 
      .tab-button {
         padding: 8px 12px; /* Giảm padding tab */
@@ -1148,7 +1339,7 @@ body.dark-mode #font-family-select option { background-color: var(--card-bg-colo
      }
      .note-content {
         font-size: 0.95em;
-        /* max-height: 150px; */ /* Bỏ max-height */
+        max-height: 150px; /* Giảm max-height nội dung */
      }
      .note-timestamp, .tag-badge {
         font-size: 0.75em;
@@ -1162,6 +1353,6 @@ body.dark-mode #font-family-select option { background-color: var(--card-bg-colo
      }
       .modal-header h2 {
          font-size: 1.1em;
-     }
+      }
 
 }

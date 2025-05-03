@@ -11,20 +11,13 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
     getFirestore,
-    collection,
-    addDoc,
-    query,
-    where,
-    orderBy,
-    onSnapshot,
-    doc,
-    updateDoc, // Quan trọng cho cả sửa và xóa mềm
-    deleteDoc,
+    collection, addDoc, query, where, orderBy, onSnapshot,
+    doc, updateDoc, deleteDoc, // deleteDoc sẽ dùng cho xóa vĩnh viễn
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 
-// 2. Đặt cấu hình Firebase của bạn vào đây (ĐÃ LẤY TỪ BẠN)
+// 2. Đặt cấu hình Firebase của bạn vào đây
 const firebaseConfig = {
   apiKey: "AIzaSyAktPkkbYkv3klCN4ol78nXcreoUjb1OII",
   authDomain: "ghichu-771982.firebaseapp.com",
@@ -45,7 +38,7 @@ console.log("Firebase Initialized and Configured!");
 
 
 // ============================================================
-// DOM ELEMENTS CHO AUTH & NOTES
+// DOM ELEMENTS
 // ============================================================
 // Auth Elements
 const authContainer = document.getElementById('auth-container');
@@ -56,12 +49,18 @@ const signupForm = document.getElementById('signup-form');
 const showSignupLink = document.getElementById('show-signup');
 const showSigninLink = document.getElementById('show-signin');
 const authErrorDiv = document.getElementById('auth-error');
-// User Info & Notes Area Elements
+// User Info Area Elements
 const userInfoDiv = document.getElementById('user-info');
 const userEmailDisplay = document.getElementById('user-email-display');
 const signoutButton = document.getElementById('signout-button');
+// View Toggle Elements
+const viewToggleContainer = document.getElementById('view-toggle-container');
+const showActiveNotesButton = document.getElementById('show-active-notes-button');
+const showTrashButton = document.getElementById('show-trash-button');
+// Notes Area Elements
 const notesContainer = document.getElementById('notes-container');
-// Note Management Elements
+const notesAreaTitle = document.getElementById('notes-area-title');
+const addNoteFormContainer = document.getElementById('add-note-form-container'); // Cần để ẩn/hiện
 const addNoteForm = document.getElementById('add-note-form');
 const noteTitleInput = document.getElementById('note-title');
 const noteContentInput = document.getElementById('note-content');
@@ -70,315 +69,376 @@ const notesListDiv = document.getElementById('notes-list');
 // ============================================================
 // BIẾN TRẠNG THÁI VÀ HỦY LẮNG NGHE
 // ============================================================
-let unsubscribeNotes = null;
-
+let currentUserId = null; // Lưu ID người dùng đang đăng nhập
+let currentView = 'active'; // 'active' hoặc 'trash'
+let unsubscribeActiveNotes = null; // Hủy lắng nghe ghi chú hoạt động
+let unsubscribeTrashedNotes = null; // Hủy lắng nghe ghi chú trong thùng rác
 
 // ============================================================
 // HÀM HỖ TRỢ CHO NOTES UI
 // ============================================================
 
-// --- Hàm escape HTML để tránh XSS ---
+// --- Hàm escape HTML ---
+function escapeHTML(str) { /* ... giữ nguyên hàm này ... */ }
 function escapeHTML(str) {
   const div = document.createElement('div');
-  div.appendChild(document.createTextNode(str || '')); // Handle null/undefined
+  div.appendChild(document.createTextNode(str || ''));
   return div.innerHTML;
 }
 
-// --- Hàm hiển thị một ghi chú lên giao diện (Cập nhật cho Inline Editing) ---
+
+// --- Hàm hiển thị một ghi chú lên giao diện (Cập nhật cho Thùng rác) ---
 const renderNote = (id, noteData) => {
     const card = document.createElement('div');
     card.classList.add('note-card');
     card.setAttribute('data-id', id);
+    card.setAttribute('data-status', noteData.status); // Thêm trạng thái vào thẻ
 
     // ---- Phần hiển thị tĩnh ----
     const titleDisplayHTML = `<h4 class="note-title-display">${escapeHTML(noteData.title)}</h4>`;
-    // Nếu không có tiêu đề, không hiển thị thẻ h4 trống
     const finalTitleDisplayHTML = noteData.title ? titleDisplayHTML : '';
     const contentDisplayHTML = `<p class="note-content-display">${escapeHTML(noteData.content)}</p>`;
 
-    // ---- Phần input ẩn để chỉnh sửa ----
-    const titleInputHTML = `<input type="text" class="note-title-input" value="${escapeHTML(noteData.title)}" placeholder="Tiêu đề">`;
-    const contentInputHTML = `<textarea class="note-content-input" rows="4" placeholder="Nội dung">${escapeHTML(noteData.content)}</textarea>`;
+    // ---- Phần input ẩn để chỉnh sửa (Chỉ thêm nếu là ghi chú active) ----
+    let inputsHTML = '';
+    if (noteData.status === 'active') {
+        inputsHTML = `
+            <input type="text" class="note-title-input" value="${escapeHTML(noteData.title)}" placeholder="Tiêu đề">
+            <textarea class="note-content-input" rows="4" placeholder="Nội dung">${escapeHTML(noteData.content)}</textarea>
+        `;
+    }
 
     // ---- Timestamp ----
     let timestampHTML = '';
-    if (noteData.createdAt && typeof noteData.createdAt.toDate === 'function') {
+    const timestampToShow = noteData.status === 'trashed' ? noteData.updatedAt : noteData.createdAt; // Hiện updatedAt cho trash
+    const label = noteData.status === 'trashed' ? 'Xóa lúc' : 'Tạo lúc';
+    if (timestampToShow && typeof timestampToShow.toDate === 'function') {
         try {
-             timestampHTML = `<span class="timestamp">Tạo lúc: ${noteData.createdAt.toDate().toLocaleString('vi-VN')}</span>`;
-             // TODO: Hiển thị cả updatedAt nếu nó khác createdAt đáng kể
-        } catch (e) { timestampHTML = `<span class="timestamp">Tạo lúc: (lỗi ngày)</span>`; }
-    } else { timestampHTML = `<span class="timestamp">Tạo lúc: (không có dữ liệu)</span>`; }
+             timestampHTML = `<span class="timestamp">${label}: ${timestampToShow.toDate().toLocaleString('vi-VN')}</span>`;
+        } catch (e) { timestampHTML = `<span class="timestamp">${label}: (lỗi ngày)</span>`; }
+    } else { timestampHTML = `<span class="timestamp">${label}: (không có dữ liệu)</span>`; }
 
-    // ---- Các nút hành động ----
-    const deleteButtonHTML = `<button class="note-delete-button" data-id="${id}" title="Xóa ghi chú (vào thùng rác)">X</button>`;
-    // Khu vực nút Sửa/Lưu/Hủy ở dưới
-    const actionsHTML = `
-        <div class="note-actions">
-            <button class="note-edit-button card-button" data-id="${id}">Sửa</button>
-            <button class="note-save-button card-button" data-id="${id}">Lưu</button>
-            <button class="note-cancel-button card-button" data-id="${id}">Hủy</button>
-        </div>
-    `;
+    // ---- Các nút hành động (Tùy theo trạng thái) ----
+    const deleteButtonHTML = `<button class="note-delete-button" data-id="${id}" title="Xóa ghi chú (vào thùng rác)">X</button>`; // Nút xóa mềm luôn ở góc
+    let actionsHTML = '';
+    if (noteData.status === 'active') {
+        actionsHTML = `
+            <div class="note-actions">
+                <button class="note-edit-button card-button" data-id="${id}">Sửa</button>
+                <button class="note-save-button card-button" data-id="${id}">Lưu</button>
+                <button class="note-cancel-button card-button" data-id="${id}">Hủy</button>
+            </div>
+        `;
+    } else if (noteData.status === 'trashed') {
+        actionsHTML = `
+            <div class="note-actions">
+                <button class="note-restore-button card-button" data-id="${id}">Khôi phục</button>
+                <button class="note-delete-perm-button card-button" data-id="${id}">Xóa vĩnh viễn</button>
+            </div>
+        `;
+    }
 
     // ---- Kết hợp tất cả ----
     card.innerHTML = `
-        ${deleteButtonHTML}
-        ${finalTitleDisplayHTML}
+        ${noteData.status === 'active' ? deleteButtonHTML : ''} ${finalTitleDisplayHTML}
         ${contentDisplayHTML}
-        ${titleInputHTML}
-        ${contentInputHTML}
-        ${timestampHTML}
-        ${actionsHTML}
-    `;
+        ${inputsHTML} ${timestampHTML}
+        ${actionsHTML} `;
 
     notesListDiv.prepend(card); // Thêm vào đầu danh sách
 };
 
 // --- Hàm xóa tất cả ghi chú khỏi giao diện ---
+const clearNotesUI = () => { /* ... giữ nguyên hàm này ... */ };
 const clearNotesUI = () => {
     notesListDiv.innerHTML = '';
 };
 
 
 // ============================================================
-// LOGIC QUẢN LÝ GHI CHÚ (FIRESTORE CRUD - Cập nhật Listener)
+// LOGIC TẢI GHI CHÚ (Active & Trashed)
 // ============================================================
 
-// --- Hàm tải và lắng nghe ghi chú từ Firestore (Không đổi) ---
+// --- Hàm tải và lắng nghe ghi chú HOẠT ĐỘNG ---
 const loadNotes = (userId) => {
-    console.log(`Attempting to load notes for user: ${userId}`);
+    console.log(`Attempting to load ACTIVE notes for user: ${userId}`);
     clearNotesUI();
-    notesListDiv.innerHTML = '<p>Đang tải ghi chú...</p>';
+    notesListDiv.innerHTML = '<p>Đang tải ghi chú hoạt động...</p>';
     const notesQuery = query(
         collection(db, 'notes'),
         where('userId', '==', userId),
-        where('status', '==', 'active'),
+        where('status', '==', 'active'), // LỌC ACTIVE
         orderBy('createdAt', 'desc')
     );
-    if (unsubscribeNotes) {
-        console.log("Unsubscribing previous notes listener before creating new one.");
-        unsubscribeNotes();
-        unsubscribeNotes = null;
+    // Hủy lắng nghe cũ (của view này) nếu có
+    if (unsubscribeActiveNotes) {
+        console.log("Unsubscribing previous ACTIVE notes listener.");
+        unsubscribeActiveNotes();
     }
-    unsubscribeNotes = onSnapshot(notesQuery, (querySnapshot) => {
+    unsubscribeActiveNotes = onSnapshot(notesQuery, (querySnapshot) => {
         console.log(`Firestore snapshot received: ${querySnapshot.size} active notes.`);
         clearNotesUI();
         if (querySnapshot.empty) {
-            console.log("No active notes found.");
-            notesListDiv.innerHTML = '<p>Bạn chưa có ghi chú nào đang hoạt động. Hãy tạo ghi chú mới!</p>';
+            notesListDiv.innerHTML = '<p>Bạn chưa có ghi chú nào đang hoạt động.</p>';
         } else {
-            console.log("Rendering notes...");
             querySnapshot.forEach((doc) => { renderNote(doc.id, doc.data()); });
-            console.log("Finished rendering notes.");
         }
     }, (error) => {
-        console.error("Error listening to Firestore notes: ", error);
+        console.error("Error listening to ACTIVE Firestore notes: ", error);
         clearNotesUI();
-        notesListDiv.innerHTML = `<p style="color: red;">Lỗi tải ghi chú: ${error.message}. Vui lòng thử tải lại trang.</p>`;
+        notesListDiv.innerHTML = `<p style="color: red;">Lỗi tải ghi chú hoạt động: ${error.message}.</p>`;
     });
-    console.log("Firestore notes listener attached.");
+    console.log("ACTIVE notes listener attached.");
 };
 
-// --- Xử lý thêm ghi chú mới (Không đổi) ---
-addNoteForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const title = noteTitleInput.value.trim();
-    const content = noteContentInput.value.trim();
-    const user = auth.currentUser;
-    if (!user) { authErrorDiv.textContent = "Lỗi: Bạn cần đăng nhập để thêm ghi chú."; return; }
-    if (!content) { alert("Nội dung ghi chú không được để trống."); return; }
+// --- Hàm tải và lắng nghe ghi chú TRONG THÙNG RÁC ---
+const loadTrashedNotes = (userId) => {
+    console.log(`Attempting to load TRASHED notes for user: ${userId}`);
+    clearNotesUI();
+    notesListDiv.innerHTML = '<p>Đang tải ghi chú trong thùng rác...</p>';
+    const trashQuery = query(
+        collection(db, 'notes'),
+        where('userId', '==', userId),
+        where('status', '==', 'trashed'), // LỌC TRASHED
+        orderBy('updatedAt', 'desc')     // Sắp xếp theo ngày xóa (updatedAt khi chuyển status)
+    );
+    // Hủy lắng nghe cũ (của view này) nếu có
+    if (unsubscribeTrashedNotes) {
+        console.log("Unsubscribing previous TRASHED notes listener.");
+        unsubscribeTrashedNotes();
+    }
+    unsubscribeTrashedNotes = onSnapshot(trashQuery, (querySnapshot) => {
+        console.log(`Firestore snapshot received: ${querySnapshot.size} trashed notes.`);
+        clearNotesUI();
+        if (querySnapshot.empty) {
+            notesListDiv.innerHTML = '<p>Thùng rác trống.</p>';
+        } else {
+            querySnapshot.forEach((doc) => { renderNote(doc.id, doc.data()); });
+        }
+    }, (error) => {
+        console.error("Error listening to TRASHED Firestore notes: ", error);
+        clearNotesUI();
+        notesListDiv.innerHTML = `<p style="color: red;">Lỗi tải thùng rác: ${error.message}.</p>`;
+    });
+    console.log("TRASHED notes listener attached.");
+};
 
-    const submitButton = addNoteForm.querySelector('button[type="submit"]');
-    submitButton.disabled = true;
-    submitButton.textContent = 'Đang thêm...';
-    const newNote = {
-        userId: user.uid, title: title, content: content, status: 'active',
-        createdAt: serverTimestamp(), updatedAt: serverTimestamp()
-    };
+// --- Hàm hủy tất cả các listener ---
+const unsubscribeAllNotes = () => {
+    if (unsubscribeActiveNotes) {
+        console.log("Unsubscribing ACTIVE notes listener.");
+        unsubscribeActiveNotes();
+        unsubscribeActiveNotes = null;
+    }
+    if (unsubscribeTrashedNotes) {
+        console.log("Unsubscribing TRASHED notes listener.");
+        unsubscribeTrashedNotes();
+        unsubscribeTrashedNotes = null;
+    }
+};
+
+
+// ============================================================
+// XỬ LÝ HÀNH ĐỘNG (Thêm, Sửa, Lưu, Hủy, Xóa mềm, Khôi phục, Xóa hẳn)
+// ============================================================
+
+// --- Xử lý thêm ghi chú mới (Không đổi) ---
+addNoteForm.addEventListener('submit', (e) => { /* ... giữ nguyên hàm này ... */ });
+addNoteForm.addEventListener('submit', (e) => {
+    e.preventDefault(); const title = noteTitleInput.value.trim(); const content = noteContentInput.value.trim(); const user = auth.currentUser;
+    if (!user) { authErrorDiv.textContent = "Lỗi: Bạn cần đăng nhập để thêm ghi chú."; return; } if (!content) { alert("Nội dung ghi chú không được để trống."); return; }
+    const submitButton = addNoteForm.querySelector('button[type="submit"]'); submitButton.disabled = true; submitButton.textContent = 'Đang thêm...';
+    const newNote = { userId: user.uid, title: title, content: content, status: 'active', createdAt: serverTimestamp(), updatedAt: serverTimestamp() };
     addDoc(collection(db, 'notes'), newNote)
         .then(() => { console.log("Ghi chú đã được thêm"); addNoteForm.reset(); })
         .catch((error) => { console.error("Lỗi khi thêm ghi chú: ", error); alert(`Lỗi thêm ghi chú: ${error.message}`); })
         .finally(() => { submitButton.disabled = false; submitButton.textContent = 'Thêm Ghi Chú'; });
 });
 
-// --- Listener chính cho danh sách ghi chú (Xử lý Sửa, Lưu, Hủy, Xóa) ---
-notesListDiv.addEventListener('click', (e) => {
-    const target = e.target; // Phần tử được click
-    const card = target.closest('.note-card'); // Tìm thẻ ghi chú cha gần nhất
-    if (!card) return; // Nếu click không phải trong thẻ nào thì bỏ qua
 
+// --- Listener chính cho danh sách ghi chú (Cập nhật cho các nút mới) ---
+notesListDiv.addEventListener('click', (e) => {
+    const target = e.target;
+    const card = target.closest('.note-card');
+    if (!card) return;
     const noteId = card.getAttribute('data-id');
 
-    // --- Xử lý nút Sửa ---
+    // --- Sửa ---
     if (target.classList.contains('note-edit-button')) {
-        console.log(`Editing note: ${noteId}`);
-        // Lấy các element input/textarea bên trong thẻ card này
         const titleInput = card.querySelector('.note-title-input');
         const contentInput = card.querySelector('.note-content-input');
-        // Lấy text hiện tại từ các thẻ hiển thị tĩnh (để đảm bảo lấy giá trị mới nhất)
         const currentTitle = card.querySelector('.note-title-display')?.textContent || '';
         const currentContent = card.querySelector('.note-content-display')?.textContent || '';
-
-        // Gán giá trị hiện tại vào input/textarea
         if(titleInput) titleInput.value = currentTitle;
         if(contentInput) contentInput.value = currentContent;
-
-        // Thêm class để kích hoạt chế độ sửa (CSS sẽ lo việc ẩn/hiện)
         card.classList.add('is-editing');
-        if(contentInput) contentInput.focus(); // Tự động focus vào nội dung khi sửa
+        if(contentInput) contentInput.focus();
     }
-
-    // --- Xử lý nút Lưu ---
+    // --- Lưu ---
     else if (target.classList.contains('note-save-button')) {
-        console.log(`Saving note: ${noteId}`);
         const titleInput = card.querySelector('.note-title-input');
         const contentInput = card.querySelector('.note-content-input');
-
-        const newTitle = titleInput ? titleInput.value.trim() : ''; // Lấy giá trị mới
+        const newTitle = titleInput ? titleInput.value.trim() : '';
         const newContent = contentInput ? contentInput.value.trim() : '';
-
-        if (!newContent) {
-            alert("Nội dung ghi chú không được để trống.");
-            return;
-        }
-
-        // Vô hiệu hóa nút lưu tạm thời
-        target.disabled = true;
-        target.textContent = 'Đang lưu...';
-
+        if (!newContent) { alert("Nội dung không được trống."); return; }
+        target.disabled = true; target.textContent = 'Đang lưu...';
         const noteRef = doc(db, 'notes', noteId);
-        updateDoc(noteRef, {
-            title: newTitle,
-            content: newContent,
-            updatedAt: serverTimestamp()
-        })
-        .then(() => {
-            console.log(`Note ${noteId} updated.`);
-            card.classList.remove('is-editing'); // Thoát chế độ sửa
-            // onSnapshot sẽ tự cập nhật giao diện với dữ liệu mới nhất
-        })
-        .catch((error) => {
-            console.error("Lỗi khi cập nhật ghi chú: ", error);
-            alert(`Lỗi lưu ghi chú: ${error.message}`);
-             target.disabled = false; // Bật lại nút nếu lỗi
-             target.textContent = 'Lưu';
-        });
-        // Không cần bật lại nút ở finally vì khi thành công, nút này sẽ bị ẩn đi bởi CSS
+        updateDoc(noteRef, { title: newTitle, content: newContent, updatedAt: serverTimestamp() })
+            .then(() => { console.log(`Note ${noteId} updated.`); card.classList.remove('is-editing'); })
+            .catch((error) => { console.error("Lỗi cập nhật: ", error); alert(`Lỗi lưu: ${error.message}`); target.disabled = false; target.textContent = 'Lưu'; });
     }
-
-    // --- Xử lý nút Hủy ---
+    // --- Hủy ---
     else if (target.classList.contains('note-cancel-button')) {
-        console.log(`Canceling edit for note: ${noteId}`);
-        card.classList.remove('is-editing'); // Chỉ cần thoát chế độ sửa, không làm gì khác
-        // Các input sẽ bị ẩn, các thẻ tĩnh sẽ hiện lại với nội dung cũ (từ lần render cuối)
+        card.classList.remove('is-editing');
     }
-
-    // --- Xử lý nút Xóa (Giữ nguyên logic cũ) ---
+    // --- Xóa mềm (Nút X góc trên) ---
     else if (target.classList.contains('note-delete-button')) {
-        console.log(`Requesting delete for note ID: ${noteId}`);
-        if (card) card.style.opacity = '0.5';
+         if (card) card.style.opacity = '0.5';
         if (confirm("Chuyển ghi chú này vào thùng rác?")) {
             const noteRef = doc(db, 'notes', noteId);
             updateDoc(noteRef, { status: 'trashed', updatedAt: serverTimestamp() })
-            .then(() => { console.log(`Note ${noteId} moved to trash.`); })
-            .catch((error) => {
-                console.error("Lỗi khi chuyển ghi chú vào thùng rác: ", error);
-                alert(`Lỗi khi xóa ghi chú: ${error.message}`);
-                if (card) card.style.opacity = '1';
-            });
+                .then(() => { console.log(`Note ${noteId} moved to trash.`); }) // UI tự cập nhật
+                .catch((error) => { console.error("Lỗi xóa mềm: ", error); alert(`Lỗi xóa: ${error.message}`); if (card) card.style.opacity = '1'; });
+        } else { if (card) card.style.opacity = '1'; }
+    }
+    // --- Khôi phục ---
+    else if (target.classList.contains('note-restore-button')) {
+        console.log(`Restoring note: ${noteId}`);
+        target.disabled = true; // Vô hiệu hóa nút
+        const noteRef = doc(db, 'notes', noteId);
+        updateDoc(noteRef, {
+            status: 'active', // Đổi status về active
+            updatedAt: serverTimestamp()
+        })
+        .then(() => { console.log(`Note ${noteId} restored.`); }) // UI tự cập nhật
+        .catch((error) => {
+            console.error("Lỗi khôi phục: ", error);
+            alert(`Lỗi khôi phục: ${error.message}`);
+            target.disabled = false; // Bật lại nút nếu lỗi
+        });
+    }
+    // --- Xóa Vĩnh Viễn ---
+    else if (target.classList.contains('note-delete-perm-button')) {
+         if (card) card.style.opacity = '0.5';
+        if (confirm("!!! BẠN CÓ CHẮC MUỐN XÓA VĨNH VIỄN GHI CHÚ NÀY?\nHành động này không thể hoàn tác.")) {
+            console.log(`Permanently deleting note: ${noteId}`);
+            target.disabled = true; // Vô hiệu hóa nút
+            const noteRef = doc(db, 'notes', noteId);
+            deleteDoc(noteRef) // Gọi hàm xóa của Firestore
+                .then(() => { console.log(`Note ${noteId} permanently deleted.`); }) // UI tự cập nhật
+                .catch((error) => {
+                    console.error("Lỗi xóa vĩnh viễn: ", error);
+                    alert(`Lỗi xóa vĩnh viễn: ${error.message}`);
+                    target.disabled = false; // Bật lại nút nếu lỗi
+                     if (card) card.style.opacity = '1';
+                });
         } else {
-            if (card) card.style.opacity = '1';
+             if (card) card.style.opacity = '1';
         }
     }
 });
 
 // ============================================================
-// LOGIC XỬ LÝ AUTHENTICATION (Giữ nguyên)
+// XỬ LÝ CHUYỂN ĐỔI VIEW (Active/Trash)
 // ============================================================
-// (Copy toàn bộ phần xử lý Auth từ file app.js trước đó vào đây)
-// --- Hàm chuyển đổi giữa form Đăng nhập và Đăng ký ---
-showSignupLink.addEventListener('click', () => { /*...*/ });
-showSigninLink.addEventListener('click', () => { /*...*/ });
-// --- Xử lý Đăng Ký ---
-signupForm.addEventListener('submit', (e) => { /*...*/ });
-// --- Xử lý Đăng Nhập ---
-signinForm.addEventListener('submit', (e) => { /*...*/ });
-// --- Xử lý Đăng Xuất ---
-signoutButton.addEventListener('click', () => { /*...*/ });
+
+const handleSwitchView = (targetView) => {
+    if (targetView === currentView || !currentUserId) {
+        console.log(`Already in view '${targetView}' or no user logged in.`);
+        return; // Không làm gì nếu đã ở view đó hoặc chưa đăng nhập
+    }
+     console.log(`Switching view to: ${targetView}`);
+    currentView = targetView; // Cập nhật trạng thái view hiện tại
+
+    // Cập nhật trạng thái active của nút
+    showActiveNotesButton.classList.toggle('active', currentView === 'active');
+    showTrashButton.classList.toggle('active', currentView === 'trash');
+
+    // Cập nhật tiêu đề khu vực
+    notesAreaTitle.textContent = (currentView === 'active') ? 'Ghi chú của bạn' : 'Thùng rác';
+
+    // Ẩn/hiện form thêm ghi chú
+    addNoteFormContainer.style.display = (currentView === 'active') ? 'block' : 'none';
+
+    // Hủy listener của view CŨ và tải dữ liệu cho view MỚI
+    if (currentView === 'active') {
+        unsubscribeAllNotes(); // Hủy cả 2 cho chắc trước khi gọi load mới
+        loadNotes(currentUserId);
+    } else { // currentView === 'trash'
+        unsubscribeAllNotes();
+        loadTrashedNotes(currentUserId);
+    }
+};
+
+// Gắn listener cho các nút chuyển view
+showActiveNotesButton.addEventListener('click', () => handleSwitchView('active'));
+showTrashButton.addEventListener('click', () => handleSwitchView('trash'));
+
 
 // ============================================================
-// AUTH STATE LISTENER (Giữ nguyên)
+// LOGIC XỬ LÝ AUTHENTICATION (Giữ nguyên phần xử lý form)
+// ============================================================
+showSignupLink.addEventListener('click', () => { /*...*/ });
+showSigninLink.addEventListener('click', () => { /*...*/ });
+signupForm.addEventListener('submit', (e) => { /*...*/ });
+signinForm.addEventListener('submit', (e) => { /*...*/ });
+// --- Xử lý Đăng Xuất (Cập nhật để hủy listener) ---
+signoutButton.addEventListener('click', () => {
+     console.log("Signing out...");
+     unsubscribeAllNotes(); // *** Hủy tất cả listener trước khi đăng xuất ***
+     currentUserId = null; // Reset userId
+     currentView = 'active'; // Reset view về mặc định
+    signOut(auth).then(() => { console.log('Đăng xuất thành công!'); })
+                 .catch((error) => { console.error('Lỗi Đăng Xuất:', error); alert(`Lỗi đăng xuất: ${error.message}`); });
+});
+
+
+// ============================================================
+// AUTH STATE LISTENER (Cập nhật để quản lý view và user)
 // ============================================================
 onAuthStateChanged(auth, (user) => {
-    console.log('Auth state changed. Current user:', user ? user.uid : 'None');
+    console.log('Auth state changed. User:', user ? user.uid : 'None');
+    unsubscribeAllNotes(); // Luôn hủy listener cũ khi auth state thay đổi
+
     if (user) {
         // ---- User Đã Đăng Nhập ----
+        currentUserId = user.uid; // Lưu lại userId
+        currentView = 'active';   // Đặt view mặc định là active
         authContainer.style.display = 'none';
         userInfoDiv.style.display = 'block';
+        viewToggleContainer.style.display = 'block'; // Hiện nút chuyển view
         notesContainer.style.display = 'block';
         userEmailDisplay.textContent = user.email;
-        loadNotes(user.uid); // Tải ghi chú
+
+        // Reset UI về trạng thái xem active notes
+        showActiveNotesButton.classList.add('active');
+        showTrashButton.classList.remove('active');
+        notesAreaTitle.textContent = 'Ghi chú của bạn';
+        addNoteFormContainer.style.display = 'block';
+
+        loadNotes(currentUserId); // Tải ghi chú hoạt động
+
     } else {
         // ---- User Đã Đăng Xuất hoặc Chưa Đăng Nhập ----
+        currentUserId = null; // Xóa userId
         authContainer.style.display = 'block';
         signinFormContainer.style.display = 'block';
         signupFormContainer.style.display = 'none';
         userInfoDiv.style.display = 'none';
+        viewToggleContainer.style.display = 'none'; // Ẩn nút chuyển view
         notesContainer.style.display = 'none';
         userEmailDisplay.textContent = '';
         authErrorDiv.textContent = '';
         signinForm.reset();
         signupForm.reset();
-        clearNotesUI(); // Xóa UI notes
-        if (unsubscribeNotes) { // Hủy lắng nghe notes
-            console.log("Auth state changed to logged out. Unsubscribing notes listener.");
-            unsubscribeNotes();
-            unsubscribeNotes = null;
-        } else {
-             console.log("Auth state changed to logged out. No active notes listener to unsubscribe.");
-        }
+        clearNotesUI(); // Xóa UI notes (unsubscribe đã gọi ở đầu hàm)
     }
 });
 
-console.log("App.js loaded. Inline editing logic included.");
-// --- Bản sao đầy đủ của các hàm xử lý Auth ---
-// (Đảm bảo bạn đã copy đủ các hàm này từ phiên bản trước)
-showSignupLink.addEventListener('click', () => {
-    signinFormContainer.style.display = 'none';
-    signupFormContainer.style.display = 'block';
-    authErrorDiv.textContent = '';
-    signinForm.reset();
-});
-showSigninLink.addEventListener('click', () => {
-    signupFormContainer.style.display = 'none';
-    signinFormContainer.style.display = 'block';
-    authErrorDiv.textContent = '';
-    signupForm.reset();
-});
-signupForm.addEventListener('submit', (e) => {
-    e.preventDefault(); const email = signupForm['signup-email'].value; const password = signupForm['signup-password'].value; authErrorDiv.textContent = '';
-    const submitButton = signupForm.querySelector('button[type="submit"]'); submitButton.disabled = true; submitButton.textContent = 'Đang đăng ký...';
-    createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => { console.log('Đăng ký thành công!', userCredential.user); signupForm.reset(); })
-        .catch((error) => { console.error('Lỗi Đăng Ký:', error.code, error.message);
-            switch (error.code) { case 'auth/email-already-in-use': authErrorDiv.textContent = 'Email này đã được sử dụng.'; break; case 'auth/weak-password': authErrorDiv.textContent = 'Mật khẩu quá yếu (cần ít nhất 6 ký tự).'; break; case 'auth/invalid-email': authErrorDiv.textContent = 'Địa chỉ email không hợp lệ.'; break; default: authErrorDiv.textContent = `Lỗi đăng ký: ${error.message}`; }
-        })
-        .finally(() => { submitButton.disabled = false; submitButton.textContent = 'Đăng Ký'; });
-});
-signinForm.addEventListener('submit', (e) => {
-    e.preventDefault(); const email = signinForm['signin-email'].value; const password = signinForm['signin-password'].value; authErrorDiv.textContent = '';
-    const submitButton = signinForm.querySelector('button[type="submit"]'); submitButton.disabled = true; submitButton.textContent = 'Đang đăng nhập...';
-    signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => { console.log('Đăng nhập thành công!', userCredential.user); signinForm.reset(); })
-        .catch((error) => { console.error('Lỗi Đăng Nhập:', error.code, error.message);
-            switch (error.code) { case 'auth/user-not-found': case 'auth/wrong-password': case 'auth/invalid-credential': authErrorDiv.textContent = 'Email hoặc mật khẩu không đúng.'; break; case 'auth/invalid-email': authErrorDiv.textContent = 'Địa chỉ email không hợp lệ.'; break; case 'auth/too-many-requests': authErrorDiv.textContent = 'Quá nhiều lần thử. Vui lòng thử lại sau.'; break; default: authErrorDiv.textContent = `Lỗi đăng nhập: ${error.message}`; }
-        })
-         .finally(() => { submitButton.disabled = false; submitButton.textContent = 'Đăng Nhập'; });
-});
-signoutButton.addEventListener('click', () => {
-     console.log("Signing out...");
-     if (unsubscribeNotes) { console.log("Unsubscribing notes listener before sign out."); unsubscribeNotes(); unsubscribeNotes = null; }
-    signOut(auth).then(() => { console.log('Đăng xuất thành công!'); }).catch((error) => { console.error('Lỗi Đăng Xuất:', error); alert(`Lỗi đăng xuất: ${error.message}`); });
-});
-
+console.log("App.js loaded. Trash bin logic included.");
+// --- Bản sao đầy đủ của các hàm xử lý form Auth (Để đảm bảo không thiếu) ---
+showSignupLink.addEventListener('click', () => { signinFormContainer.style.display = 'none'; signupFormContainer.style.display = 'block'; authErrorDiv.textContent = ''; signinForm.reset(); });
+showSigninLink.addEventListener('click', () => { signupFormContainer.style.display = 'none'; signinFormContainer.style.display = 'block'; authErrorDiv.textContent = ''; signupForm.reset(); });
+signupForm.addEventListener('submit', (e) => { e.preventDefault(); const email = signupForm['signup-email'].value; const password = signupForm['signup-password'].value; authErrorDiv.textContent = ''; const submitButton = signupForm.querySelector('button[type="submit"]'); submitButton.disabled = true; submitButton.textContent = 'Đang đăng ký...'; createUserWithEmailAndPassword(auth, email, password).then((userCredential) => { console.log('Đăng ký thành công!', userCredential.user); signupForm.reset(); }).catch((error) => { console.error('Lỗi Đăng Ký:', error.code, error.message); switch (error.code) { case 'auth/email-already-in-use': authErrorDiv.textContent = 'Email này đã được sử dụng.'; break; case 'auth/weak-password': authErrorDiv.textContent = 'Mật khẩu quá yếu (cần ít nhất 6 ký tự).'; break; case 'auth/invalid-email': authErrorDiv.textContent = 'Địa chỉ email không hợp lệ.'; break; default: authErrorDiv.textContent = `Lỗi đăng ký: ${error.message}`; } }).finally(() => { submitButton.disabled = false; submitButton.textContent = 'Đăng Ký'; }); });
+signinForm.addEventListener('submit', (e) => { e.preventDefault(); const email = signinForm['signin-email'].value; const password = signinForm['signin-password'].value; authErrorDiv.textContent = ''; const submitButton = signinForm.querySelector('button[type="submit"]'); submitButton.disabled = true; submitButton.textContent = 'Đang đăng nhập...'; signInWithEmailAndPassword(auth, email, password).then((userCredential) => { console.log('Đăng nhập thành công!', userCredential.user); signinForm.reset(); }).catch((error) => { console.error('Lỗi Đăng Nhập:', error.code, error.message); switch (error.code) { case 'auth/user-not-found': case 'auth/wrong-password': case 'auth/invalid-credential': authErrorDiv.textContent = 'Email hoặc mật khẩu không đúng.'; break; case 'auth/invalid-email': authErrorDiv.textContent = 'Địa chỉ email không hợp lệ.'; break; case 'auth/too-many-requests': authErrorDiv.textContent = 'Quá nhiều lần thử. Vui lòng thử lại sau.'; break; default: authErrorDiv.textContent = `Lỗi đăng nhập: ${error.message}`; } }).finally(() => { submitButton.disabled = false; submitButton.textContent = 'Đăng Nhập'; }); });
 

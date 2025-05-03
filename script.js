@@ -1,18 +1,39 @@
 // =====================================================================
+//  Firebase SDK Imports (Đảm bảo đã có trong HTML hoặc import nếu cần)
+// =====================================================================
+// Các hàm này được import trong thẻ <script type="module"> trong HTML
+// và gán vào window để script này có thể dùng.
+// Nếu script này cũng là module, bạn có thể import trực tiếp ở đây.
+// Ví dụ: import { getAuth, ... } from "firebase/auth";
+
+// Lấy các hàm và đối tượng Firebase từ window (do đã gán trong HTML)
+const firebaseApp = window.firebaseApp;
+const getAuth = window.getAuth;
+// Các hàm auth khác sẽ import trực tiếp từ module SDK khi dùng
+import {
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signOut,
+    GoogleAuthProvider,
+    signInWithPopup,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js"; // Đảm bảo version khớp với HTML
+
+
+// =====================================================================
 //  Constants & State Variables
 // =====================================================================
-const NOTES_STORAGE_KEY = 'flexiNoteData_v2'; // Đổi tên key để tránh xung đột nếu cần
-const TEMPLATES_STORAGE_KEY = 'flexiNoteTemplates';
-const NOTEBOOKS_STORAGE_KEY = 'flexiNoteNotebooks';
-const THEME_NAME_KEY = 'flexiNoteThemeName';
-const ACCENT_COLOR_KEY = 'flexiNoteAccentColor';
-const FONT_FAMILY_KEY = 'flexiNoteFontFamily';
-const FONT_SIZE_SCALE_KEY = 'flexiNoteFontSizeScale';
-const LAST_CUSTOM_THEME_KEY = 'flexiNoteLastCustomTheme';
+const NOTES_STORAGE_KEY = 'startNotesData_v2';
+const TEMPLATES_STORAGE_KEY = 'startNoteTemplates';
+const NOTEBOOKS_STORAGE_KEY = 'startNoteNotebooks';
+const THEME_NAME_KEY = 'startNotesThemeName';
+const ACCENT_COLOR_KEY = 'startNotesAccentColor';
+const FONT_FAMILY_KEY = 'startNotesFontFamily';
+const FONT_SIZE_SCALE_KEY = 'startNotesFontSizeScale';
+const LAST_CUSTOM_THEME_KEY = 'startNotesLastCustomTheme';
 const SUGGESTION_BOX_ID = 'tag-suggestion-box';
 const MOVE_NOTE_MENU_ID = 'move-note-menu'; // ID for the move menu
-const DEBOUNCE_DELAY = 1500; // Delay cho auto-save
-const LAYOUT_DEBOUNCE_DELAY = 250; // Delay cho cập nhật layout khi resize
+const DEBOUNCE_DELAY = 1500;
 
 let notes = [];
 let templates = [];
@@ -21,9 +42,9 @@ let isViewingArchived = false;
 let isViewingTrash = false;
 let currentNotebookId = 'all';
 let sortableInstance = null;
-let masonryInstance = null; // Biến lưu trữ đối tượng Masonry
 let activeTagInputElement = null;
 let activeMoveMenu = null; // Track the currently open move menu
+let currentUser = null; // <<<--- Biến lưu thông tin người dùng Firebase
 
 const DEFAULT_NOTEBOOK_ID = 'all';
 
@@ -50,6 +71,9 @@ const DARK_THEME_NAMES = [
     'dark', 'solarized-dark',
     'nord', 'gruvbox-dark', 'dracula'
 ];
+
+// Khởi tạo Firebase Auth
+const auth = getAuth(firebaseApp); // <<<--- Lấy đối tượng Auth
 
 // =====================================================================
 //  DOM References
@@ -112,6 +136,24 @@ const fontSizeSlider = document.getElementById('font-size-slider');
 const fontSizeValueSpan = document.getElementById('font-size-value');
 const resetFontSizeBtn = document.getElementById('reset-font-size-btn');
 
+// --- DOM References for Auth ---
+const authContainer = document.getElementById('auth-container');
+const loginForm = document.getElementById('login-form');
+const signupForm = document.getElementById('signup-form');
+const loginEmailInput = document.getElementById('login-email');
+const loginPasswordInput = document.getElementById('login-password');
+const signupEmailInput = document.getElementById('signup-email');
+const signupPasswordInput = document.getElementById('signup-password');
+const showSignupBtn = document.getElementById('show-signup-btn');
+const showLoginBtn = document.getElementById('show-login-btn');
+const googleSigninBtn = document.getElementById('google-signin-btn');
+const userInfoDiv = document.getElementById('user-info');
+const userEmailSpan = document.getElementById('user-email');
+const logoutBtn = document.getElementById('logout-btn');
+const loginErrorDiv = document.getElementById('login-error');
+const signupErrorDiv = document.getElementById('signup-error');
+
+
 // =====================================================================
 //  Utility Functions
 // =====================================================================
@@ -124,6 +166,7 @@ const escapeHTML = (str) => { if (!str) return ''; const map = { '&': '&amp;', '
 // =====================================================================
 //  Theme & Appearance Management
 // =====================================================================
+// (Giữ nguyên các hàm quản lý theme như cũ)
 const getStoredPreference = (key, defaultValue) => { return localStorage.getItem(key) ?? defaultValue; };
 const applyAllAppearanceSettings = () => { const savedTheme = getStoredPreference(THEME_NAME_KEY, DEFAULT_THEME); applyTheme(VALID_THEMES.includes(savedTheme) ? savedTheme : DEFAULT_THEME); const savedAccentColor = getStoredPreference(ACCENT_COLOR_KEY, DEFAULT_ACCENT_COLOR); applyAccentColor(savedAccentColor); const savedFontFamily = getStoredPreference(FONT_FAMILY_KEY, DEFAULT_FONT_FAMILY); applyFontFamily(savedFontFamily); const savedFontSizeScale = parseFloat(getStoredPreference(FONT_SIZE_SCALE_KEY, DEFAULT_FONT_SIZE_SCALE.toString())); applyFontSize(isNaN(savedFontSizeScale) ? DEFAULT_FONT_SIZE_SCALE : savedFontSizeScale); };
 const applyTheme = (themeName) => { if (!VALID_THEMES.includes(themeName)) { console.warn(`Invalid theme name "${themeName}". Falling back to default.`); themeName = DEFAULT_THEME; } const root = document.documentElement; VALID_THEMES.forEach(theme => document.body.classList.remove(`theme-${theme}`)); document.body.classList.remove('dark-mode', 'light-mode'); if (themeName !== 'light') { document.body.classList.add(`theme-${themeName}`); } const isDark = DARK_THEME_NAMES.includes(themeName); document.body.classList.add(isDark ? 'dark-mode' : 'light-mode'); if (quickThemeToggleBtn) { if (isDark) { quickThemeToggleBtn.innerHTML = '☀️&nbsp;Sáng'; quickThemeToggleBtn.title = 'Chuyển sang chế độ Sáng'; } else { quickThemeToggleBtn.innerHTML = '🌙&nbsp;Tối'; quickThemeToggleBtn.title = 'Chuyển sang chế độ Tối'; } } updateThemeSelectionUI(themeName); const currentAccent = getStoredPreference(ACCENT_COLOR_KEY, DEFAULT_ACCENT_COLOR); applyAccentColor(currentAccent); };
@@ -136,643 +179,677 @@ const applyFontSize = (scale) => { const clampedScale = Math.max(0.8, Math.min(1
 const updateFontSizeUI = (scale) => { if (fontSizeSlider) { fontSizeSlider.value = scale; } if (fontSizeValueSpan) { fontSizeValueSpan.textContent = `${Math.round(scale * 100)}%`; } };
 const quickToggleTheme = () => { const currentTheme = getStoredPreference(THEME_NAME_KEY, DEFAULT_THEME); const lastCustomTheme = getStoredPreference(LAST_CUSTOM_THEME_KEY, null); let targetTheme; const isCurrentDark = DARK_THEME_NAMES.includes(currentTheme); if (isCurrentDark) { if (lastCustomTheme && !DARK_THEME_NAMES.includes(lastCustomTheme)) { targetTheme = lastCustomTheme; } else { targetTheme = 'light'; } } else { targetTheme = 'dark'; } applyTheme(targetTheme); localStorage.setItem(THEME_NAME_KEY, targetTheme); };
 
+
 // =====================================================================
-//  Notebook Data Management
+//  Authentication Functions (NEW)
 // =====================================================================
-const saveNotebooks = () => { try { localStorage.setItem(NOTEBOOKS_STORAGE_KEY, JSON.stringify(notebooks)); } catch (e) { console.error("Lỗi lưu sổ tay vào localStorage:", e); alert("Đã xảy ra lỗi khi cố gắng lưu danh sách sổ tay."); } };
-const loadNotebooks = () => { const storedNotebooks = localStorage.getItem(NOTEBOOKS_STORAGE_KEY); if (storedNotebooks) { try { notebooks = JSON.parse(storedNotebooks).map(nb => ({ id: nb.id || Date.now(), name: nb.name || `Sổ tay ${nb.id || Date.now()}` })); } catch (e) { console.error("Lỗi đọc dữ liệu sổ tay từ localStorage:", e); alert("Lỗi khi đọc dữ liệu Sổ tay đã lưu. Dữ liệu có thể bị lỗi."); notebooks = []; } } else { notebooks = []; } };
-const addOrUpdateNotebook = () => { const name = notebookEditName.value.trim(); const id = notebookEditId.value ? parseInt(notebookEditId.value) : null; if (!name) { alert("Vui lòng nhập Tên Sổ tay!"); notebookEditName.focus(); return; } const existingNotebook = notebooks.find(nb => nb.name.toLowerCase() === name.toLowerCase() && nb.id !== id); if (existingNotebook) { alert(`Sổ tay với tên "${name}" đã tồn tại. Vui lòng chọn tên khác.`); notebookEditName.focus(); return; } if (id) { const index = notebooks.findIndex(nb => nb.id === id); if (index !== -1) { notebooks[index].name = name; } else { console.error("Không tìm thấy sổ tay để cập nhật với ID:", id); alert("Lỗi: Không tìm thấy sổ tay để cập nhật."); return; } } else { const newNotebook = { id: Date.now(), name: name }; notebooks.push(newNotebook); } saveNotebooks(); renderNotebookList(); renderNotebookTabs(); hideNotebookEditPanel(); };
-const deleteNotebook = (id) => { const index = notebooks.findIndex(nb => nb.id === id); if (index !== -1) { const notebookName = notebooks[index].name; const notesInNotebook = notes.filter(note => note.notebookId === id && !note.deleted && !note.archived).length; let confirmMessage = `Bạn chắc chắn muốn xóa sổ tay "${escapeHTML(notebookName)}"?`; if (notesInNotebook > 0) { confirmMessage += `\n\nCẢNH BÁO: Có ${notesInNotebook} ghi chú trong sổ tay này. Việc xóa sổ tay sẽ chuyển các ghi chú này về "Tất cả Ghi chú" (không thuộc sổ tay nào).`; } if (confirm(confirmMessage)) { notebooks.splice(index, 1); saveNotebooks(); let notesUpdated = false; notes.forEach(note => { if (note.notebookId === id) { note.notebookId = null; notesUpdated = true; } }); if (notesUpdated) { saveNotes(); } renderNotebookList(); renderNotebookTabs(); if (currentNotebookId === id) { currentNotebookId = DEFAULT_NOTEBOOK_ID; displayNotes(); } if (!notebookEditPanel.classList.contains('hidden') && parseInt(notebookEditId.value) === id) { hideNotebookEditPanel(); } } } else { console.error("Không tìm thấy sổ tay để xóa với ID:", id); alert("Lỗi: Không tìm thấy sổ tay để xóa."); } };
+
+const displayAuthError = (formType, error) => {
+    const errorDiv = formType === 'login' ? loginErrorDiv : signupErrorDiv;
+    console.error(`${formType} Error:`, error.code, error.message);
+    // Chuyển đổi mã lỗi Firebase thành thông báo thân thiện hơn (ví dụ)
+    let message = 'Đã xảy ra lỗi. Vui lòng thử lại.';
+    if (error.code) {
+        switch (error.code) {
+            case 'auth/invalid-email':
+                message = 'Địa chỉ email không hợp lệ.';
+                break;
+            case 'auth/user-disabled':
+                message = 'Tài khoản này đã bị vô hiệu hóa.';
+                break;
+            case 'auth/user-not-found':
+            case 'auth/wrong-password':
+            case 'auth/invalid-credential': // For newer SDK versions
+                 message = 'Email hoặc mật khẩu không đúng.';
+                 break;
+            case 'auth/email-already-in-use':
+                message = 'Email này đã được sử dụng.';
+                break;
+            case 'auth/weak-password':
+                message = 'Mật khẩu quá yếu (cần ít nhất 6 ký tự).';
+                break;
+            case 'auth/popup-closed-by-user':
+                 message = 'Cửa sổ đăng nhập Google đã bị đóng.';
+                 // Có thể không hiển thị lỗi này
+                 errorDiv.classList.add('hidden');
+                 return;
+            case 'auth/cancelled-popup-request':
+            case 'auth/popup-blocked':
+                message = 'Không thể mở cửa sổ đăng nhập Google. Vui lòng cho phép pop-up.';
+                break;
+            default:
+                // Giữ thông báo lỗi chung cho các trường hợp khác
+                // message = error.message; // Hoặc có thể ẩn thông báo chi tiết
+                break;
+        }
+    }
+    errorDiv.textContent = message;
+    errorDiv.classList.remove('hidden');
+};
+
+const clearAuthErrors = () => {
+    if (loginErrorDiv) {
+        loginErrorDiv.classList.add('hidden');
+        loginErrorDiv.textContent = '';
+    }
+    if (signupErrorDiv) {
+        signupErrorDiv.classList.add('hidden');
+        signupErrorDiv.textContent = '';
+    }
+};
+
+const handleSignUp = (event) => {
+    event.preventDefault(); // Ngăn form submit theo cách truyền thống
+    clearAuthErrors();
+    const email = signupEmailInput.value;
+    const password = signupPasswordInput.value;
+    // Thêm kiểm tra mật khẩu trống hoặc độ dài nếu cần
+    if (!email || !password) {
+         displayAuthError('signup', { code: 'auth/internal-error', message: 'Vui lòng nhập email và mật khẩu.' });
+         return;
+     }
+
+    createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+            console.log('Đăng ký thành công:', userCredential.user);
+            // onAuthStateChanged sẽ tự động xử lý cập nhật UI
+            signupForm.reset(); // Xóa form
+            // Có thể ẩn form signup và hiện form login hoặc thông tin user luôn
+            signupForm.classList.add('hidden');
+            userInfoDiv.classList.remove('hidden'); // Hiển thị thông tin user ngay
+        })
+        .catch((error) => {
+            displayAuthError('signup', error);
+        });
+};
+
+const handleSignIn = (event) => {
+    event.preventDefault();
+    clearAuthErrors();
+    const email = loginEmailInput.value;
+    const password = loginPasswordInput.value;
+     if (!email || !password) {
+         displayAuthError('login', { code: 'auth/internal-error', message: 'Vui lòng nhập email và mật khẩu.' });
+         return;
+     }
+
+    signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+            console.log('Đăng nhập thành công:', userCredential.user);
+            // onAuthStateChanged sẽ tự động xử lý cập nhật UI
+            loginForm.reset(); // Xóa form
+            loginForm.classList.add('hidden'); // Ẩn form login
+        })
+        .catch((error) => {
+            displayAuthError('login', error);
+        });
+};
+
+const handleGoogleSignIn = () => {
+    clearAuthErrors();
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider)
+        .then((result) => {
+            console.log('Đăng nhập Google thành công:', result.user);
+             loginForm.classList.add('hidden'); // Ẩn form login nếu đang hiện
+             signupForm.classList.add('hidden'); // Ẩn form signup nếu đang hiện
+            // const credential = GoogleAuthProvider.credentialFromResult(result);
+            // const token = credential.accessToken; // Có thể dùng nếu cần
+        })
+        .catch((error) => {
+             displayAuthError('login', error); // Hiển thị lỗi trên form login
+        });
+};
+
+
+const handleSignOut = () => {
+    signOut(auth).then(() => {
+        console.log('Đăng xuất thành công');
+        // onAuthStateChanged sẽ tự động xử lý cập nhật UI và xóa dữ liệu
+    }).catch((error) => {
+        console.error('Lỗi đăng xuất:', error);
+        alert('Đã xảy ra lỗi khi đăng xuất.');
+    });
+};
+
+// --- Cập nhật UI dựa trên trạng thái Auth ---
+const updateUIBasedOnAuthState = (user) => {
+    clearAuthErrors(); // Xóa lỗi cũ khi trạng thái thay đổi
+    if (user) {
+        // Người dùng đã đăng nhập
+        currentUser = user; // Lưu thông tin người dùng hiện tại
+        if (loginForm) loginForm.classList.add('hidden');
+        if (signupForm) signupForm.classList.add('hidden');
+        if (userInfoDiv) userInfoDiv.classList.remove('hidden');
+        if (userEmailSpan) userEmailSpan.textContent = user.email || user.displayName || 'Người dùng'; // Hiển thị email hoặc tên
+
+        // === QUAN TRỌNG: Bắt đầu tải/đồng bộ dữ liệu người dùng từ Firebase ===
+        // === Chúng ta sẽ thay thế phần này ở bước tích hợp Database ===
+        loadUserDataAndDisplayNotes(); // Hàm tạm thời hoặc hàm sẽ gọi Firebase
+
+    } else {
+        // Người dùng đã đăng xuất hoặc chưa đăng nhập
+        currentUser = null;
+        if (loginForm) loginForm.classList.remove('hidden'); // Hiển thị form đăng nhập mặc định
+        if (signupForm) signupForm.classList.add('hidden');
+        if (userInfoDiv) userInfoDiv.classList.add('hidden');
+        if (userEmailSpan) userEmailSpan.textContent = '';
+
+        // === QUAN TRỌNG: Xóa dữ liệu trên màn hình khi đăng xuất ===
+        notes = []; // Xóa dữ liệu trong bộ nhớ
+        templates = [];
+        notebooks = [];
+        currentNotebookId = 'all'; // Reset notebook về mặc định
+        isViewingArchived = false;
+        isViewingTrash = false;
+        searchInput.value = ''; // Xóa ô tìm kiếm
+
+        if (notesContainer) {
+             notesContainer.innerHTML = '<p class="empty-state">Vui lòng đăng nhập để xem hoặc tạo ghi chú.</p>'; // Hiển thị thông báo
+        }
+        renderNotebookTabs(); // Render lại tab (chỉ có tab "All")
+        populateTemplateDropdown(); // Xóa dropdown template
+
+        if (sortableInstance) { // Hủy kéo thả nếu có
+             sortableInstance.destroy();
+             sortableInstance = null;
+        }
+        if (addNotePanel) addNotePanel.classList.add('hidden'); // Ẩn panel thêm note
+        if (showAddPanelBtn) showAddPanelBtn.classList.add('hidden'); // Ẩn nút FAB
+    }
+     // Điều khiển nút FAB (hiện chỉ khi đăng nhập và không ở chế độ sửa)
+     const canShowFab = !!user && !(addNotePanel && !addNotePanel.classList.contains('hidden')) && !(notesContainer && notesContainer.querySelector('.note .edit-input'));
+     if(showAddPanelBtn) showAddPanelBtn.classList.toggle('hidden', !canShowFab);
+
+     // Điều khiển các nút header khác (Ví dụ: chỉ cho Xuất/Nhập khi đăng nhập)
+     const isLoggedIn = !!user;
+     if (exportNotesBtn) exportNotesBtn.disabled = !isLoggedIn;
+     if (importNotesBtn) importNotesBtn.disabled = !isLoggedIn;
+     if (manageNotebooksBtn) manageNotebooksBtn.disabled = !isLoggedIn;
+     if (manageTemplatesBtn) manageTemplatesBtn.disabled = !isLoggedIn;
+     if (viewArchiveBtn) viewArchiveBtn.disabled = !isLoggedIn;
+     if (viewTrashBtn) viewTrashBtn.disabled = !isLoggedIn;
+
+};
+
+// --- Hàm tạm thời để tải dữ liệu (SẼ THAY BẰNG FIREBASE SAU) ---
+// Hiện tại nó vẫn đọc từ localStorage để giữ ứng dụng chạy được phần nào
+const loadUserDataAndDisplayNotes = () => {
+    if (!currentUser) {
+        console.log("Người dùng chưa đăng nhập, không tải dữ liệu.");
+        updateUIBasedOnAuthState(null); // Đảm bảo UI ở trạng thái đăng xuất
+        return;
+    }
+    console.log(`Tải dữ liệu cho người dùng: ${currentUser.uid}`);
+    console.warn("!!! CẢNH BÁO: loadUserDataAndDisplayNotes hiện vẫn đang dùng localStorage. Cần thay thế bằng logic Firebase Database !!!");
+
+    // === PHẦN NÀY SẼ BỊ THAY THẾ HOÀN TOÀN ===
+    loadNotes(); // Vẫn đọc localStorage
+    loadTemplates(); // Vẫn đọc localStorage
+    loadNotebooks(); // Vẫn đọc localStorage
+    // =======================================
+
+    isViewingArchived = false;
+    isViewingTrash = false;
+    currentNotebookId = DEFAULT_NOTEBOOK_ID;
+    renderNotebookTabs();
+    displayNotes(); // displayNotes bây giờ cần hoạt động đúng khi notes/templates/notebooks được cập nhật
+    populateTemplateDropdown();
+};
 
 
 // =====================================================================
-//  Note Data Management
+//  Notebook Data Management (Cần cập nhật sau)
 // =====================================================================
-const saveNotes = () => { try { const notesToSave = notes.map(note => ({ id: note.id, title: note.title || '', text: note.text || '', tags: note.tags || [], pinned: note.pinned || false, lastModified: note.lastModified || note.id, archived: note.archived || false, color: note.color || null, deleted: note.deleted || false, deletedTimestamp: note.deletedTimestamp || null, notebookId: note.notebookId || null })); localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notesToSave)); } catch (e) { console.error("Lỗi lưu ghi chú vào localStorage:", e); if (e.name === 'QuotaExceededError') { alert("Lỗi: Dung lượng lưu trữ cục bộ đã đầy. Không thể lưu ghi chú."); } else { alert("Đã xảy ra lỗi khi cố gắng lưu ghi chú."); } } };
-const loadNotes = () => { const storedNotes = localStorage.getItem(NOTES_STORAGE_KEY); if (storedNotes) { try { notes = JSON.parse(storedNotes).map(note => ({ id: note.id, title: note.title || '', text: note.text || '', tags: note.tags || [], pinned: note.pinned || false, lastModified: note.lastModified || note.id, archived: note.archived || false, color: note.color || null, deleted: note.deleted || false, deletedTimestamp: note.deletedTimestamp || null, notebookId: note.notebookId || null })); } catch (e) { console.error("Lỗi đọc dữ liệu ghi chú từ localStorage:", e); alert("Lỗi khi đọc dữ liệu ghi chú đã lưu. Dữ liệu có thể bị lỗi. Sử dụng dữ liệu mặc định."); notes = []; } } else { const oldStoredNotes = localStorage.getItem('startNotesData'); if (oldStoredNotes) { console.log("Đang chuyển đổi dữ liệu ghi chú cũ..."); try { notes = JSON.parse(oldStoredNotes).map(note => ({ id: note.id, title: note.title || '', text: note.text || '', tags: note.tags || [], pinned: note.pinned || false, lastModified: note.lastModified || note.id, archived: note.archived || false, color: note.color || null, deleted: note.deleted || false, deletedTimestamp: note.deletedTimestamp || null, notebookId: null })); saveNotes(); localStorage.removeItem('startNotesData'); console.log("Chuyển đổi dữ liệu cũ thành công."); } catch(e) { console.error("Lỗi chuyển đổi dữ liệu ghi chú cũ:", e); notes = []; } } else { notes = []; } } };
-const addNote = () => { const noteTitle = newNoteTitle.value.trim(); const noteText = newNoteText.value; const tagString = newNoteTags.value; if (noteText.trim() || noteTitle) { const tags = parseTags(tagString); const now = Date.now(); const assignedNotebookId = (currentNotebookId !== 'all' && !isViewingArchived && !isViewingTrash) ? parseInt(currentNotebookId) : null; const newNote = { id: now, title: noteTitle, text: noteText, tags: tags, pinned: false, lastModified: now, archived: false, color: null, deleted: false, deletedTimestamp: null, notebookId: assignedNotebookId }; notes.unshift(newNote); saveNotes(); if (isViewingArchived || isViewingTrash) { isViewingArchived = false; isViewingTrash = false; searchInput.value = ''; } renderNotebookTabs(); displayNotes(searchInput.value); hideAddPanel(); } else { alert("Vui lòng nhập Tiêu đề hoặc Nội dung cho ghi chú!"); newNoteText.focus(); } };
+// --- VẪN DÙNG LOCALSTORAGE --- SẼ THAY BẰNG FIREBASE DB ---
+const saveNotebooks = () => {
+    // !!! Cần thay bằng Firebase Write !!!
+    if (!currentUser) return; // Thêm kiểm tra
+    try { localStorage.setItem(NOTEBOOKS_STORAGE_KEY + `_${currentUser.uid}`, JSON.stringify(notebooks)); } // Tạm thêm UID vào key
+    catch (e) { console.error("Lỗi lưu sổ tay vào localStorage:", e); alert("Đã xảy ra lỗi khi cố gắng lưu danh sách sổ tay."); }
+};
+const loadNotebooks = () => {
+    // !!! Cần thay bằng Firebase Read (với listener) !!!
+    if (!currentUser) { notebooks = []; return; } // Thêm kiểm tra
+    const storedNotebooks = localStorage.getItem(NOTEBOOKS_STORAGE_KEY + `_${currentUser.uid}`); // Tạm thêm UID vào key
+    if (storedNotebooks) { try { notebooks = JSON.parse(storedNotebooks).map(nb => ({ id: nb.id || Date.now(), name: nb.name || `Sổ tay ${nb.id || Date.now()}` })); } catch (e) { console.error("Lỗi đọc dữ liệu sổ tay từ localStorage:", e); notebooks = []; } } else { notebooks = []; }
+};
+const addOrUpdateNotebook = () => {
+    if (!currentUser) { alert("Vui lòng đăng nhập để quản lý sổ tay."); return; } // << CHECK AUTH
+    const name = notebookEditName.value.trim(); const id = notebookEditId.value ? parseInt(notebookEditId.value) : null; if (!name) { alert("Vui lòng nhập Tên Sổ tay!"); notebookEditName.focus(); return; } const existingNotebook = notebooks.find(nb => nb.name.toLowerCase() === name.toLowerCase() && nb.id !== id); if (existingNotebook) { alert(`Sổ tay với tên "${name}" đã tồn tại. Vui lòng chọn tên khác.`); notebookEditName.focus(); return; } if (id) { const index = notebooks.findIndex(nb => nb.id === id); if (index !== -1) { notebooks[index].name = name; } else { console.error("Không tìm thấy sổ tay để cập nhật với ID:", id); return; } } else { const newNotebook = { id: Date.now(), name: name }; notebooks.push(newNotebook); } saveNotebooks(); renderNotebookList(); renderNotebookTabs(); hideNotebookEditPanel();
+};
+const deleteNotebook = (id) => {
+    if (!currentUser) { alert("Vui lòng đăng nhập để quản lý sổ tay."); return; } // << CHECK AUTH
+    const index = notebooks.findIndex(nb => nb.id === id); if (index !== -1) { const notebookName = notebooks[index].name; const notesInNotebook = notes.filter(note => note.notebookId === id && !note.deleted && !note.archived).length; let confirmMessage = `Bạn chắc chắn muốn xóa sổ tay "${escapeHTML(notebookName)}"?`; if (notesInNotebook > 0) { confirmMessage += `\n\nCẢNH BÁO: Có ${notesInNotebook} ghi chú trong sổ tay này. Việc xóa sổ tay sẽ chuyển các ghi chú này về "Tất cả Ghi chú" (không thuộc sổ tay nào).`; } if (confirm(confirmMessage)) { notebooks.splice(index, 1); saveNotebooks(); let notesUpdated = false; notes.forEach(note => { if (note.notebookId === id) { note.notebookId = null; notesUpdated = true; } }); if (notesUpdated) { saveNotes(); } renderNotebookList(); renderNotebookTabs(); if (currentNotebookId === id) { currentNotebookId = DEFAULT_NOTEBOOK_ID; displayNotes(); } if (!notebookEditPanel.classList.contains('hidden') && parseInt(notebookEditId.value) === id) { hideNotebookEditPanel(); } } } else { console.error("Không tìm thấy sổ tay để xóa với ID:", id); }
+};
+
 
 // =====================================================================
-//  Template Data Management
+//  Note Data Management (Cần cập nhật sau)
 // =====================================================================
-const saveTemplates = () => { try { localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(templates)); } catch (e) { console.error("Lỗi lưu mẫu vào localStorage:", e); alert("Đã xảy ra lỗi khi cố gắng lưu các mẫu ghi chú."); } };
-const loadTemplates = () => { const storedTemplates = localStorage.getItem(TEMPLATES_STORAGE_KEY); if (storedTemplates) { try { templates = JSON.parse(storedTemplates).map(t => ({ id: t.id || Date.now(), name: t.name || `Mẫu ${t.id || Date.now()}`, title: t.title || '', text: t.text || '', tags: Array.isArray(t.tags) ? t.tags.map(String).filter(tag => tag.trim() !== '') : [], })); } catch (e) { console.error("Lỗi đọc dữ liệu mẫu từ localStorage:", e); alert("Lỗi khi đọc dữ liệu Mẫu đã lưu. Dữ liệu có thể bị lỗi."); templates = []; } } else { templates = []; } };
-const addOrUpdateTemplate = () => { const name = templateEditName.value.trim(); const title = templateEditTitleInput.value.trim(); const text = templateEditText.value; const tags = parseTags(templateEditTags.value); const id = templateEditId.value ? parseInt(templateEditId.value) : null; if (!name) { alert("Vui lòng nhập Tên Mẫu!"); templateEditName.focus(); return; } if (id) { const index = templates.findIndex(t => t.id === id); if (index !== -1) { templates[index] = { ...templates[index], name, title, text, tags }; } else { console.error("Không tìm thấy mẫu để cập nhật với ID:", id); alert("Lỗi: Không tìm thấy mẫu để cập nhật."); return; } } else { const newTemplate = { id: Date.now(), name, title, text, tags }; templates.push(newTemplate); } saveTemplates(); renderTemplateList(); populateTemplateDropdown(); hideTemplateEditPanel(); };
-const deleteTemplate = (id) => { const index = templates.findIndex(t => t.id === id); if (index !== -1) { const templateName = templates[index].name; if (confirm(`Bạn chắc chắn muốn xóa mẫu "${escapeHTML(templateName)}"?`)) { templates.splice(index, 1); saveTemplates(); renderTemplateList(); populateTemplateDropdown(); if (!templateEditPanel.classList.contains('hidden') && parseInt(templateEditId.value) === id) { hideTemplateEditPanel(); } } } else { console.error("Không tìm thấy mẫu để xóa với ID:", id); alert("Lỗi: Không tìm thấy mẫu để xóa."); } };
+// --- VẪN DÙNG LOCALSTORAGE --- SẼ THAY BẰNG FIREBASE DB ---
+const saveNotes = () => {
+    // !!! Cần thay bằng Firebase Write !!!
+    if (!currentUser) return; // Thêm kiểm tra
+    try { const notesToSave = notes.map(note => ({ id: note.id, title: note.title || '', text: note.text || '', tags: note.tags || [], pinned: note.pinned || false, lastModified: note.lastModified || note.id, archived: note.archived || false, color: note.color || null, deleted: note.deleted || false, deletedTimestamp: note.deletedTimestamp || null, notebookId: note.notebookId || null })); localStorage.setItem(NOTES_STORAGE_KEY + `_${currentUser.uid}`, JSON.stringify(notesToSave)); } // Tạm thêm UID vào key
+    catch (e) { console.error("Lỗi lưu ghi chú vào localStorage:", e); if (e.name === 'QuotaExceededError') { alert("Lỗi: Dung lượng lưu trữ cục bộ đã đầy. Không thể lưu ghi chú."); } else { alert("Đã xảy ra lỗi khi cố gắng lưu ghi chú."); } }
+};
+const loadNotes = () => {
+    // !!! Cần thay bằng Firebase Read (với listener) !!!
+     if (!currentUser) { notes = []; return; } // Thêm kiểm tra
+    const storedNotes = localStorage.getItem(NOTES_STORAGE_KEY + `_${currentUser.uid}`); // Tạm thêm UID vào key
+    if (storedNotes) { try { notes = JSON.parse(storedNotes).map(note => ({ id: note.id, title: note.title || '', text: note.text || '', tags: note.tags || [], pinned: note.pinned || false, lastModified: note.lastModified || note.id, archived: note.archived || false, color: note.color || null, deleted: note.deleted || false, deletedTimestamp: note.deletedTimestamp || null, notebookId: note.notebookId || null })); } catch (e) { console.error("Lỗi đọc dữ liệu ghi chú từ localStorage:", e); notes = []; } } else { notes = []; /* Bỏ qua logic chuyển đổi cũ vì sẽ đọc từ Firebase */ }
+};
+const addNote = () => {
+    if (!currentUser) { alert("Vui lòng đăng nhập để thêm ghi chú."); return; } // << CHECK AUTH
+    const noteTitle = newNoteTitle.value.trim(); const noteText = newNoteText.value; const tagString = newNoteTags.value; if (noteText.trim() || noteTitle) { const tags = parseTags(tagString); const now = Date.now(); const assignedNotebookId = (currentNotebookId !== 'all' && !isViewingArchived && !isViewingTrash) ? parseInt(currentNotebookId) : null; const newNote = { /*userId: currentUser.uid,*/ // <<<--- SẼ THÊM KHI DÙNG FIREBASE DB
+        id: now, title: noteTitle, text: noteText, tags: tags, pinned: false, lastModified: now, archived: false, color: null, deleted: false, deletedTimestamp: null, notebookId: assignedNotebookId }; notes.unshift(newNote); saveNotes(); if (isViewingArchived || isViewingTrash) { isViewingArchived = false; isViewingTrash = false; searchInput.value = ''; } renderNotebookTabs(); displayNotes(searchInput.value); hideAddPanel(); } else { alert("Vui lòng nhập Tiêu đề hoặc Nội dung cho ghi chú!"); newNoteText.focus(); }
+};
 
 
 // =====================================================================
-//  Helper Functions & Event Handlers
+//  Template Data Management (Cần cập nhật sau)
 // =====================================================================
-const hideTagSuggestions = () => { const suggestionBox = document.getElementById(SUGGESTION_BOX_ID); if (suggestionBox) { suggestionBox.remove(); } if(activeTagInputElement) { activeTagInputElement.removeAttribute('aria-activedescendant'); activeTagInputElement.removeAttribute('aria-controls'); } activeTagInputElement = null; document.removeEventListener('mousedown', handleClickOutsideSuggestions); };
-const handleClickOutsideSuggestions = (event) => { const suggestionBox = document.getElementById(SUGGESTION_BOX_ID); if (suggestionBox && !suggestionBox.contains(event.target) && activeTagInputElement && !activeTagInputElement.contains(event.target)) { hideTagSuggestions(); } };
-const handleNotePin = (noteId, noteIndex) => { if (notes[noteIndex]) { notes[noteIndex].pinned = !notes[noteIndex].pinned; notes[noteIndex].lastModified = Date.now(); saveNotes(); displayNotes(searchInput.value); } };
-const handleNoteDelete = (noteId, noteIndex) => { if (notes[noteIndex]) { if (confirm('Bạn chắc chắn muốn chuyển ghi chú này vào thùng rác?')) { notes[noteIndex].deleted = true; notes[noteIndex].deletedTimestamp = Date.now(); notes[noteIndex].pinned = false; notes[noteIndex].archived = false; saveNotes(); displayNotes(searchInput.value); } } };
-const handleNoteRestore = (noteId, noteIndex) => { if (notes[noteIndex]) { notes[noteIndex].deleted = false; notes[noteIndex].deletedTimestamp = null; notes[noteIndex].lastModified = Date.now(); saveNotes(); displayNotes(searchInput.value); } };
-const handleNoteDeletePermanent = (noteId, noteIndex) => { if (notes[noteIndex]) { const noteTitle = notes[noteIndex].title || 'Ghi chú không tiêu đề'; if (confirm(`Bạn chắc chắn muốn xóa vĩnh viễn "${escapeHTML(noteTitle)}"? Hành động này không thể hoàn tác.`)) { notes.splice(noteIndex, 1); saveNotes(); displayNotes(searchInput.value); } } };
-const handleEmptyTrash = () => { const trashNotesCount = notes.filter(note => note.deleted).length; if (trashNotesCount === 0) { alert("Thùng rác đang trống."); return; } if (confirm(`Bạn chắc chắn muốn xóa vĩnh viễn ${trashNotesCount} ghi chú trong thùng rác? Hành động này không thể hoàn tác.`)) { notes = notes.filter(note => !note.deleted); saveNotes(); displayNotes(searchInput.value); } };
-const handleNoteArchive = (noteId, noteIndex) => { if (notes[noteIndex]) { notes[noteIndex].archived = true; notes[noteIndex].pinned = false; notes[noteIndex].lastModified = Date.now(); saveNotes(); displayNotes(searchInput.value); } };
-const handleNoteUnarchive = (noteId, noteIndex) => { if (notes[noteIndex]) { notes[noteIndex].archived = false; notes[noteIndex].lastModified = Date.now(); saveNotes(); displayNotes(searchInput.value); } };
+// --- VẪN DÙNG LOCALSTORAGE --- SẼ THAY BẰNG FIREBASE DB ---
+const saveTemplates = () => {
+     // !!! Cần thay bằng Firebase Write !!!
+     if (!currentUser) return; // Thêm kiểm tra
+    try { localStorage.setItem(TEMPLATES_STORAGE_KEY + `_${currentUser.uid}`, JSON.stringify(templates)); } // Tạm thêm UID vào key
+    catch (e) { console.error("Lỗi lưu mẫu vào localStorage:", e); alert("Đã xảy ra lỗi khi cố gắng lưu các mẫu ghi chú."); }
+};
+const loadTemplates = () => {
+    // !!! Cần thay bằng Firebase Read (với listener) !!!
+    if (!currentUser) { templates = []; return; } // Thêm kiểm tra
+    const storedTemplates = localStorage.getItem(TEMPLATES_STORAGE_KEY + `_${currentUser.uid}`); // Tạm thêm UID vào key
+    if (storedTemplates) { try { templates = JSON.parse(storedTemplates).map(t => ({ id: t.id || Date.now(), name: t.name || `Mẫu ${t.id || Date.now()}`, title: t.title || '', text: t.text || '', tags: Array.isArray(t.tags) ? t.tags.map(String).filter(tag => tag.trim() !== '') : [], })); } catch (e) { console.error("Lỗi đọc dữ liệu mẫu từ localStorage:", e); templates = []; } } else { templates = []; }
+};
+const addOrUpdateTemplate = () => {
+    if (!currentUser) { alert("Vui lòng đăng nhập để quản lý mẫu."); return; } // << CHECK AUTH
+    const name = templateEditName.value.trim(); const title = templateEditTitleInput.value.trim(); const text = templateEditText.value; const tags = parseTags(templateEditTags.value); const id = templateEditId.value ? parseInt(templateEditId.value) : null; if (!name) { alert("Vui lòng nhập Tên Mẫu!"); templateEditName.focus(); return; } if (id) { const index = templates.findIndex(t => t.id === id); if (index !== -1) { templates[index] = { ...templates[index], name, title, text, tags }; } else { console.error("Không tìm thấy mẫu để cập nhật với ID:", id); return; } } else { const newTemplate = { id: Date.now(), name, title, text, tags }; templates.push(newTemplate); } saveTemplates(); renderTemplateList(); populateTemplateDropdown(); hideTemplateEditPanel();
+};
+const deleteTemplate = (id) => {
+    if (!currentUser) { alert("Vui lòng đăng nhập để quản lý mẫu."); return; } // << CHECK AUTH
+    const index = templates.findIndex(t => t.id === id); if (index !== -1) { const templateName = templates[index].name; if (confirm(`Bạn chắc chắn muốn xóa mẫu "${escapeHTML(templateName)}"?`)) { templates.splice(index, 1); saveTemplates(); renderTemplateList(); populateTemplateDropdown(); if (!templateEditPanel.classList.contains('hidden') && parseInt(templateEditId.value) === id) { hideTemplateEditPanel(); } } } else { console.error("Không tìm thấy mẫu để xóa với ID:", id); }
+};
+
+// =====================================================================
+//  Helper Functions & Event Handlers (Cập nhật các hàm cần check Auth)
+// =====================================================================
+const hideTagSuggestions = () => { /* ... (Giữ nguyên) ... */ };
+const handleClickOutsideSuggestions = (event) => { /* ... (Giữ nguyên) ... */ };
+const handleNotePin = (noteId, noteIndex) => {
+    if (!currentUser) return; // << CHECK AUTH
+    if (notes[noteIndex]) { notes[noteIndex].pinned = !notes[noteIndex].pinned; notes[noteIndex].lastModified = Date.now(); saveNotes(); displayNotes(searchInput.value); }
+};
+const handleNoteDelete = (noteId, noteIndex) => {
+    if (!currentUser) return; // << CHECK AUTH
+    if (notes[noteIndex]) { if (confirm('Bạn chắc chắn muốn chuyển ghi chú này vào thùng rác?')) { notes[noteIndex].deleted = true; notes[noteIndex].deletedTimestamp = Date.now(); notes[noteIndex].pinned = false; notes[noteIndex].archived = false; saveNotes(); displayNotes(searchInput.value); } }
+};
+const handleNoteRestore = (noteId, noteIndex) => {
+    if (!currentUser) return; // << CHECK AUTH
+    if (notes[noteIndex]) { notes[noteIndex].deleted = false; notes[noteIndex].deletedTimestamp = null; notes[noteIndex].lastModified = Date.now(); saveNotes(); displayNotes(searchInput.value); }
+};
+const handleNoteDeletePermanent = (noteId, noteIndex) => {
+    if (!currentUser) return; // << CHECK AUTH
+    if (notes[noteIndex]) { const noteTitle = notes[noteIndex].title || 'Ghi chú không tiêu đề'; if (confirm(`Bạn chắc chắn muốn xóa vĩnh viễn "${escapeHTML(noteTitle)}"? Hành động này không thể hoàn tác.`)) { notes.splice(noteIndex, 1); saveNotes(); displayNotes(searchInput.value); } }
+};
+const handleEmptyTrash = () => {
+    if (!currentUser) return; // << CHECK AUTH
+    const trashNotesCount = notes.filter(note => note.deleted).length; if (trashNotesCount === 0) { alert("Thùng rác đang trống."); return; } if (confirm(`Bạn chắc chắn muốn xóa vĩnh viễn ${trashNotesCount} ghi chú trong thùng rác? Hành động này không thể hoàn tác.`)) { notes = notes.filter(note => !note.deleted); saveNotes(); displayNotes(searchInput.value); }
+};
+const handleNoteArchive = (noteId, noteIndex) => {
+    if (!currentUser) return; // << CHECK AUTH
+    if (notes[noteIndex]) { notes[noteIndex].archived = true; notes[noteIndex].pinned = false; notes[noteIndex].lastModified = Date.now(); saveNotes(); displayNotes(searchInput.value); }
+};
+const handleNoteUnarchive = (noteId, noteIndex) => {
+    if (!currentUser) return; // << CHECK AUTH
+    if (notes[noteIndex]) { notes[noteIndex].archived = false; notes[noteIndex].lastModified = Date.now(); saveNotes(); displayNotes(searchInput.value); }
+};
 const updateNoteData = (noteIndex, newData) => {
+    // Hàm này được gọi từ auto-save và save-edit, cần check auth ở hàm gọi nó
     if (noteIndex < 0 || noteIndex >= notes.length) return false;
     const note = notes[noteIndex];
     if (!note) return false;
-    const { title, text, tags, color, notebookId } = newData; // Include notebookId
+    const { title, text, tags, color, notebookId } = newData;
     let changed = false;
-
     const cleanTitle = title?.trim() ?? '';
     const cleanText = text ?? '';
     const cleanColor = (color === '' || color === null || color === 'null' || color === 'default') ? null : color;
     const cleanTags = Array.isArray(tags) ? tags.map(t => t.trim().toLowerCase()).filter(t => t) : [];
-    const cleanNotebookId = (notebookId === 'none' || notebookId === null || typeof notebookId === 'undefined')
-                            ? null
-                            : parseInt(notebookId);
-
+    const cleanNotebookId = (notebookId === 'none' || notebookId === null || typeof notebookId === 'undefined') ? null : parseInt(notebookId);
     if (note.title !== cleanTitle) { note.title = cleanTitle; changed = true; }
     if (note.text !== cleanText) { note.text = cleanText; changed = true; }
     if (note.color !== cleanColor) { note.color = cleanColor; changed = true; }
-    // Check if notebookId actually changed (only if provided in newData)
-    if (newData.hasOwnProperty('notebookId') && note.notebookId !== cleanNotebookId) {
-         note.notebookId = cleanNotebookId; changed = true;
-    }
-
+    if (newData.hasOwnProperty('notebookId') && note.notebookId !== cleanNotebookId) { note.notebookId = cleanNotebookId; changed = true; }
     const currentTags = note.tags || [];
     const tagsChanged = !(currentTags.length === cleanTags.length && currentTags.slice().sort().every((value, index) => value === cleanTags.slice().sort()[index]));
     if (tagsChanged) { note.tags = cleanTags; changed = true; }
-
-    if (changed) {
-         note.lastModified = Date.now();
-         saveNotes();
-         return true;
-    }
+    if (changed) { note.lastModified = Date.now(); saveNotes(); return true; } // Vẫn save vào localStorage
     return false;
 };
-const debouncedAutoSave = debounce((noteElement, noteIndex) => { const editTitleInputCheck = noteElement.querySelector('input.edit-title-input'); const editInputCheck = noteElement.querySelector('textarea.edit-input'); const editTagsInputCheck = noteElement.querySelector('input.edit-tags-input'); if (!editTitleInputCheck || !editInputCheck || !editTagsInputCheck || !noteElement.isConnected) { return; } const newTitle = editTitleInputCheck.value; const newText = editInputCheck.value; const newTagString = editTagsInputCheck.value; const newTags = parseTags(newTagString); const selectedColorValue = noteElement.dataset.selectedColor ?? notes[noteIndex]?.color; const newColor = selectedColorValue; const wasPreviouslyEmpty = !notes[noteIndex]?.title?.trim() && !notes[noteIndex]?.text?.trim(); const isNowEmpty = !newTitle.trim() && !newText.trim(); if (!wasPreviouslyEmpty && isNowEmpty) { return; } const saved = updateNoteData(noteIndex, { title: newTitle, text: newText, tags: newTags, color: newColor }); if (saved) { noteElement.classList.add('note-autosaved'); setTimeout(() => { noteElement?.classList.remove('note-autosaved'); }, 600); } }, DEBOUNCE_DELAY);
-const handleNoteEdit = (noteElement, noteId, noteIndex) => { if (isViewingArchived || isViewingTrash) return; const currentlyEditing = notesContainer.querySelector('.note .edit-input'); if (currentlyEditing && currentlyEditing.closest('.note') !== noteElement) { alert("Vui lòng Lưu hoặc Hủy thay đổi ở ghi chú đang sửa trước khi sửa ghi chú khác."); currentlyEditing.closest('.note').querySelector('textarea.edit-input')?.focus(); return; } hideTagSuggestions(); if (sortableInstance) sortableInstance.option('disabled', true); if (masonryInstance) masonryInstance.layout(); // Recalc layout before edit showAddPanelBtn.classList.add('hidden'); const noteData = notes[noteIndex]; if (!noteData) return; const actionsElementOriginal = noteElement.querySelector('.note-actions'); let originalActionsHTML = ''; if (actionsElementOriginal) { originalActionsHTML = Array.from(actionsElementOriginal.children).filter(btn => !btn.classList.contains('save-edit-btn')).map(btn => btn.outerHTML).join(''); } const editTitleInput = document.createElement('input'); editTitleInput.type = 'text'; editTitleInput.classList.add('edit-title-input'); editTitleInput.placeholder = 'Tiêu đề...'; editTitleInput.value = noteData.title || ''; const editInput = document.createElement('textarea'); editInput.classList.add('edit-input'); editInput.value = noteData.text; editInput.rows = 5; const editTagsInput = document.createElement('input'); editTagsInput.type = 'text'; editTagsInput.classList.add('edit-tags-input'); editTagsInput.placeholder = 'Tags (cách nhau bằng dấu phẩy)...'; editTagsInput.value = (noteData.tags || []).join(', '); editTagsInput.autocomplete = 'off'; const colorSelectorContainer = document.createElement('div'); colorSelectorContainer.classList.add('color-selector-container'); colorSelectorContainer.setAttribute('role', 'radiogroup'); colorSelectorContainer.setAttribute('aria-label', 'Chọn màu ghi chú'); noteElement.dataset.selectedColor = noteData.color || ''; NOTE_COLORS.forEach(color => { const swatchBtn = document.createElement('button'); swatchBtn.type = 'button'; swatchBtn.classList.add('color-swatch-btn'); swatchBtn.dataset.colorValue = color.value || ''; swatchBtn.title = color.name; swatchBtn.setAttribute('role', 'radio'); const isCurrentColor = (noteData.color === color.value) || (!noteData.color && !color.value); swatchBtn.setAttribute('aria-checked', isCurrentColor ? 'true' : 'false'); if (isCurrentColor) swatchBtn.classList.add('selected'); if (color.value) { swatchBtn.style.backgroundColor = color.hex; } else { swatchBtn.classList.add('default-color-swatch'); swatchBtn.innerHTML = '&#x2715;'; swatchBtn.setAttribute('aria-label', 'Màu mặc định'); } swatchBtn.addEventListener('click', () => { const selectedValue = swatchBtn.dataset.colorValue; noteElement.dataset.selectedColor = selectedValue; colorSelectorContainer.querySelectorAll('.color-swatch-btn').forEach(btn => { const isSelected = btn === swatchBtn; btn.classList.toggle('selected', isSelected); btn.setAttribute('aria-checked', isSelected ? 'true' : 'false'); }); applyNoteColor(noteElement, { ...noteData, color: selectedValue }); debouncedAutoSave(noteElement, noteIndex); if (masonryInstance) masonryInstance.layout(); // Recalc layout after color change }); colorSelectorContainer.appendChild(swatchBtn); }); const saveBtn = document.createElement('button'); saveBtn.classList.add('save-edit-btn', 'modal-button', 'primary'); saveBtn.textContent = 'Lưu'; saveBtn.title = 'Lưu thay đổi (Ctrl+S)'; const bookmarkIcon = noteElement.querySelector('.pinned-bookmark-icon'); noteElement.innerHTML = ''; if (bookmarkIcon) { noteElement.appendChild(bookmarkIcon); bookmarkIcon.style.display = 'inline-block'; } noteElement.appendChild(editTitleInput); noteElement.appendChild(editInput); noteElement.appendChild(editTagsInput); noteElement.appendChild(colorSelectorContainer); const editActionsContainer = document.createElement('div'); editActionsContainer.classList.add('note-actions'); editActionsContainer.innerHTML = originalActionsHTML; editActionsContainer.appendChild(saveBtn); noteElement.appendChild(editActionsContainer); const triggerAutoSave = () => { debouncedAutoSave(noteElement, noteIndex); if (masonryInstance) { // Delay layout slightly after input to avoid jank setTimeout(() => masonryInstance.layout(), 100); } }; editTitleInput.addEventListener('input', triggerAutoSave); editInput.addEventListener('input', triggerAutoSave); editTagsInput.addEventListener('input', (event) => { handleTagInput(event); triggerAutoSave(); }); editTagsInput.addEventListener('blur', handleTagInputBlur, true); editTagsInput.addEventListener('keydown', handleTagInputKeydown); editTitleInput.focus(); editTitleInput.setSelectionRange(editTitleInput.value.length, editTitleInput.value.length); if (masonryInstance) masonryInstance.layout(); // Recalc layout after adding edit fields };
-const handleNoteSaveEdit = (noteElement, noteId, noteIndex) => { const editTitleInput = noteElement.querySelector('input.edit-title-input'); const editInput = noteElement.querySelector('textarea.edit-input'); const editTagsInput = noteElement.querySelector('input.edit-tags-input'); if (!editTitleInput || !editInput || !editTagsInput) { console.error("Lỗi lưu: Không tìm thấy các thành phần sửa ghi chú."); displayNotes(searchInput.value); return; } const newTitle = editTitleInput.value; const newText = editInput.value; const newTagString = editTagsInput.value; const newTags = parseTags(newTagString); const selectedColorValue = noteElement.dataset.selectedColor ?? notes[noteIndex]?.color; const newColor = selectedColorValue; const wasInitiallyEmpty = !notes[noteIndex]?.title?.trim() && !notes[noteIndex]?.text?.trim(); const isNowEmpty = !newTitle.trim() && !newText.trim(); if (!wasInitiallyEmpty && isNowEmpty) { if (!confirm("Ghi chú gần như trống. Bạn vẫn muốn lưu?")) { return; } } updateNoteData(noteIndex, { title: newTitle, text: newText, tags: newTags, color: newColor }); const updatedNoteData = notes[noteIndex]; // --- Start Re-rendering the note element --- const bookmarkIcon = noteElement.querySelector('.pinned-bookmark-icon'); noteElement.innerHTML = ''; // Clear existing content if (bookmarkIcon) noteElement.appendChild(bookmarkIcon); applyNoteColor(noteElement, updatedNoteData); applyPinnedStatus(noteElement, updatedNoteData, isViewingArchived, isViewingTrash); const titleEl = createNoteTitleElement(updatedNoteData, searchInput.value); if(titleEl) noteElement.appendChild(titleEl); const contentEl = createNoteContentElement(updatedNoteData, searchInput.value, noteElement); if(contentEl) noteElement.appendChild(contentEl); const tagsEl = createNoteTagsElement(updatedNoteData); if(tagsEl) noteElement.appendChild(tagsEl); const timestampEl = createNoteTimestampElement(updatedNoteData); if(timestampEl) noteElement.appendChild(timestampEl); const actionsEl = createNoteActionsElement(updatedNoteData); if(actionsEl) noteElement.appendChild(actionsEl); delete noteElement.dataset.selectedColor; // --- End Re-rendering --- hideTagSuggestions(); if (sortableInstance) sortableInstance.option('disabled', false); if (addNotePanel.classList.contains('hidden')) showAddPanelBtn.classList.remove('hidden'); noteElement.classList.add('note-saved-flash'); setTimeout(() => { noteElement?.classList.remove('note-saved-flash'); }, 600); if (masonryInstance) { masonryInstance.layout(); // Update Masonry layout after saving } };
-const showFullNoteModal = (title, noteText) => { const existingModal = document.querySelector('.note-modal'); if (existingModal) { existingModal.remove(); } const modal = document.createElement('div'); modal.classList.add('note-modal', 'modal', 'hidden'); modal.setAttribute('role', 'dialog'); modal.setAttribute('aria-modal', 'true'); modal.setAttribute('aria-labelledby', 'note-modal-title'); const modalContent = document.createElement('div'); modalContent.classList.add('modal-content'); const modalHeader = document.createElement('div'); modalHeader.classList.add('modal-header'); const modalTitle = document.createElement('h2'); modalTitle.id = 'note-modal-title'; modalTitle.textContent = title || 'Ghi chú'; const closeModalBtn = document.createElement('button'); closeModalBtn.classList.add('close-modal-btn'); closeModalBtn.innerHTML = '&times;'; closeModalBtn.title = 'Đóng (Esc)'; closeModalBtn.setAttribute('aria-label', 'Đóng cửa sổ xem ghi chú'); modalHeader.appendChild(modalTitle); modalHeader.appendChild(closeModalBtn); const modalBody = document.createElement('div'); modalBody.classList.add('modal-body'); modalBody.textContent = noteText || ''; modalContent.appendChild(modalHeader); modalContent.appendChild(modalBody); modal.appendChild(modalContent); document.body.appendChild(modal); requestAnimationFrame(() => { modal.classList.add('visible'); modal.classList.remove('hidden'); }); closeModalBtn.focus(); const closeFunc = () => { modal.classList.remove('visible'); modal.addEventListener('transitionend', () => { modal.remove(); document.removeEventListener('keydown', handleThisModalKeyDown); }, { once: true }); }; const handleThisModalKeyDown = (event) => { if (!modal.classList.contains('visible')) { document.removeEventListener('keydown', handleThisModalKeyDown); return; } if (event.key === 'Escape') { closeFunc(); } if (event.key === 'Tab') { const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'); if (focusableElements.length === 0) return; const firstElement = focusableElements[0]; const lastElement = focusableElements[focusableElements.length - 1]; if (event.shiftKey) { if (document.activeElement === firstElement) { lastElement.focus(); event.preventDefault(); } } else { if (document.activeElement === lastElement) { firstElement.focus(); event.preventDefault(); } } } }; closeModalBtn.addEventListener('click', closeFunc); modal.addEventListener('click', (event) => { if (event.target === modal) closeFunc(); }); document.addEventListener('keydown', handleThisModalKeyDown); };
-
-// =====================================================================
-//  Tag Handling
-// =====================================================================
-const getAllUniqueTags = () => { const allTags = notes.reduce((acc, note) => { if (!note.deleted && !note.archived && note.tags && note.tags.length > 0) { const validTags = note.tags.map(t => t.trim()).filter(t => t); acc.push(...validTags); } return acc; }, []); return [...new Set(allTags)].sort((a, b) => a.localeCompare(b)); };
-const showTagSuggestions = (inputElement, currentTagFragment, suggestions) => { hideTagSuggestions(); if (suggestions.length === 0 || !currentTagFragment) return; activeTagInputElement = inputElement; const suggestionBox = document.createElement('div'); suggestionBox.id = SUGGESTION_BOX_ID; suggestionBox.classList.add('tag-suggestions'); suggestionBox.setAttribute('role', 'listbox'); inputElement.setAttribute('aria-controls', SUGGESTION_BOX_ID); suggestions.forEach((tag, index) => { const item = document.createElement('div'); item.classList.add('suggestion-item'); item.textContent = tag; item.setAttribute('role', 'option'); item.id = `suggestion-${index}`; item.tabIndex = -1; item.addEventListener('mousedown', (e) => { e.preventDefault(); const currentValue = inputElement.value; const lastCommaIndex = currentValue.lastIndexOf(','); let baseValue = ''; if (lastCommaIndex !== -1) { baseValue = currentValue.substring(0, lastCommaIndex + 1).trimStart() + (currentValue[lastCommaIndex+1] === ' ' ? '' : ' '); } inputElement.value = baseValue + tag + ', '; hideTagSuggestions(); inputElement.focus(); inputElement.setSelectionRange(inputElement.value.length, inputElement.value.length); inputElement.dispatchEvent(new Event('input', { bubbles: true })); }); suggestionBox.appendChild(item); }); const inputRect = inputElement.getBoundingClientRect(); document.body.appendChild(suggestionBox); suggestionBox.style.position = 'absolute'; suggestionBox.style.top = `${inputRect.bottom + window.scrollY}px`; suggestionBox.style.left = `${inputRect.left + window.scrollX}px`; suggestionBox.style.minWidth = `${inputRect.width}px`; suggestionBox.style.width = 'auto'; setTimeout(() => { document.addEventListener('mousedown', handleClickOutsideSuggestions); }, 0); };
-const handleTagInput = (event) => { const inputElement = event.target; const value = inputElement.value; const cursorPosition = inputElement.selectionStart; const lastCommaIndexBeforeCursor = value.substring(0, cursorPosition).lastIndexOf(','); const currentTagFragment = value.substring(lastCommaIndexBeforeCursor + 1, cursorPosition).trim().toLowerCase(); if (currentTagFragment.length >= 1) { const allTags = getAllUniqueTags(); const precedingTagsString = value.substring(0, lastCommaIndexBeforeCursor + 1); const currentEnteredTags = parseTags(precedingTagsString); const filteredSuggestions = allTags.filter(tag => tag.toLowerCase().startsWith(currentTagFragment) && !currentEnteredTags.includes(tag) ); showTagSuggestions(inputElement, currentTagFragment, filteredSuggestions); } else { hideTagSuggestions(); } };
-const handleTagInputBlur = (event) => { setTimeout(() => { const suggestionBox = document.getElementById(SUGGESTION_BOX_ID); if (event.relatedTarget && suggestionBox && suggestionBox.contains(event.relatedTarget)) { return; } hideTagSuggestions(); }, 150); };
-const handleTagInputKeydown = (event) => { const suggestionBox = document.getElementById(SUGGESTION_BOX_ID); const inputElement = event.target; if (suggestionBox && suggestionBox.children.length > 0) { const items = Array.from(suggestionBox.children); let currentFocusIndex = items.findIndex(item => item === document.activeElement); switch (event.key) { case 'ArrowDown': event.preventDefault(); currentFocusIndex = (currentFocusIndex + 1) % items.length; items[currentFocusIndex].focus(); inputElement.setAttribute('aria-activedescendant', items[currentFocusIndex].id); break; case 'ArrowUp': event.preventDefault(); currentFocusIndex = (currentFocusIndex - 1 + items.length) % items.length; items[currentFocusIndex].focus(); inputElement.setAttribute('aria-activedescendant', items[currentFocusIndex].id); break; case 'Enter': if (document.activeElement?.classList.contains('suggestion-item')) { event.preventDefault(); document.activeElement.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); } else { hideTagSuggestions(); } break; case 'Escape': event.preventDefault(); hideTagSuggestions(); break; case 'Tab': if (document.activeElement?.classList.contains('suggestion-item')) { event.preventDefault(); document.activeElement.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); } else { hideTagSuggestions(); } break; } } };
-
-
-// =====================================================================
-//  Note Element Rendering Helper Functions
-// =====================================================================
-function applyNoteColor(noteElement, note) { NOTE_COLORS.forEach(color => { if (color.value) noteElement.classList.remove(color.value); }); const noteColor = note?.color; if (noteColor && NOTE_COLORS.some(c => c.value === noteColor)) { noteElement.classList.add(noteColor); } const colorData = NOTE_COLORS.find(c => c.value === noteColor); noteElement.style.borderLeftColor = colorData?.hex && colorData.value ? colorData.hex : 'transparent'; noteElement.style.borderColor = ''; }
-function applyPinnedStatus(noteElement, note, isViewingArchived, isViewingTrash) { const isPinned = note?.pinned ?? false; const shouldShowPin = isPinned && !isViewingArchived && !isViewingTrash && currentNotebookId === 'all'; const existingBookmark = noteElement.querySelector('.pinned-bookmark-icon'); noteElement.classList.toggle('pinned-note', shouldShowPin); if (shouldShowPin) { if (!existingBookmark) { const bookmarkIcon = document.createElement('span'); bookmarkIcon.classList.add('pinned-bookmark-icon'); bookmarkIcon.innerHTML = '&#128278;'; bookmarkIcon.setAttribute('aria-hidden', 'true'); noteElement.insertBefore(bookmarkIcon, noteElement.firstChild); } else { existingBookmark.style.display = 'inline-block'; } } else { if (existingBookmark) { existingBookmark.style.display = 'none'; } } }
-function createNoteTitleElement(note, filter) { const title = note?.title?.trim(); if (!title) return null; const titleElement = document.createElement('h3'); titleElement.classList.add('note-title'); let titleHTML = escapeHTML(title); const lowerCaseFilter = (filter || '').toLowerCase().trim(); const isTagSearch = lowerCaseFilter.startsWith('#'); if (!isTagSearch && lowerCaseFilter) { try { const highlightRegex = new RegExp(`(${escapeRegExp(lowerCaseFilter)})`, 'gi'); titleHTML = titleHTML.replace(highlightRegex, '<mark>$1</mark>'); } catch(e) { console.warn("Lỗi highlight tiêu đề:", e); } } titleElement.innerHTML = titleHTML; return titleElement; }
-function createNoteContentElement(note, filter, noteElementForOverflowCheck) { const textContent = note?.text ?? ''; const contentElement = document.createElement('div'); contentElement.classList.add('note-content'); let displayHTML = escapeHTML(textContent); const lowerCaseFilter = (filter || '').toLowerCase().trim(); const isTagSearchContent = lowerCaseFilter.startsWith('#'); if (!isTagSearchContent && lowerCaseFilter) { try { const highlightRegexContent = new RegExp(`(${escapeRegExp(lowerCaseFilter)})`, 'gi'); displayHTML = displayHTML.replace(highlightRegexContent, '<mark>$1</mark>'); } catch (e) { console.warn("Lỗi highlight nội dung:", e); } } displayHTML = displayHTML.replace(/\n/g, '<br>'); contentElement.innerHTML = displayHTML; // Bỏ logic "Xem thêm" vì Masonry thường hiển thị hết // requestAnimationFrame(() => { //     if (!noteElementForOverflowCheck || !noteElementForOverflowCheck.isConnected) return; //     const currentContentEl = noteElementForOverflowCheck.querySelector('.note-content'); //     if (!currentContentEl) return; //     const existingBtn = noteElementForOverflowCheck.querySelector('.read-more-btn'); //     if (existingBtn) existingBtn.remove(); //     const hasOverflow = currentContentEl.scrollHeight > currentContentEl.clientHeight + 2; //     currentContentEl.classList.toggle('has-overflow', hasOverflow); //     if (hasOverflow) { //         const readMoreBtn = document.createElement('button'); //         readMoreBtn.textContent = 'Xem thêm'; //         readMoreBtn.classList.add('read-more-btn'); //         readMoreBtn.type = 'button'; //         readMoreBtn.title = 'Xem toàn bộ nội dung ghi chú'; //         readMoreBtn.addEventListener('click', (e) => { //             e.stopPropagation(); //             showFullNoteModal(note.title, note.text); //         }); //         noteElementForOverflowCheck.insertBefore(readMoreBtn, currentContentEl.nextSibling); //     } // }); return contentElement; }
-function createNoteTagsElement(note) { const tags = note?.tags; if (!tags || tags.length === 0) return null; const tagsElement = document.createElement('div'); tagsElement.classList.add('note-tags'); tags.forEach(tag => { const tagBadge = document.createElement('button'); tagBadge.classList.add('tag-badge'); tagBadge.textContent = `#${tag}`; tagBadge.dataset.tag = tag; tagBadge.type = 'button'; tagBadge.title = `Lọc theo tag: ${tag}`; tagsElement.appendChild(tagBadge); }); return tagsElement; }
-function createNoteTimestampElement(note) { const timestampElement = document.createElement('small'); timestampElement.classList.add('note-timestamp'); const creationDate = formatTimestamp(note.id); let timestampText = `Tạo: ${creationDate}`; if (note.lastModified && note.lastModified > note.id + 60000) { const modifiedDate = formatTimestamp(note.lastModified); timestampText += ` (Sửa: ${modifiedDate})`; } if (isViewingTrash && note.deletedTimestamp) { const deletedDate = formatTimestamp(note.deletedTimestamp); timestampText += ` (Xóa: ${deletedDate})`; } timestampElement.textContent = timestampText; return timestampElement; }
-
-// UPDATED: Add Move button
-function createMainViewNoteActions(note) {
-    const fragment = document.createDocumentFragment();
-
-    // Move Button (NEW)
-    const moveBtn = document.createElement('button');
-    moveBtn.classList.add('move-note-btn');
-    moveBtn.innerHTML = '&#128194;'; // Folder icon
-    moveBtn.title = 'Di chuyển đến Sổ tay';
-    moveBtn.setAttribute('aria-label', 'Di chuyển ghi chú');
-    fragment.appendChild(moveBtn);
-
-    // Pin Button
-    const pinBtn = document.createElement('button');
-    pinBtn.classList.add('pin-btn');
-    pinBtn.innerHTML = '&#128204;';
-    pinBtn.title = note.pinned ? "Bỏ ghim" : "Ghim ghi chú";
-    pinBtn.setAttribute('aria-label', note.pinned ? "Bỏ ghim ghi chú" : "Ghim ghi chú");
-    pinBtn.setAttribute('aria-pressed', note.pinned ? 'true' : 'false');
-    if (note.pinned) pinBtn.classList.add('pinned');
-    if(currentNotebookId !== 'all') pinBtn.style.display = 'none'; // Only show pin in "All Notes"
-    fragment.appendChild(pinBtn);
-
-    // Edit Button
-    const editBtn = document.createElement('button');
-    editBtn.classList.add('edit-btn');
-    editBtn.textContent = 'Sửa';
-    editBtn.title = 'Sửa ghi chú';
-    editBtn.setAttribute('aria-label', 'Sửa ghi chú');
-    fragment.appendChild(editBtn);
-
-    // Archive Button
-    const archiveBtn = document.createElement('button');
-    archiveBtn.classList.add('archive-btn');
-    archiveBtn.innerHTML = '&#128451;';
-    archiveBtn.title = 'Lưu trữ ghi chú';
-    archiveBtn.setAttribute('aria-label', 'Lưu trữ ghi chú');
-    fragment.appendChild(archiveBtn);
-
-    // Delete Button
-    const deleteBtn = document.createElement('button');
-    deleteBtn.classList.add('delete-btn');
-    deleteBtn.textContent = 'Xóa';
-    deleteBtn.title = 'Chuyển vào thùng rác';
-    deleteBtn.setAttribute('aria-label', 'Chuyển vào thùng rác');
-    fragment.appendChild(deleteBtn);
-
-    return fragment;
-}
-function createArchiveViewNoteActions(note) { const fragment = document.createDocumentFragment(); const unarchiveBtn = document.createElement('button'); unarchiveBtn.classList.add('unarchive-btn'); unarchiveBtn.innerHTML = '&#x1F5C4;&#xFE0F;'; unarchiveBtn.title = 'Khôi phục từ Lưu trữ'; unarchiveBtn.setAttribute('aria-label', 'Khôi phục từ Lưu trữ'); fragment.appendChild(unarchiveBtn); const deleteBtn = document.createElement('button'); deleteBtn.classList.add('delete-btn'); deleteBtn.textContent = 'Xóa'; deleteBtn.title = 'Chuyển vào thùng rác'; deleteBtn.setAttribute('aria-label', 'Chuyển vào thùng rác'); fragment.appendChild(deleteBtn); return fragment; }
-function createTrashViewNoteActions(note) { const fragment = document.createDocumentFragment(); const restoreBtn = document.createElement('button'); restoreBtn.classList.add('restore-btn'); restoreBtn.innerHTML = '&#x21A9;&#xFE0F;'; restoreBtn.title = 'Khôi phục ghi chú'; restoreBtn.setAttribute('aria-label', 'Khôi phục ghi chú'); fragment.appendChild(restoreBtn); const deletePermanentBtn = document.createElement('button'); deletePermanentBtn.classList.add('delete-permanent-btn'); deletePermanentBtn.textContent = 'Xóa VV'; deletePermanentBtn.title = 'Xóa ghi chú vĩnh viễn'; deletePermanentBtn.setAttribute('aria-label', 'Xóa ghi chú vĩnh viễn'); fragment.appendChild(deletePermanentBtn); return fragment; }
-function createNoteActionsElement(note) { const actionsElement = document.createElement('div'); actionsElement.classList.add('note-actions'); let actionButtonsFragment; if (isViewingTrash) { actionButtonsFragment = createTrashViewNoteActions(note); } else if (isViewingArchived) { actionButtonsFragment = createArchiveViewNoteActions(note); } else { actionButtonsFragment = createMainViewNoteActions(note); } actionsElement.appendChild(actionButtonsFragment); return actionsElement; }
-
-
-// =====================================================================
-//  Core Note Rendering Function
-// =====================================================================
-const renderNoteElement = (note) => { const noteElement = document.createElement('div'); noteElement.classList.add('note'); noteElement.dataset.id = note.id; applyNoteColor(noteElement, note); applyPinnedStatus(noteElement, note, isViewingArchived, isViewingTrash); const titleEl = createNoteTitleElement(note, searchInput.value); if(titleEl) noteElement.appendChild(titleEl); const contentEl = createNoteContentElement(note, searchInput.value, noteElement); if(contentEl) noteElement.appendChild(contentEl); const tagsEl = createNoteTagsElement(note); if(tagsEl) noteElement.appendChild(tagsEl); const timestampEl = createNoteTimestampElement(note); if(timestampEl) noteElement.appendChild(timestampEl); const actionsEl = createNoteActionsElement(note); if(actionsEl) noteElement.appendChild(actionsEl); return noteElement; };
-
-// =====================================================================
-//  Masonry Layout Initialization and Update
-// =====================================================================
-const initOrUpdateMasonryLayout = () => {
-    // Kiểm tra xem thư viện Masonry đã được tải chưa
-    if (typeof Masonry === 'undefined') {
-        console.warn('Thư viện Masonry chưa được tải.');
-        return;
-    }
-
-    // Chỉ áp dụng Masonry cho chế độ xem chính (không phải Archive/Trash)
-    if (isViewingArchived || isViewingTrash || !notesContainer) {
-        if (masonryInstance) {
-            try {
-                masonryInstance.destroy();
-            } catch (e) { console.error("Lỗi hủy Masonry:", e); }
-            masonryInstance = null;
-        }
-        return; // Không làm gì thêm nếu đang xem Archive/Trash
-    }
-
-    const noteElements = notesContainer.querySelectorAll('.note');
-
-    if (noteElements.length > 0) {
-        // Tính toán gutter dựa trên CSS variable
-        const gutterSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--note-gap')) || 10;
-
-        if (masonryInstance) {
-            // Nếu đã có instance, chỉ cần cập nhật
-            masonryInstance.reloadItems(); // Thông báo cho Masonry về các item mới/thay đổi
-            masonryInstance.layout(); // Sắp xếp lại layout
-        } else {
-            // Nếu chưa có, khởi tạo mới
-            masonryInstance = new Masonry(notesContainer, {
-                itemSelector: '.note',
-                // columnWidth: '.note', // Để Masonry tự xác định chiều rộng cột từ item đầu tiên hoặc CSS
-                gutter: gutterSize, // Khoảng cách ngang giữa các cột
-                percentPosition: true, // Sử dụng % cho vị trí, tốt cho responsive
-                transitionDuration: '0.3s' // Thời gian hiệu ứng chuyển động
-            });
-        }
-         // Khởi tạo hoặc cập nhật SortableJS sau khi Masonry đã layout
-         // Đặt timeout nhỏ để đảm bảo Masonry hoàn thành layout trước khi SortableJS chạy
-         setTimeout(initSortable, 50);
-    } else {
-        // Nếu không có note nào, hủy instance Masonry nếu có
-        if (masonryInstance) {
-            try {
-                masonryInstance.destroy();
-            } catch (e) { console.error("Lỗi hủy Masonry:", e); }
-            masonryInstance = null;
-        }
-         // Hủy SortableJS nếu không có note
-         if (sortableInstance) {
-             sortableInstance.destroy();
-             sortableInstance = null;
-         }
-    }
+const debouncedAutoSave = debounce((noteElement, noteIndex) => {
+    if (!currentUser) return; // << CHECK AUTH trước khi lưu
+    const editTitleInputCheck = noteElement.querySelector('input.edit-title-input'); const editInputCheck = noteElement.querySelector('textarea.edit-input'); const editTagsInputCheck = noteElement.querySelector('input.edit-tags-input'); if (!editTitleInputCheck || !editInputCheck || !editTagsInputCheck || !noteElement.isConnected) { return; } const newTitle = editTitleInputCheck.value; const newText = editInputCheck.value; const newTagString = editTagsInputCheck.value; const newTags = parseTags(newTagString); const selectedColorValue = noteElement.dataset.selectedColor ?? notes[noteIndex]?.color; const newColor = selectedColorValue; const wasPreviouslyEmpty = !notes[noteIndex]?.title?.trim() && !notes[noteIndex]?.text?.trim(); const isNowEmpty = !newTitle.trim() && !newText.trim(); if (!wasPreviouslyEmpty && isNowEmpty) { return; } const saved = updateNoteData(noteIndex, { title: newTitle, text: newText, tags: newTags, color: newColor }); if (saved) { noteElement.classList.add('note-autosaved'); setTimeout(() => { noteElement?.classList.remove('note-autosaved'); }, 600); }
+}, DEBOUNCE_DELAY);
+const handleNoteEdit = (noteElement, noteId, noteIndex) => {
+    if (!currentUser) return; // << CHECK AUTH
+    if (isViewingArchived || isViewingTrash) return;
+    // ... (Phần còn lại của hàm handleNoteEdit giữ nguyên) ...
+    const currentlyEditing = notesContainer.querySelector('.note .edit-input'); if (currentlyEditing && currentlyEditing.closest('.note') !== noteElement) { alert("Vui lòng Lưu hoặc Hủy thay đổi ở ghi chú đang sửa trước khi sửa ghi chú khác."); currentlyEditing.closest('.note').querySelector('textarea.edit-input')?.focus(); return; } hideTagSuggestions(); if (sortableInstance) sortableInstance.option('disabled', true); showAddPanelBtn.classList.add('hidden'); const noteData = notes[noteIndex]; if (!noteData) return; const actionsElementOriginal = noteElement.querySelector('.note-actions'); let originalActionsHTML = ''; if (actionsElementOriginal) { originalActionsHTML = Array.from(actionsElementOriginal.children).filter(btn => !btn.classList.contains('save-edit-btn')).map(btn => btn.outerHTML).join(''); } const editTitleInput = document.createElement('input'); editTitleInput.type = 'text'; editTitleInput.classList.add('edit-title-input'); editTitleInput.placeholder = 'Tiêu đề...'; editTitleInput.value = noteData.title || ''; const editInput = document.createElement('textarea'); editInput.classList.add('edit-input'); editInput.value = noteData.text; editInput.rows = 5; const editTagsInput = document.createElement('input'); editTagsInput.type = 'text'; editTagsInput.classList.add('edit-tags-input'); editTagsInput.placeholder = 'Tags (cách nhau bằng dấu phẩy)...'; editTagsInput.value = (noteData.tags || []).join(', '); editTagsInput.autocomplete = 'off'; const colorSelectorContainer = document.createElement('div'); colorSelectorContainer.classList.add('color-selector-container'); colorSelectorContainer.setAttribute('role', 'radiogroup'); colorSelectorContainer.setAttribute('aria-label', 'Chọn màu ghi chú'); noteElement.dataset.selectedColor = noteData.color || ''; NOTE_COLORS.forEach(color => { const swatchBtn = document.createElement('button'); swatchBtn.type = 'button'; swatchBtn.classList.add('color-swatch-btn'); swatchBtn.dataset.colorValue = color.value || ''; swatchBtn.title = color.name; swatchBtn.setAttribute('role', 'radio'); const isCurrentColor = (noteData.color === color.value) || (!noteData.color && !color.value); swatchBtn.setAttribute('aria-checked', isCurrentColor ? 'true' : 'false'); if (isCurrentColor) swatchBtn.classList.add('selected'); if (color.value) { swatchBtn.style.backgroundColor = color.hex; } else { swatchBtn.classList.add('default-color-swatch'); swatchBtn.innerHTML = '&#x2715;'; swatchBtn.setAttribute('aria-label', 'Màu mặc định'); } swatchBtn.addEventListener('click', () => { const selectedValue = swatchBtn.dataset.colorValue; noteElement.dataset.selectedColor = selectedValue; colorSelectorContainer.querySelectorAll('.color-swatch-btn').forEach(btn => { const isSelected = btn === swatchBtn; btn.classList.toggle('selected', isSelected); btn.setAttribute('aria-checked', isSelected ? 'true' : 'false'); }); applyNoteColor(noteElement, { ...noteData, color: selectedValue }); debouncedAutoSave(noteElement, noteIndex); }); colorSelectorContainer.appendChild(swatchBtn); }); const saveBtn = document.createElement('button'); saveBtn.classList.add('save-edit-btn', 'modal-button', 'primary'); saveBtn.textContent = 'Lưu'; saveBtn.title = 'Lưu thay đổi (Ctrl+S)'; const bookmarkIcon = noteElement.querySelector('.pinned-bookmark-icon'); noteElement.innerHTML = ''; if (bookmarkIcon) { noteElement.appendChild(bookmarkIcon); bookmarkIcon.style.display = 'inline-block'; } noteElement.appendChild(editTitleInput); noteElement.appendChild(editInput); noteElement.appendChild(editTagsInput); noteElement.appendChild(colorSelectorContainer); const editActionsContainer = document.createElement('div'); editActionsContainer.classList.add('note-actions'); editActionsContainer.innerHTML = originalActionsHTML; editActionsContainer.appendChild(saveBtn); noteElement.appendChild(editActionsContainer); const triggerAutoSave = () => debouncedAutoSave(noteElement, noteIndex); editTitleInput.addEventListener('input', triggerAutoSave); editInput.addEventListener('input', triggerAutoSave); editTagsInput.addEventListener('input', (event) => { handleTagInput(event); triggerAutoSave(); }); editTagsInput.addEventListener('blur', handleTagInputBlur, true); editTagsInput.addEventListener('keydown', handleTagInputKeydown); editTitleInput.focus(); editTitleInput.setSelectionRange(editTitleInput.value.length, editTitleInput.value.length);
 };
+const handleNoteSaveEdit = (noteElement, noteId, noteIndex) => {
+    if (!currentUser) return; // << CHECK AUTH
+    // ... (Phần còn lại của hàm handleNoteSaveEdit giữ nguyên, nó gọi updateNoteData đã check auth ngầm) ...
+    const editTitleInput = noteElement.querySelector('input.edit-title-input'); const editInput = noteElement.querySelector('textarea.edit-input'); const editTagsInput = noteElement.querySelector('input.edit-tags-input'); if (!editTitleInput || !editInput || !editTagsInput) { console.error("Lỗi lưu: Không tìm thấy các thành phần sửa ghi chú."); displayNotes(searchInput.value); return; } const newTitle = editTitleInput.value; const newText = editInput.value; const newTagString = editTagsInput.value; const newTags = parseTags(newTagString); const selectedColorValue = noteElement.dataset.selectedColor ?? notes[noteIndex]?.color; const newColor = selectedColorValue; const wasInitiallyEmpty = !notes[noteIndex]?.title?.trim() && !notes[noteIndex]?.text?.trim(); const isNowEmpty = !newTitle.trim() && !newText.trim(); if (!wasInitiallyEmpty && isNowEmpty) { if (!confirm("Ghi chú gần như trống. Bạn vẫn muốn lưu?")) { return; } } updateNoteData(noteIndex, { title: newTitle, text: newText, tags: newTags, color: newColor }); const updatedNoteData = notes[noteIndex]; const bookmarkIcon = noteElement.querySelector('.pinned-bookmark-icon'); noteElement.innerHTML = ''; if (bookmarkIcon) noteElement.appendChild(bookmarkIcon); applyNoteColor(noteElement, updatedNoteData); applyPinnedStatus(noteElement, updatedNoteData, isViewingArchived, isViewingTrash); const titleEl = createNoteTitleElement(updatedNoteData, searchInput.value); if(titleEl) noteElement.appendChild(titleEl); const contentEl = createNoteContentElement(updatedNoteData, searchInput.value, noteElement); if(contentEl) noteElement.appendChild(contentEl); const tagsEl = createNoteTagsElement(updatedNoteData); if(tagsEl) noteElement.appendChild(tagsEl); const timestampEl = createNoteTimestampElement(updatedNoteData); if(timestampEl) noteElement.appendChild(timestampEl); const actionsEl = createNoteActionsElement(updatedNoteData); if(actionsEl) noteElement.appendChild(actionsEl); delete noteElement.dataset.selectedColor; hideTagSuggestions(); if (sortableInstance) sortableInstance.option('disabled', false); if (addNotePanel.classList.contains('hidden')) showAddPanelBtn.classList.remove('hidden'); noteElement.classList.add('note-saved-flash'); setTimeout(() => { noteElement?.classList.remove('note-saved-flash'); }, 600);
+};
+const showFullNoteModal = (title, noteText) => { /* ... (Giữ nguyên) ... */ };
 
-// Debounced function để cập nhật layout khi resize
-const debouncedLayoutUpdate = debounce(() => {
-    if (masonryInstance) {
-        masonryInstance.layout();
-    }
-}, LAYOUT_DEBOUNCE_DELAY);
+// =====================================================================
+//  Note Element Rendering Helper Functions (Giữ nguyên)
+// =====================================================================
+function applyNoteColor(noteElement, note) { /* ... */ }
+function applyPinnedStatus(noteElement, note, isViewingArchived, isViewingTrash) { /* ... */ }
+function createNoteTitleElement(note, filter) { /* ... */ }
+function createNoteContentElement(note, filter, noteElementForOverflowCheck) { /* ... */ }
+function createNoteTagsElement(note) { /* ... */ }
+function createNoteTimestampElement(note) { /* ... */ }
+function createMainViewNoteActions(note) { /* ... */ }
+function createArchiveViewNoteActions(note) { /* ... */ }
+function createTrashViewNoteActions(note) { /* ... */ }
+function createNoteActionsElement(note) { /* ... */ }
+const renderNoteElement = (note) => { /* ... (Giữ nguyên) ... */ };
 
 
 // =====================================================================
-//  Drag & Drop (UPDATED for Masonry)
+//  Drag & Drop (Cần cập nhật sau)
 // =====================================================================
 const handleDragEnd = (evt) => {
-    if (isViewingArchived || isViewingTrash || !masonryInstance) return;
-
-    // Lấy thứ tự ID mới từ DOM sau khi kéo thả
-    const newOrderIds = Array.from(notesContainer.children)
-        .map(el => el.classList.contains('note') ? parseInt(el.dataset.id) : null)
-        .filter(id => id !== null);
-
-    // Lấy danh sách notes hiện tại đang hiển thị (đã lọc và có thể đã sắp xếp)
-    const currentViewNotes = getFilteredNotes(notes, searchInput.value.toLowerCase().trim());
-    const currentViewNoteMap = new Map(currentViewNotes.map(note => [note.id, note]));
-
-    // Tạo mảng notes mới theo thứ tự kéo thả
-    const reorderedCurrentViewNotes = newOrderIds
-        .map(id => currentViewNoteMap.get(id))
-        .filter(Boolean); // Lọc ra các note không tìm thấy (phòng trường hợp lỗi)
-
-    // Lấy các notes không thuộc view hiện tại (archived, deleted, hoặc thuộc notebook khác)
-    const otherNotes = notes.filter(note => !currentViewNoteMap.has(note.id));
-
-    // Gộp lại thành mảng notes mới hoàn chỉnh
-    // Đặt các note đã sắp xếp lên đầu, các note khác giữ nguyên vị trí tương đối của chúng
-    notes = [...reorderedCurrentViewNotes, ...otherNotes];
-
-    saveNotes();
-
-    // QUAN TRỌNG: Sau khi kéo thả và lưu, gọi lại displayNotes để
-    // render lại đúng thứ tự VÀ khởi tạo lại Masonry/Sortable
-    // Điều này đảm bảo Masonry nhận đúng thứ tự mới nhất từ mảng `notes`.
-    displayNotes(searchInput.value);
-
-    // Cách khác (phức tạp hơn, có thể không cần thiết):
-    // Chỉ cập nhật lại Masonry mà không render lại DOM hoàn toàn
-    // if (masonryInstance) {
-    //     masonryInstance.reloadItems();
-    //     masonryInstance.layout();
-    // }
+     if (!currentUser) return; // << CHECK AUTH
+     // !!! Logic sắp xếp này cần được làm lại hoàn toàn khi dùng Firebase !!!
+     // !!! Vì thứ tự sẽ được quản lý bởi server hoặc bằng một trường 'order' !!!
+     console.warn("Chức năng kéo thả hiện tại hoạt động trên dữ liệu localStorage và sẽ cần làm lại cho Firebase.");
+    if (isViewingArchived || isViewingTrash) return; const newOrderIds = Array.from(notesContainer.children) .map(el => el.classList.contains('note') ? parseInt(el.dataset.id) : null) .filter(id => id !== null); const currentViewNotes = notes.filter(note => !note.deleted && !note.archived && (currentNotebookId === 'all' || note.notebookId === parseInt(currentNotebookId)) ); const currentViewNoteMap = new Map(currentViewNotes.map(note => [note.id, note])); const reorderedCurrentViewNotes = newOrderIds .map(id => currentViewNoteMap.get(id)) .filter(Boolean); const otherNotes = notes.filter(note => note.deleted || note.archived || (currentNotebookId !== 'all' && note.notebookId !== parseInt(currentNotebookId)) ); notes = [...reorderedCurrentViewNotes, ...otherNotes]; saveNotes(); // Lưu thứ tự mới (vẫn vào localStorage)
 };
-
 const initSortable = () => {
-    if (sortableInstance) {
-        try {
-            sortableInstance.destroy();
-        } catch(e) { console.error("Lỗi hủy Sortable:", e); }
-        sortableInstance = null;
-    }
-
-    // Chỉ khởi tạo Sortable nếu có Masonry và không phải Archive/Trash
-    const canInitSortable = typeof Sortable === 'function' &&
-                            notesContainer &&
-                            notesContainer.children.length > 0 &&
-                            !notesContainer.querySelector('.empty-state') &&
-                            !isViewingArchived && !isViewingTrash &&
-                            masonryInstance; // Thêm điều kiện kiểm tra masonryInstance
-
-    if (canInitSortable) {
-        sortableInstance = new Sortable(notesContainer, {
-            animation: 150,
-            handle: '.note', // Chỉ kéo được khi giữ vào thẻ note
-            // item: '.note', // Đảm bảo chỉ kéo thả các note
-            filter: 'input, textarea, button, .tag-badge, .note-content a, .read-more-btn, .color-swatch-btn, .move-note-btn', // Ngăn kéo khi click vào các element này
-            preventOnFilter: true,
-            ghostClass: 'sortable-ghost',
-            chosenClass: 'sortable-chosen',
-            dragClass: 'sortable-drag',
-            onEnd: handleDragEnd,
-            delay: 50, // Delay nhỏ để tránh xung đột click
-            delayOnTouchOnly: true // Chỉ delay trên màn hình cảm ứng
-        });
-    } else if (typeof Sortable !== 'function' && !isViewingArchived && !isViewingTrash && notes.some(n => !n.archived && !n.deleted)) {
-        console.warn("Thư viện Sortable.js chưa được tải.");
-    }
+    if (sortableInstance) { sortableInstance.destroy(); sortableInstance = null; }
+    // Chỉ bật kéo thả khi đăng nhập và ở view chính
+    const canInitSortable = currentUser && typeof Sortable === 'function' && notesContainer && notesContainer.children.length > 0 && !notesContainer.querySelector('.empty-state') && !isViewingArchived && !isViewingTrash;
+    if (canInitSortable) { sortableInstance = new Sortable(notesContainer, { animation: 150, handle: '.note', filter: 'input, textarea, button, .tag-badge, .note-content a, .read-more-btn, .color-swatch-btn', preventOnFilter: true, ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen', dragClass: 'sortable-drag', onEnd: handleDragEnd, delay: 50, delayOnTouchOnly: true }); } else if (typeof Sortable !== 'function' && !isViewingArchived && !isViewingTrash && notes.some(n => !n.archived && !n.deleted)) { console.warn("Thư viện Sortable.js chưa được tải."); }
 };
 
 
 // =====================================================================
-//  Template UI Handlers
+//  Tag Handling (Giữ nguyên)
 // =====================================================================
-const renderTemplateList = () => { templateListContainer.innerHTML = ''; if (templates.length === 0) { templateListContainer.innerHTML = `<p class="empty-state">Chưa có mẫu nào.</p>`; return; } templates.sort((a, b) => a.name.localeCompare(b.name)).forEach(template => { const item = document.createElement('div'); item.classList.add('template-list-item'); item.innerHTML = `<span>${escapeHTML(template.name)}</span><div class="template-item-actions"><button class="edit-template-btn modal-button secondary small-button" data-id="${template.id}" title="Sửa mẫu ${escapeHTML(template.name)}">Sửa</button><button class="delete-template-btn modal-button danger small-button" data-id="${template.id}" title="Xóa mẫu ${escapeHTML(template.name)}">Xóa</button></div>`; item.querySelector('.edit-template-btn').addEventListener('click', () => showTemplateEditPanel(template.id)); item.querySelector('.delete-template-btn').addEventListener('click', () => deleteTemplate(template.id)); templateListContainer.appendChild(item); }); };
-const showTemplateEditPanel = (templateId = null) => { templateListSection.classList.add('hidden'); templateEditPanel.classList.remove('hidden'); if (templateId !== null) { const template = templates.find(t => t.id === templateId); if (template) { templateEditTitle.textContent = "Sửa Mẫu"; templateEditId.value = template.id; templateEditName.value = template.name; templateEditTitleInput.value = template.title; templateEditText.value = template.text; templateEditTags.value = (template.tags || []).join(', '); } else { console.error("Không tìm thấy mẫu để sửa ID:", templateId); hideTemplateEditPanel(); return; } } else { templateEditTitle.textContent = "Tạo Mẫu Mới"; templateEditId.value = ''; templateEditName.value = ''; templateEditTitleInput.value = ''; templateEditText.value = ''; templateEditTags.value = ''; } templateEditName.focus(); };
-const hideTemplateEditPanel = () => { templateEditPanel.classList.add('hidden'); templateListSection.classList.remove('hidden'); templateEditId.value = ''; templateEditName.value = ''; templateEditTitleInput.value = ''; templateEditText.value = ''; templateEditTags.value = ''; };
-const showTemplateModal = () => { renderTemplateList(); hideTemplateEditPanel(); templateModal.classList.add('visible'); templateModal.classList.remove('hidden'); showAddTemplatePanelBtn.focus(); };
-const hideTemplateModal = () => { templateModal.classList.remove('visible'); templateModal.addEventListener('transitionend', (e) => { if (e.target === templateModal) templateModal.classList.add('hidden'); }, { once: true }); };
-const populateTemplateDropdown = () => { const currentSelection = templateSelect.value; templateSelect.innerHTML = '<option value="">-- Không dùng mẫu --</option>'; templates.sort((a, b) => a.name.localeCompare(b.name)).forEach(template => { const option = document.createElement('option'); option.value = template.id; option.textContent = escapeHTML(template.name); templateSelect.appendChild(option); }); if (templates.some(t => t.id === parseInt(currentSelection))) templateSelect.value = currentSelection; else templateSelect.value = ""; };
-const applyTemplate = () => { const selectedId = templateSelect.value ? parseInt(templateSelect.value) : null; if (selectedId) { const template = templates.find(t => t.id === selectedId); if (template) { newNoteTitle.value = template.title; newNoteText.value = template.text; newNoteTags.value = (template.tags || []).join(', '); newNoteText.focus(); } } };
-
+const getAllUniqueTags = () => { /* ... */ };
+const showTagSuggestions = (inputElement, currentTagFragment, suggestions) => { /* ... */ };
+const handleTagInput = (event) => { /* ... */ };
+const handleTagInputBlur = (event) => { /* ... */ };
+const handleTagInputKeydown = (event) => { /* ... */ };
 
 // =====================================================================
-//  Notebook UI Handlers
+//  Template UI Handlers (Cần check Auth)
 // =====================================================================
-const renderNotebookList = () => { notebookListContainer.innerHTML = ''; if (notebooks.length === 0) { notebookListContainer.innerHTML = `<p class="empty-state">Chưa có sổ tay nào.</p>`; return; } notebooks.sort((a, b) => a.name.localeCompare(b.name)).forEach(notebook => { const item = document.createElement('div'); item.classList.add('notebook-list-item'); item.innerHTML = ` <span>${escapeHTML(notebook.name)}</span> <div class="notebook-item-actions"> <button class="edit-notebook-btn modal-button secondary small-button" data-id="${notebook.id}" title="Sửa sổ tay ${escapeHTML(notebook.name)}">Sửa</button> <button class="delete-notebook-btn modal-button danger small-button" data-id="${notebook.id}" title="Xóa sổ tay ${escapeHTML(notebook.name)}">Xóa</button> </div> `; item.querySelector('.edit-notebook-btn').addEventListener('click', () => showNotebookEditPanel(notebook.id)); item.querySelector('.delete-notebook-btn').addEventListener('click', () => deleteNotebook(notebook.id)); notebookListContainer.appendChild(item); }); };
-const showNotebookEditPanel = (notebookId = null) => { notebookListSection.classList.add('hidden'); notebookEditPanel.classList.remove('hidden'); if (notebookId !== null) { const notebook = notebooks.find(nb => nb.id === notebookId); if (notebook) { notebookEditTitle.textContent = "Sửa Sổ tay"; notebookEditId.value = notebook.id; notebookEditName.value = notebook.name; } else { console.error("Không tìm thấy sổ tay để sửa ID:", notebookId); hideNotebookEditPanel(); return; } } else { notebookEditTitle.textContent = "Tạo Sổ tay Mới"; notebookEditId.value = ''; notebookEditName.value = ''; } notebookEditName.focus(); };
-const hideNotebookEditPanel = () => { notebookEditPanel.classList.add('hidden'); notebookListSection.classList.remove('hidden'); notebookEditId.value = ''; notebookEditName.value = ''; };
-const showNotebookModal = () => { renderNotebookList(); hideNotebookEditPanel(); notebookModal.classList.add('visible'); notebookModal.classList.remove('hidden'); showAddNotebookPanelBtn.focus(); };
-const hideNotebookModal = () => { notebookModal.classList.remove('visible'); notebookModal.addEventListener('transitionend', (e) => { if (e.target === notebookModal) notebookModal.classList.add('hidden'); }, { once: true }); };
-
-// =====================================================================
-//  Notebook Tab Rendering
-// =====================================================================
-const renderNotebookTabs = () => { if (!notebookTabsContainer) return; const addButton = notebookTabsContainer.querySelector('#add-notebook-tab-btn'); notebookTabsContainer.innerHTML = ''; const allNotesTab = document.createElement('button'); allNotesTab.classList.add('tab-button'); allNotesTab.dataset.notebookId = 'all'; allNotesTab.textContent = 'Tất cả Ghi chú'; if (currentNotebookId === 'all' && !isViewingArchived && !isViewingTrash) { allNotesTab.classList.add('active'); } notebookTabsContainer.appendChild(allNotesTab); notebooks.sort((a, b) => a.name.localeCompare(b.name)).forEach(notebook => { const tab = document.createElement('button'); tab.classList.add('tab-button'); tab.dataset.notebookId = notebook.id; tab.textContent = escapeHTML(notebook.name); if (currentNotebookId === notebook.id && !isViewingArchived && !isViewingTrash) { tab.classList.add('active'); } notebookTabsContainer.appendChild(tab); }); const finalAddButton = addButton || document.createElement('button'); if (!addButton) { finalAddButton.id = 'add-notebook-tab-btn'; finalAddButton.classList.add('add-tab-button'); finalAddButton.title = 'Thêm Sổ tay mới'; finalAddButton.textContent = '+'; finalAddButton.addEventListener('click', () => { showNotebookModal(); showNotebookEditPanel(); }); } notebookTabsContainer.appendChild(finalAddButton); };
-
-
-// =====================================================================
-//  Other Panel/Import/Export
-// =====================================================================
-const showAddPanel = () => { const currentlyEditing = notesContainer.querySelector('.note .edit-input'); if (currentlyEditing) { alert("Vui lòng Lưu hoặc Hủy thay đổi ở ghi chú đang sửa trước khi thêm ghi chú mới."); currentlyEditing.closest('.note').querySelector('textarea.edit-input')?.focus(); return; } hideTagSuggestions(); addNotePanel.classList.remove('hidden'); showAddPanelBtn.classList.add('hidden'); templateSelect.value = ""; newNoteTitle.focus(); };
-const hideAddPanel = () => { hideTagSuggestions(); addNotePanel.classList.add('hidden'); if (!notesContainer.querySelector('.note .edit-input')) showAddPanelBtn.classList.remove('hidden'); newNoteTitle.value = ''; newNoteText.value = ''; newNoteTags.value = ''; templateSelect.value = ""; };
-const exportNotes = () => { if (notes.length === 0 && templates.length === 0 && notebooks.length === 0) { alert("Không có ghi chú, mẫu, hoặc sổ tay nào để xuất."); return; } try { const dataToExport = { notes: notes.map(note => ({ id: note.id, title: note.title || '', text: note.text || '', tags: note.tags || [], pinned: note.pinned || false, lastModified: note.lastModified || note.id, archived: note.archived || false, color: note.color || null, deleted: note.deleted || false, deletedTimestamp: note.deletedTimestamp || null, notebookId: note.notebookId || null })), templates: templates.map(template => ({ id: template.id, name: template.name, title: template.title || '', text: template.text || '', tags: template.tags || [] })), notebooks: notebooks.map(notebook => ({ id: notebook.id, name: notebook.name })) }; const jsonData = JSON.stringify(dataToExport, null, 2); const blob = new Blob([jsonData], { type: 'application/json;charset=utf-8' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-').replace('T', '_'); a.download = `flexinote-backup-${timestamp}.json`; // Đổi tên file backup document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); } catch (error) { console.error("Lỗi xuất dữ liệu:", error); alert("Đã xảy ra lỗi khi xuất dữ liệu."); } };
-const importNotes = (file) => { if (!file) { alert("Vui lòng chọn một file JSON hợp lệ."); return; } if (!confirm("CẢNH BÁO:\nThao tác này sẽ THAY THẾ TOÀN BỘ ghi chú, mẫu và sổ tay hiện tại bằng nội dung từ file đã chọn.\nDữ liệu cũ sẽ bị mất.\n\nBạn chắc chắn muốn tiếp tục?")) { importFileInput.value = null; return; } const reader = new FileReader(); reader.onload = (event) => { let importedNotesCount = 0; let importedTemplatesCount = 0; let importedNotebooksCount = 0; try { const importedData = JSON.parse(event.target.result); if (typeof importedData !== 'object' || importedData === null) throw new Error("Dữ liệu trong file không phải là một đối tượng JSON."); let tempNotes = []; let tempTemplates = []; let tempNotebooks = []; if (importedData.notebooks && Array.isArray(importedData.notebooks)) { tempNotebooks = importedData.notebooks.map((nb, index) => { if (typeof nb !== 'object' || nb === null) return null; const validId = typeof nb.id === 'number' ? nb.id : Date.now() + index + 2000; const validName = typeof nb.name === 'string' && nb.name.trim() ? nb.name.trim() : `Sổ tay import ${validId}`; return { id: validId, name: validName }; }).filter(Boolean); importedNotebooksCount = tempNotebooks.length; } const validNotebookIds = new Set(tempNotebooks.map(nb => nb.id)); if (importedData.notes && Array.isArray(importedData.notes)) { tempNotes = importedData.notes.map((note, index) => { if (typeof note !== 'object' || note === null) return null; const validId = typeof note.id === 'number' ? note.id : Date.now() + index; const validLastModified = typeof note.lastModified === 'number' ? note.lastModified : validId; const validNotebookId = typeof note.notebookId === 'number' && validNotebookIds.has(note.notebookId) ? note.notebookId : null; return { id: validId, title: typeof note.title === 'string' ? note.title : '', text: typeof note.text === 'string' ? note.text : '', tags: Array.isArray(note.tags) ? note.tags.map(String).map(t => t.trim().toLowerCase()).filter(t => t) : [], pinned: typeof note.pinned === 'boolean' ? note.pinned : false, lastModified: validLastModified, archived: typeof note.archived === 'boolean' ? note.archived : false, color: typeof note.color === 'string' && NOTE_COLORS.some(c => c.value === note.color) ? note.color : null, deleted: typeof note.deleted === 'boolean' ? note.deleted : false, deletedTimestamp: typeof note.deletedTimestamp === 'number' ? note.deletedTimestamp : null, notebookId: validNotebookId }; }).filter(Boolean); importedNotesCount = tempNotes.length; } if (importedData.templates && Array.isArray(importedData.templates)) { tempTemplates = importedData.templates.map((template, index) => { if (typeof template !== 'object' || template === null) return null; const validId = typeof template.id === 'number' ? template.id : Date.now() + index + 1000; const validName = typeof template.name === 'string' && template.name.trim() ? template.name.trim() : `Mẫu import ${validId}`; return { id: validId, name: validName, title: typeof template.title === 'string' ? template.title : '', text: typeof template.text === 'string' ? template.text : '', tags: Array.isArray(template.tags) ? template.tags.map(String).map(t => t.trim().toLowerCase()).filter(t => t) : [] }; }).filter(Boolean); importedTemplatesCount = tempTemplates.length; } if (importedNotesCount === 0 && importedTemplatesCount === 0 && importedNotebooksCount === 0 && Array.isArray(importedData)) { console.log("Attempting to import old format (array of notes)..."); tempNotes = importedData.map((note, index) => { if (typeof note !== 'object' || note === null) return null; const validId = typeof note.id === 'number' ? note.id : Date.now() + index; const validLastModified = typeof note.lastModified === 'number' ? note.lastModified : validId; return { id: validId, title: typeof note.title === 'string' ? note.title : '', text: typeof note.text === 'string' ? note.text : '', tags: Array.isArray(note.tags) ? note.tags.map(String).map(t => t.trim().toLowerCase()).filter(t => t) : [], pinned: typeof note.pinned === 'boolean' ? note.pinned : false, lastModified: validLastModified, archived: typeof note.archived === 'boolean' ? note.archived : false, color: typeof note.color === 'string' && NOTE_COLORS.some(c => c.value === note.color) ? note.color : null, deleted: typeof note.deleted === 'boolean' ? note.deleted : false, deletedTimestamp: typeof note.deletedTimestamp === 'number' ? note.deletedTimestamp : null, notebookId: null }; }).filter(Boolean); tempTemplates = []; tempNotebooks = []; importedNotesCount = tempNotes.length; if (importedNotesCount === 0) throw new Error("File JSON là một mảng nhưng không chứa dữ liệu ghi chú hợp lệ."); } else if (importedNotesCount === 0 && importedTemplatesCount === 0 && importedNotebooksCount === 0) { throw new Error("File JSON không chứa key 'notes', 'templates', hoặc 'notebooks' hợp lệ, hoặc không phải là mảng dữ liệu cũ."); } notes = tempNotes; templates = tempTemplates; notebooks = tempNotebooks; saveNotes(); saveTemplates(); saveNotebooks(); isViewingArchived = false; isViewingTrash = false; currentNotebookId = DEFAULT_NOTEBOOK_ID; searchInput.value = ''; renderNotebookTabs(); displayNotes(); populateTemplateDropdown(); alert(`Đã nhập thành công ${importedNotesCount} ghi chú, ${importedTemplatesCount} mẫu, và ${importedNotebooksCount} sổ tay!`); } catch (error) { console.error("Lỗi nhập file:", error); alert(`Lỗi nhập file: ${error.message}\n\nVui lòng kiểm tra xem file có đúng định dạng JSON và cấu trúc dữ liệu hợp lệ không.`); } finally { importFileInput.value = null; } }; reader.onerror = (event) => { console.error("Lỗi đọc file:", event.target.error); alert("Không thể đọc được file đã chọn."); importFileInput.value = null; }; reader.readAsText(file); };
-
-
-// =====================================================================
-//  Note Filtering and Sorting Logic
-// =====================================================================
-const getFilteredNotes = (allNotes, filter) => { let viewFilteredNotes = allNotes.filter(note => { if (isViewingTrash) { return note.deleted; } else if (isViewingArchived) { return note.archived && !note.deleted; } else { return !note.deleted && !note.archived && (currentNotebookId === 'all' || note.notebookId === parseInt(currentNotebookId)); } }); if (filter) { const lowerCaseFilter = filter.toLowerCase().trim(); const isTagSearch = lowerCaseFilter.startsWith('#'); const tagSearchTerm = isTagSearch ? lowerCaseFilter.substring(1) : null; viewFilteredNotes = viewFilteredNotes.filter(note => { if (isTagSearch) { if (!tagSearchTerm) return true; return note.tags && note.tags.some(tag => tag.toLowerCase() === tagSearchTerm); } else { const noteTitleLower = (note.title || '').toLowerCase(); const noteTextLower = (note.text || '').toLowerCase(); const titleMatch = noteTitleLower.includes(lowerCaseFilter); const textMatch = noteTextLower.includes(lowerCaseFilter); const tagMatch = note.tags && note.tags.some(tag => tag.toLowerCase().includes(lowerCaseFilter)); return titleMatch || textMatch || tagMatch; } }); } return viewFilteredNotes; };
-const sortNotes = (filteredNotes) => {
-    // Khi dùng Masonry, thứ tự sắp xếp ban đầu quan trọng hơn vì nó ảnh hưởng đến layout
-    // Ưu tiên ghim lên đầu, sau đó là sửa đổi gần nhất
-    return filteredNotes.sort((a, b) => {
-        if (currentNotebookId === 'all' && !isViewingArchived && !isViewingTrash) {
-            if (a.pinned !== b.pinned) {
-                return b.pinned - a.pinned; // Ghim lên đầu
-            }
-        }
-        // Sắp xếp theo thời gian sửa đổi gần nhất (hoặc ID nếu chưa sửa)
-        return (b.lastModified || b.id) - (a.lastModified || a.id);
-    });
-    // Lưu ý: SortableJS sẽ ghi đè thứ tự này trong DOM sau khi người dùng kéo thả.
-    // Logic handleDragEnd sẽ cập nhật lại mảng `notes` theo đúng thứ tự DOM.
+const renderTemplateList = () => { /* ... (Giữ nguyên - chỉ hiển thị) ... */ };
+const showTemplateEditPanel = (templateId = null) => {
+    if (!currentUser) { alert("Vui lòng đăng nhập."); return; } // << CHECK AUTH
+    /* ... (Phần còn lại giữ nguyên) ... */
+};
+const hideTemplateEditPanel = () => { /* ... (Giữ nguyên) ... */ };
+const showTemplateModal = () => {
+    if (!currentUser) { alert("Vui lòng đăng nhập để quản lý mẫu."); return; } // << CHECK AUTH
+     renderTemplateList(); hideTemplateEditPanel(); templateModal.classList.add('visible'); templateModal.classList.remove('hidden'); showAddTemplatePanelBtn.focus();
+};
+const hideTemplateModal = () => { /* ... (Giữ nguyên) ... */ };
+const populateTemplateDropdown = () => { /* ... (Giữ nguyên - chỉ hiển thị) ... */ };
+const applyTemplate = () => {
+     if (!currentUser) return; // << CHECK AUTH (không cần alert vì chỉ apply vào form)
+    /* ... (Phần còn lại giữ nguyên) ... */
 };
 
 // =====================================================================
-//  Core Display Function (UPDATED for Masonry)
+//  Notebook UI Handlers (Cần check Auth)
+// =====================================================================
+const renderNotebookList = () => { /* ... (Giữ nguyên - chỉ hiển thị) ... */ };
+const showNotebookEditPanel = (notebookId = null) => {
+    if (!currentUser) { alert("Vui lòng đăng nhập."); return; } // << CHECK AUTH
+    /* ... (Phần còn lại giữ nguyên) ... */
+};
+const hideNotebookEditPanel = () => { /* ... (Giữ nguyên) ... */ };
+const showNotebookModal = () => {
+    if (!currentUser) { alert("Vui lòng đăng nhập để quản lý sổ tay."); return; } // << CHECK AUTH
+     renderNotebookList(); hideNotebookEditPanel(); notebookModal.classList.add('visible'); notebookModal.classList.remove('hidden'); showAddNotebookPanelBtn.focus();
+};
+const hideNotebookModal = () => { /* ... (Giữ nguyên) ... */ };
+const renderNotebookTabs = () => { /* ... (Giữ nguyên - chỉ hiển thị) ... */ };
+
+// =====================================================================
+//  Other Panel/Import/Export (Cần check Auth)
+// =====================================================================
+const showAddPanel = () => {
+    if (!currentUser) { alert("Vui lòng đăng nhập để thêm ghi chú."); return; } // << CHECK AUTH
+    const currentlyEditing = notesContainer.querySelector('.note .edit-input'); if (currentlyEditing) { alert("Vui lòng Lưu hoặc Hủy thay đổi ở ghi chú đang sửa trước khi thêm ghi chú mới."); currentlyEditing.closest('.note').querySelector('textarea.edit-input')?.focus(); return; } hideTagSuggestions(); addNotePanel.classList.remove('hidden'); showAddPanelBtn.classList.add('hidden'); templateSelect.value = ""; newNoteTitle.focus();
+};
+const hideAddPanel = () => { /* ... (Giữ nguyên) ... */ };
+const exportNotes = () => {
+    if (!currentUser) { alert("Vui lòng đăng nhập để xuất ghi chú."); return; } // << CHECK AUTH
+    // !!! Dữ liệu xuất ra vẫn là từ biến notes/templates/notebooks hiện tại (đang là localStorage) !!!
+    if (notes.length === 0 && templates.length === 0 && notebooks.length === 0) { alert("Không có ghi chú, mẫu, hoặc sổ tay nào để xuất."); return; } try { const dataToExport = { notes: notes.map(note => ({ /*...*/ })), templates: templates.map(template => ({ /*...*/ })), notebooks: notebooks.map(notebook => ({ /*...*/ })) }; const jsonData = JSON.stringify(dataToExport, null, 2); const blob = new Blob([jsonData], { type: 'application/json;charset=utf-8' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-').replace('T', '_'); a.download = `start-notes-backup-${timestamp}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); } catch (error) { console.error("Lỗi xuất dữ liệu:", error); alert("Đã xảy ra lỗi khi xuất dữ liệu."); }
+};
+const importNotes = (file) => {
+     if (!currentUser) { alert("Vui lòng đăng nhập để nhập ghi chú."); return; } // << CHECK AUTH
+     // !!! Việc nhập sẽ ghi đè vào biến notes/templates/notebooks và LƯU VÀO LOCALSTORAGE TẠM THỜI !!!
+    if (!file) { alert("Vui lòng chọn một file JSON hợp lệ."); return; } if (!confirm("CẢNH BÁO:\nThao tác này sẽ THAY THẾ TOÀN BỘ ghi chú, mẫu và sổ tay hiện tại trên trình duyệt này bằng nội dung từ file.\nDữ liệu cũ trên trình duyệt này sẽ bị mất (Dữ liệu trên cloud nếu có sẽ không bị ảnh hưởng trực tiếp bởi bước này).\n\nBạn chắc chắn muốn tiếp tục?")) { importFileInput.value = null; return; } const reader = new FileReader(); reader.onload = (event) => { let importedNotesCount = 0; let importedTemplatesCount = 0; let importedNotebooksCount = 0; try { const importedData = JSON.parse(event.target.result); if (typeof importedData !== 'object' || importedData === null) throw new Error("Dữ liệu trong file không phải là một đối tượng JSON."); let tempNotes = []; let tempTemplates = []; let tempNotebooks = []; if (importedData.notebooks && Array.isArray(importedData.notebooks)) { /* ... validation ... */ } const validNotebookIds = new Set(tempNotebooks.map(nb => nb.id)); if (importedData.notes && Array.isArray(importedData.notes)) { /* ... validation ... */ } if (importedData.templates && Array.isArray(importedData.templates)) { /* ... validation ... */ } if (importedNotesCount === 0 && importedTemplatesCount === 0 && importedNotebooksCount === 0 && Array.isArray(importedData)) { /* ... import old format ... */ } else if (importedNotesCount === 0 && importedTemplatesCount === 0 && importedNotebooksCount === 0) { throw new Error("File JSON không chứa key 'notes', 'templates', hoặc 'notebooks' hợp lệ, hoặc không phải là mảng dữ liệu cũ."); } notes = tempNotes; templates = tempTemplates; notebooks = tempNotebooks; saveNotes(); saveTemplates(); saveNotebooks(); isViewingArchived = false; isViewingTrash = false; currentNotebookId = DEFAULT_NOTEBOOK_ID; searchInput.value = ''; renderNotebookTabs(); displayNotes(); populateTemplateDropdown(); alert(`Đã nhập thành công ${importedNotesCount} ghi chú, ${importedTemplatesCount} mẫu, và ${importedNotebooksCount} sổ tay vào trình duyệt! (Cần đồng bộ lên cloud nếu muốn)`); } catch (error) { console.error("Lỗi nhập file:", error); alert(`Lỗi nhập file: ${error.message}`); } finally { importFileInput.value = null; } }; reader.onerror = (event) => { console.error("Lỗi đọc file:", event.target.error); alert("Không thể đọc được file đã chọn."); importFileInput.value = null; }; reader.readAsText(file);
+};
+
+// =====================================================================
+//  Note Filtering and Sorting Logic (Giữ nguyên)
+// =====================================================================
+const getFilteredNotes = (allNotes, filter) => { /* ... */ };
+const sortNotes = (filteredNotes) => { /* ... */ };
+
+// =====================================================================
+//  Core Display Function (Điều chỉnh để xử lý trạng thái đăng xuất)
 // =====================================================================
 const displayNotes = (filter = '') => {
     hideTagSuggestions();
-    const scrollY = window.scrollY; // Lưu vị trí cuộn hiện tại
+    const scrollY = window.scrollY;
+    if (!notesContainer) return; // Thêm kiểm tra phòng lỗi
+    notesContainer.innerHTML = ''; // Xóa nội dung cũ
 
-    // Xóa nội dung cũ và hủy các instance cũ nếu cần
-    notesContainer.innerHTML = '';
-    if (sortableInstance) {
-        try { sortableInstance.destroy(); } catch(e) {}
-        sortableInstance = null;
+    // Nếu chưa đăng nhập, hiển thị thông báo và dừng
+    if (!currentUser && !isViewingArchived && !isViewingTrash) { // Chỉ áp dụng cho view chính
+         notesContainer.innerHTML = `<p class="empty-state">Vui lòng đăng nhập để xem hoặc tạo ghi chú.</p>`;
+         // Reset các nút header liên quan
+         if(viewArchiveBtn) viewArchiveBtn.classList.remove('viewing-archive');
+         if(viewTrashBtn) viewTrashBtn.classList.remove('viewing-trash');
+         if(archiveStatusIndicator) archiveStatusIndicator.classList.add('hidden');
+         if(trashStatusIndicator) trashStatusIndicator.classList.add('hidden');
+         if(emptyTrashBtn) emptyTrashBtn.classList.add('hidden');
+         renderNotebookTabs(); // Có thể chỉ hiển thị tab "All" trống
+         return; // Dừng hàm ở đây
     }
-    // Không hủy masonryInstance ở đây, sẽ xử lý trong initOrUpdateMasonryLayout
 
+    // --- Phần còn lại giữ nguyên logic lọc và sắp xếp ---
     const filteredNotes = getFilteredNotes(notes, filter.toLowerCase().trim());
-    const notesToDisplay = sortNotes(filteredNotes); // Sắp xếp trước khi render
+    const notesToDisplay = sortNotes(filteredNotes);
 
-    // Cập nhật giao diện các nút và chỉ báo trạng thái
-    viewArchiveBtn.classList.remove('viewing-archive');
-    viewTrashBtn.classList.remove('viewing-trash');
-    viewArchiveBtn.textContent = 'Xem Lưu trữ';
-    viewTrashBtn.textContent = 'Xem Thùng rác';
-    archiveStatusIndicator.classList.add('hidden');
-    trashStatusIndicator.classList.add('hidden');
-    emptyTrashBtn.classList.add('hidden');
+    if(viewArchiveBtn) viewArchiveBtn.classList.remove('viewing-archive');
+    if(viewTrashBtn) viewTrashBtn.classList.remove('viewing-trash');
+    if(viewArchiveBtn) viewArchiveBtn.textContent = 'Xem Lưu trữ';
+    if(viewTrashBtn) viewTrashBtn.textContent = 'Xem Thùng rác';
+    if(archiveStatusIndicator) archiveStatusIndicator.classList.add('hidden');
+    if(trashStatusIndicator) trashStatusIndicator.classList.add('hidden');
+    if(emptyTrashBtn) emptyTrashBtn.classList.add('hidden');
 
     if (isViewingTrash) {
-        trashStatusIndicator.classList.remove('hidden');
-        viewTrashBtn.textContent = 'Xem Ghi chú';
-        viewTrashBtn.classList.add('viewing-trash');
-        if(notesToDisplay.length > 0) { emptyTrashBtn.classList.remove('hidden'); }
-        renderNotebookTabs(); // Cập nhật tab
+        if(trashStatusIndicator) trashStatusIndicator.classList.remove('hidden');
+        if(viewTrashBtn) viewTrashBtn.textContent = 'Xem Ghi chú';
+        if(viewTrashBtn) viewTrashBtn.classList.add('viewing-trash');
+        if(emptyTrashBtn && notesToDisplay.length > 0) { emptyTrashBtn.classList.remove('hidden'); }
+        renderNotebookTabs(); // Render tab khi xem trash
     } else if (isViewingArchived) {
-        archiveStatusIndicator.classList.remove('hidden');
-        viewArchiveBtn.textContent = 'Xem Ghi chú';
-        viewArchiveBtn.classList.add('viewing-archive');
-        renderNotebookTabs(); // Cập nhật tab
+        if(archiveStatusIndicator) archiveStatusIndicator.classList.remove('hidden');
+        if(viewArchiveBtn) viewArchiveBtn.textContent = 'Xem Ghi chú';
+        if(viewArchiveBtn) viewArchiveBtn.classList.add('viewing-archive');
+        renderNotebookTabs(); // Render tab khi xem archive
     } else {
-        renderNotebookTabs(); // Cập nhật tab cho chế độ xem thường
+        renderNotebookTabs(); // Render tab cho view chính
     }
 
-    // Hiển thị ghi chú hoặc thông báo trống
     if (notesToDisplay.length === 0) {
         let emptyMessage = '';
-        if (isViewingTrash) {
-            emptyMessage = filter ? 'Không tìm thấy ghi chú rác nào khớp.' : 'Thùng rác trống.';
-        } else if (isViewingArchived) {
-            emptyMessage = filter ? 'Không tìm thấy ghi chú lưu trữ nào khớp.' : 'Lưu trữ trống.';
-        } else if (currentNotebookId === 'all') {
-            emptyMessage = filter ? 'Không tìm thấy ghi chú nào khớp.' : 'Chưa có ghi chú nào. Nhấn "+" để thêm.';
-        } else {
-            const currentNotebook = notebooks.find(nb => nb.id === parseInt(currentNotebookId));
-            const notebookName = currentNotebook ? escapeHTML(currentNotebook.name) : 'sổ tay này';
-            emptyMessage = filter ? `Không tìm thấy ghi chú nào khớp trong ${notebookName}.` : `Sổ tay "${notebookName}" trống. Nhấn "+" để thêm.`;
-        }
+        if (!currentUser) { // Double check (dù đã chặn ở trên)
+            emptyMessage = 'Vui lòng đăng nhập.';
+        } else if (isViewingTrash) { emptyMessage = filter ? 'Không tìm thấy ghi chú rác nào khớp.' : 'Thùng rác trống.'; }
+        else if (isViewingArchived) { emptyMessage = filter ? 'Không tìm thấy ghi chú lưu trữ nào khớp.' : 'Lưu trữ trống.'; }
+        else if (currentNotebookId === 'all') { emptyMessage = filter ? 'Không tìm thấy ghi chú nào khớp.' : 'Chưa có ghi chú nào. Nhấn "+" để thêm.'; }
+        else { const currentNotebook = notebooks.find(nb => nb.id === parseInt(currentNotebookId)); const notebookName = currentNotebook ? escapeHTML(currentNotebook.name) : 'sổ tay này'; emptyMessage = filter ? `Không tìm thấy ghi chú nào khớp trong ${notebookName}.` : `Sổ tay "${notebookName}" trống. Nhấn "+" để thêm.`; }
         notesContainer.innerHTML = `<p class="empty-state">${emptyMessage}</p>`;
-        // Hủy Masonry nếu không có note
-        if (masonryInstance) {
-            try { masonryInstance.destroy(); } catch(e) {}
-            masonryInstance = null;
-        }
+        if (sortableInstance) { sortableInstance.destroy(); sortableInstance = null; }
     } else {
-        // Tạo và thêm các phần tử note vào container
-        const fragment = document.createDocumentFragment();
-        notesToDisplay.forEach(note => {
-            const noteElement = renderNoteElement(note);
-            fragment.appendChild(noteElement);
-        });
-        notesContainer.appendChild(fragment);
+        notesToDisplay.forEach(note => { const noteElement = renderNoteElement(note); notesContainer.appendChild(noteElement); });
+        initSortable(); // Khởi tạo lại kéo thả nếu cần
+    }
+    window.scrollTo({ top: scrollY, behavior: 'instant' });
+};
 
-        // Khởi tạo hoặc cập nhật Masonry và SortableJS
-        // Dùng requestAnimationFrame để đảm bảo DOM đã cập nhật
-        requestAnimationFrame(initOrUpdateMasonryLayout);
+
+// =====================================================================
+//  Modal Handling Functions (Giữ nguyên)
+// =====================================================================
+const showSettingsModal = () => { /* ... */ };
+const hideSettingsModal = () => { /* ... */ };
+const closeMoveNoteMenu = () => { /* ... */ };
+const handleOutsideMoveMenuClick = (event) => { /* ... */ };
+const handleMoveNote = (noteId, targetNotebookId) => {
+    if (!currentUser) return; // << CHECK AUTH
+    /* ... (Phần còn lại giữ nguyên, vẫn save vào localStorage) ... */
+};
+const showMoveNoteMenu = (noteId, moveBtnElement) => { /* ... (Giữ nguyên) ... */ };
+
+
+// =====================================================================
+//  Event Listener Setup Functions (Thêm setupAuthListeners)
+// =====================================================================
+const setupThemeAndAppearanceListeners = () => { /* ... (Giữ nguyên) ... */ };
+const setupAddNotePanelListeners = () => { /* ... (Giữ nguyên) ... */ };
+const setupHeaderActionListeners = () => { /* ... (Giữ nguyên) ... */ };
+const setupSearchListener = () => { /* ... (Giữ nguyên) ... */ };
+const setupNoteActionListeners = () => { /* ... (Giữ nguyên - các hàm con đã check auth) ... */ };
+const setupTemplateModalListeners = () => { /* ... (Giữ nguyên - các hàm con đã check auth) ... */ };
+const setupNotebookListeners = () => { /* ... (Giữ nguyên - các hàm con đã check auth) ... */ };
+const setupTagInputListeners = () => { /* ... (Giữ nguyên) ... */ };
+const setupGlobalListeners = () => { /* ... (Giữ nguyên) ... */ };
+const setupGlobalKeydownListeners = () => {
+     document.addEventListener('keydown', (event) => {
+         // Thêm kiểm tra currentUser cho các phím tắt liên quan đến dữ liệu
+         const activeElement = document.activeElement;
+         const isTyping = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA') && activeElement !== searchInput;
+         const isTemplateModalOpen = templateModal && templateModal.classList.contains('visible');
+         const isNoteModalOpen = !!document.querySelector('.note-modal.visible');
+         const isSettingsModalOpen = settingsModal && settingsModal.classList.contains('visible');
+         const isNotebookModalOpen = notebookModal && notebookModal.classList.contains('visible');
+         const isSuggestionBoxOpen = !!document.getElementById(SUGGESTION_BOX_ID);
+         const isMoveMenuOpen = !!activeMoveMenu;
+         const isEditingNote = activeElement?.closest('.note')?.querySelector('.edit-input, .edit-title-input, .edit-tags-input') === activeElement;
+         const isEditingTemplate = templateEditPanel && templateEditPanel.contains(activeElement);
+         const isEditingNotebook = notebookEditPanel && notebookEditPanel.contains(activeElement);
+
+         if (event.key === 'Escape') { /* ... (Giữ nguyên logic Escape) ... */ }
+
+         const isAnyModalOpen = isNoteModalOpen || isTemplateModalOpen || isSettingsModalOpen || isNotebookModalOpen;
+         const allowSaveInModal = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's' && (isEditingTemplate || isEditingNotebook);
+
+         if ((isAnyModalOpen && !allowSaveInModal) || isMoveMenuOpen) return;
+         if (isTyping && !isEditingNote && !isEditingTemplate && !isEditingNotebook) return;
+
+         const isCtrlOrCmd = event.metaKey || event.ctrlKey;
+         if (isCtrlOrCmd && event.key.toLowerCase() === 'n') {
+             event.preventDefault();
+             // Chỉ mở panel add nếu đã đăng nhập
+             if (currentUser && !isAnyModalOpen && addNotePanel.classList.contains('hidden') && !notesContainer.querySelector('.note .edit-input')) {
+                 showAddPanel();
+             }
+         } else if (isCtrlOrCmd && event.key.toLowerCase() === 's') {
+             // Chỉ cho phép lưu nếu đã đăng nhập
+             if (currentUser) {
+                 if (isEditingNote) { event.preventDefault(); activeElement.closest('.note')?.querySelector('.save-edit-btn')?.click(); }
+                 else if (addNotePanel.contains(activeElement)) { event.preventDefault(); addNoteBtn.click(); }
+                 else if (isEditingTemplate) { event.preventDefault(); saveTemplateBtn.click(); }
+                 else if (isEditingNotebook) { event.preventDefault(); saveNotebookBtn.click(); }
+             }
+         } else if (isCtrlOrCmd && event.key.toLowerCase() === 'f') {
+             event.preventDefault();
+             searchInput.focus();
+             searchInput.select();
+         }
+     });
+ };
+
+// --- NEW: Auth Listener Setup ---
+const setupAuthListeners = () => {
+    if (loginForm) loginForm.addEventListener('submit', handleSignIn);
+    if (signupForm) signupForm.addEventListener('submit', handleSignUp);
+    if (logoutBtn) logoutBtn.addEventListener('click', handleSignOut);
+    if (googleSigninBtn) googleSigninBtn.addEventListener('click', handleGoogleSignIn);
+
+    if (showSignupBtn) {
+        showSignupBtn.addEventListener('click', () => {
+            clearAuthErrors();
+            loginForm.classList.add('hidden');
+            signupForm.classList.remove('hidden');
+        });
     }
 
-    // Khôi phục vị trí cuộn (có thể cần điều chỉnh nếu layout thay đổi nhiều)
-    // window.scrollTo({ top: scrollY, behavior: 'instant' });
-    // Tạm thời bỏ scroll restoration vì Masonry có thể thay đổi chiều cao trang
+    if (showLoginBtn) {
+        showLoginBtn.addEventListener('click', () => {
+            clearAuthErrors();
+            signupForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+        });
+    }
 };
-
-
-
-// =====================================================================
-//  Modal Handling Functions
-// =====================================================================
-const showSettingsModal = () => { const currentTheme = getStoredPreference(THEME_NAME_KEY, DEFAULT_THEME); const currentAccent = getStoredPreference(ACCENT_COLOR_KEY, DEFAULT_ACCENT_COLOR); const currentFont = getStoredPreference(FONT_FAMILY_KEY, DEFAULT_FONT_FAMILY); const currentSizeScale = parseFloat(getStoredPreference(FONT_SIZE_SCALE_KEY, DEFAULT_FONT_SIZE_SCALE.toString())); updateThemeSelectionUI(currentTheme); updateAccentColorSelectionUI(currentAccent); updateFontFamilySelectionUI(currentFont); updateFontSizeUI(isNaN(currentSizeScale) ? DEFAULT_FONT_SIZE_SCALE : currentSizeScale); settingsModal.classList.add('visible'); settingsModal.classList.remove('hidden'); closeSettingsModalBtn.focus(); };
-const hideSettingsModal = () => { settingsModal.classList.remove('visible'); settingsModal.addEventListener('transitionend', (e) => { if (e.target === settingsModal) settingsModal.classList.add('hidden'); }, { once: true }); };
-
-// --- Move Note Menu Functions ---
-const closeMoveNoteMenu = () => { if (activeMoveMenu) { activeMoveMenu.remove(); activeMoveMenu = null; document.removeEventListener('click', handleOutsideMoveMenuClick, true); } };
-const handleOutsideMoveMenuClick = (event) => { if (activeMoveMenu && !activeMoveMenu.contains(event.target) && !event.target.closest('.move-note-btn')) { closeMoveNoteMenu(); } };
-const handleMoveNote = (noteId, targetNotebookId) => { const noteIndex = notes.findIndex(note => note.id === noteId); if (noteIndex !== -1) { const newNotebookId = targetNotebookId === 'none' ? null : parseInt(targetNotebookId); if (notes[noteIndex].notebookId !== newNotebookId) { notes[noteIndex].notebookId = newNotebookId; notes[noteIndex].lastModified = Date.now(); saveNotes(); displayNotes(searchInput.value); // Gọi displayNotes để cập nhật view và layout } } else { console.error("Không tìm thấy ghi chú để di chuyển:", noteId); } closeMoveNoteMenu(); };
-const showMoveNoteMenu = (noteId, moveBtnElement) => { closeMoveNoteMenu(); const note = notes.find(n => n.id === noteId); if (!note) return; const menu = document.createElement('div'); menu.id = MOVE_NOTE_MENU_ID; menu.classList.add('move-note-menu'); const noNotebookBtn = document.createElement('button'); noNotebookBtn.textContent = '-- Không thuộc sổ tay nào --'; noNotebookBtn.dataset.targetNotebookId = 'none'; if (note.notebookId === null) { noNotebookBtn.classList.add('current-notebook'); noNotebookBtn.disabled = true; } noNotebookBtn.addEventListener('click', () => handleMoveNote(noteId, 'none')); menu.appendChild(noNotebookBtn); if (notebooks.length > 0) { menu.appendChild(document.createElement('hr')); } notebooks.sort((a, b) => a.name.localeCompare(b.name)).forEach(notebook => { const notebookBtn = document.createElement('button'); notebookBtn.textContent = escapeHTML(notebook.name); notebookBtn.dataset.targetNotebookId = notebook.id; if (note.notebookId === notebook.id) { notebookBtn.classList.add('current-notebook'); notebookBtn.disabled = true; } notebookBtn.addEventListener('click', () => handleMoveNote(noteId, notebook.id)); menu.appendChild(notebookBtn); }); document.body.appendChild(menu); activeMoveMenu = menu; const btnRect = moveBtnElement.getBoundingClientRect(); menu.style.position = 'absolute'; // Calculate optimal position (above or below) requestAnimationFrame(() => { // Wait for menu to render to get height const finalMenuHeight = menu.offsetHeight; const spaceAbove = btnRect.top; const spaceBelow = window.innerHeight - btnRect.bottom; if (spaceBelow >= finalMenuHeight + 10 || spaceBelow >= spaceAbove) { menu.style.top = `${btnRect.bottom + window.scrollY + 5}px`; // Position below } else { menu.style.top = `${btnRect.top + window.scrollY - finalMenuHeight - 5}px`; // Position above } menu.style.left = `${btnRect.left + window.scrollX}px`; // Align left // Prevent overflow right if (btnRect.left + menu.offsetWidth > window.innerWidth - 10) { menu.style.left = `${window.innerWidth - menu.offsetWidth - 10 + window.scrollX}px`; } }); setTimeout(() => { document.addEventListener('click', handleOutsideMoveMenuClick, true); }, 0); };
-
-
-// =====================================================================
-//  Event Listener Setup Functions
-// =====================================================================
-const setupThemeAndAppearanceListeners = () => { quickThemeToggleBtn.addEventListener('click', quickToggleTheme); settingsBtn.addEventListener('click', showSettingsModal); closeSettingsModalBtn.addEventListener('click', hideSettingsModal); settingsModal.addEventListener('click', (event) => { if (event.target === settingsModal) hideSettingsModal(); }); if (themeOptionsContainer) { themeOptionsContainer.addEventListener('click', (event) => { const targetButton = event.target.closest('.theme-option-btn'); if (targetButton?.dataset.theme) { const selectedTheme = targetButton.dataset.theme; if (VALID_THEMES.includes(selectedTheme)) { applyTheme(selectedTheme); localStorage.setItem(THEME_NAME_KEY, selectedTheme); if (selectedTheme !== 'light' && selectedTheme !== 'dark') { localStorage.setItem(LAST_CUSTOM_THEME_KEY, selectedTheme); } } else { console.warn(`Attempted to apply invalid theme: ${selectedTheme}`); } } }); } if (accentColorOptionsContainer) { accentColorOptionsContainer.addEventListener('click', (event) => { const targetSwatch = event.target.closest('.accent-swatch'); if (targetSwatch?.dataset.color) { const selectedColor = targetSwatch.dataset.color; applyAccentColor(selectedColor); localStorage.setItem(ACCENT_COLOR_KEY, selectedColor); } }); } if (fontFamilySelect) { fontFamilySelect.addEventListener('change', (event) => { const selectedFont = event.target.value; applyFontFamily(selectedFont); localStorage.setItem(FONT_FAMILY_KEY, selectedFont); }); } const debouncedSaveFontSize = debounce((scale) => { localStorage.setItem(FONT_SIZE_SCALE_KEY, scale.toString()); }, 500); if (fontSizeSlider) { fontSizeSlider.addEventListener('input', (event) => { const scale = parseFloat(event.target.value); if (!isNaN(scale)) { applyFontSize(scale); debouncedSaveFontSize(scale); } }); } if (resetFontSizeBtn) { resetFontSizeBtn.addEventListener('click', () => { const defaultScale = DEFAULT_FONT_SIZE_SCALE; applyFontSize(defaultScale); localStorage.setItem(FONT_SIZE_SCALE_KEY, defaultScale.toString()); if (fontSizeSlider) fontSizeSlider.value = defaultScale; }); } };
-const setupAddNotePanelListeners = () => { addNoteBtn.addEventListener('click', addNote); showAddPanelBtn.addEventListener('click', showAddPanel); closeAddPanelBtn.addEventListener('click', hideAddPanel); newNoteTitle.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (newNoteText.value.trim() === '' && newNoteTitle.value.trim() !== '') { addNoteBtn.click(); } else { newNoteText.focus(); } } }); };
-const setupHeaderActionListeners = () => { exportNotesBtn.addEventListener('click', exportNotes); importNotesBtn.addEventListener('click', () => importFileInput.click()); importFileInput.addEventListener('change', (e) => { if(e.target.files && e.target.files[0]) { importNotes(e.target.files[0]); } e.target.value = null; }); viewArchiveBtn.addEventListener('click', () => { isViewingArchived = true; isViewingTrash = false; currentNotebookId = 'archive'; searchInput.value = ''; displayNotes(); }); viewTrashBtn.addEventListener('click', () => { isViewingTrash = true; isViewingArchived = false; currentNotebookId = 'trash'; searchInput.value = ''; displayNotes(); }); emptyTrashBtn.addEventListener('click', handleEmptyTrash); };
-const setupSearchListener = () => { const debouncedDisplayNotes = debounce((filterVal) => displayNotes(filterVal), 300); searchInput.addEventListener('input', (e) => debouncedDisplayNotes(e.target.value)); };
-const setupNoteActionListeners = () => {
-    notesContainer.addEventListener('click', (event) => {
-        const target = event.target;
-        const noteElement = target.closest('.note');
-        if (!noteElement) return;
-
-        const noteId = parseInt(noteElement.dataset.id);
-        const noteIndex = notes.findIndex(note => note.id === noteId);
-        if (noteIndex === -1) {
-            console.error("Không tìm thấy data cho note ID:", noteId);
-            return;
-        }
-
-        const tagButton = target.closest('.tag-badge');
-        if (tagButton?.dataset.tag) {
-            event.preventDefault();
-            event.stopPropagation();
-            searchInput.value = `#${tagButton.dataset.tag}`;
-            searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-            searchInput.focus();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            return;
-        }
-
-        // Bỏ logic Read More vì Masonry thường hiển thị hết
-        // const readMoreButton = target.closest('.read-more-btn');
-        // if (readMoreButton) { ... }
-
-        const isEditingThisNote = noteElement.querySelector('textarea.edit-input');
-
-        if (isEditingThisNote) {
-             if (target.closest('.save-edit-btn')) {
-                 handleNoteSaveEdit(noteElement, noteId, noteIndex);
-             } else if (target.closest('.pin-btn') && currentNotebookId === 'all') {
-                 handleNotePin(noteId, noteIndex);
-                 const pinBtn = target.closest('.pin-btn');
-                 if (pinBtn) {
-                     const isPinned = notes[noteIndex].pinned;
-                     pinBtn.title = isPinned ? "Bỏ ghim" : "Ghim ghi chú";
-                     pinBtn.setAttribute('aria-label', isPinned ? "Bỏ ghim ghi chú" : "Ghim ghi chú");
-                     pinBtn.setAttribute('aria-pressed', isPinned ? 'true' : 'false');
-                     pinBtn.classList.toggle('pinned', isPinned);
-                 }
-             }
-             // Không xử lý các action khác khi đang edit
-             return;
-        }
-
-        const moveButton = target.closest('.move-note-btn');
-        if (moveButton && !isViewingArchived && !isViewingTrash) {
-            event.stopPropagation();
-            showMoveNoteMenu(noteId, moveButton);
-            return;
-        }
-
-        if (target.closest('.pin-btn') && !isViewingArchived && !isViewingTrash && currentNotebookId === 'all') handleNotePin(noteId, noteIndex);
-        else if (target.closest('.delete-btn')) handleNoteDelete(noteId, noteIndex);
-        else if (target.closest('.archive-btn') && !isViewingTrash && !isViewingArchived) handleNoteArchive(noteId, noteIndex);
-        else if (target.closest('.unarchive-btn') && isViewingArchived) handleNoteUnarchive(noteId, noteIndex);
-        else if (target.closest('.restore-btn') && isViewingTrash) handleNoteRestore(noteId, noteIndex);
-        else if (target.closest('.delete-permanent-btn') && isViewingTrash) handleNoteDeletePermanent(noteId, noteIndex);
-        else if (target.closest('.edit-btn') && !isViewingArchived && !isViewingTrash) handleNoteEdit(noteElement, noteId, noteIndex);
-        // Thêm else if cho các nút khác nếu cần
-        else {
-            // Nếu click vào vùng trống của note (không phải nút action hay input)
-            // thì có thể làm gì đó, ví dụ: mở modal xem chi tiết (nếu muốn)
-            // showFullNoteModal(notes[noteIndex].title, notes[noteIndex].text);
-        }
-    });
-};
-const setupTemplateModalListeners = () => { if(manageTemplatesBtn) manageTemplatesBtn.addEventListener('click', showTemplateModal); closeTemplateModalBtn.addEventListener('click', hideTemplateModal); templateModal.addEventListener('click', (event) => { if (event.target === templateModal && templateEditPanel.classList.contains('hidden')) { hideTemplateModal(); } }); showAddTemplatePanelBtn.addEventListener('click', () => showTemplateEditPanel()); cancelEditTemplateBtn.addEventListener('click', hideTemplateEditPanel); saveTemplateBtn.addEventListener('click', addOrUpdateTemplate); templateSelect.addEventListener('change', applyTemplate); };
-const setupNotebookListeners = () => { if(manageNotebooksBtn) manageNotebooksBtn.addEventListener('click', showNotebookModal); closeNotebookModalBtn.addEventListener('click', hideNotebookModal); notebookModal.addEventListener('click', (event) => { if (event.target === notebookModal && notebookEditPanel.classList.contains('hidden')) { hideNotebookModal(); } }); showAddNotebookPanelBtn.addEventListener('click', () => showNotebookEditPanel()); cancelEditNotebookBtn.addEventListener('click', hideNotebookEditPanel); saveNotebookBtn.addEventListener('click', addOrUpdateNotebook); if (notebookTabsContainer) { notebookTabsContainer.addEventListener('click', (event) => { const target = event.target; if (target.matches('.tab-button') && target.dataset.notebookId) { const selectedNotebookId = target.dataset.notebookId === 'all' ? 'all' : parseInt(target.dataset.notebookId); if (selectedNotebookId === currentNotebookId && !isViewingArchived && !isViewingTrash) return; currentNotebookId = selectedNotebookId; isViewingArchived = false; isViewingTrash = false; searchInput.value = ''; displayNotes(); } else if (target.matches('#add-notebook-tab-btn')) { showNotebookModal(); showNotebookEditPanel(); } }); } };
-const setupTagInputListeners = () => { newNoteTags.addEventListener('input', handleTagInput); newNoteTags.addEventListener('blur', handleTagInputBlur, true); newNoteTags.addEventListener('keydown', handleTagInputKeydown); notesContainer.addEventListener('input', (e) => { if (e.target.matches('.edit-tags-input')) handleTagInput(e); }); notesContainer.addEventListener('blur', (e) => { if (e.target.matches('.edit-tags-input')) handleTagInputBlur(e); }, true); notesContainer.addEventListener('keydown', (e) => { if (e.target.matches('.edit-tags-input')) handleTagInputKeydown(e); }); };
-
-// Hàm setupGlobalListeners gọi các hàm setup khác và listener toàn cục
-const setupGlobalListeners = () => {
-     document.addEventListener('mousedown', (event) => {
-         if (activeMoveMenu && !activeMoveMenu.contains(event.target) && !event.target.closest('.move-note-btn')) {
-             closeMoveNoteMenu();
-         }
-         const suggestionBox = document.getElementById(SUGGESTION_BOX_ID);
-          if (suggestionBox && !suggestionBox.contains(event.target) && activeTagInputElement && !activeTagInputElement.contains(event.target)) {
-              hideTagSuggestions();
-          }
-     }, true);
-     setupGlobalKeydownListeners(); // Gọi hàm setup keydown
-     // Thêm listener cho resize window
-     window.addEventListener('resize', debouncedLayoutUpdate);
-}; // **Đảm bảo có dấu ; hoặc không có gì bất thường trước hàm tiếp theo**
-
-// Hàm setupGlobalKeydownListeners xử lý các phím tắt toàn cục
-const setupGlobalKeydownListeners = () => {
-    document.addEventListener('keydown', (event) => {
-        const activeElement = document.activeElement;
-        const isTyping = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA') && activeElement !== searchInput;
-        const isTemplateModalOpen = templateModal.classList.contains('visible');
-        const isNoteModalOpen = !!document.querySelector('.note-modal.visible');
-        const isSettingsModalOpen = settingsModal.classList.contains('visible');
-        const isNotebookModalOpen = notebookModal.classList.contains('visible');
-        const isSuggestionBoxOpen = !!document.getElementById(SUGGESTION_BOX_ID);
-        const isMoveMenuOpen = !!activeMoveMenu;
-        const isEditingNote = activeElement?.closest('.note')?.querySelector('.edit-input, .edit-title-input, .edit-tags-input') === activeElement;
-        const isEditingTemplate = templateEditPanel.contains(activeElement);
-        const isEditingNotebook = notebookEditPanel.contains(activeElement);
-
-        if (event.key === 'Escape') {
-             if (isMoveMenuOpen) closeMoveNoteMenu();
-             else if (isSuggestionBoxOpen) hideTagSuggestions();
-             else if (isSettingsModalOpen) hideSettingsModal();
-             else if (isNoteModalOpen) document.querySelector('.note-modal.visible .close-modal-btn')?.click();
-             else if (isTemplateModalOpen) { if (!templateEditPanel.classList.contains('hidden')) hideTemplateEditPanel(); else hideTemplateModal(); }
-             else if (isNotebookModalOpen) { if (!notebookEditPanel.classList.contains('hidden')) hideNotebookEditPanel(); else hideNotebookModal(); }
-             else if (!addNotePanel.classList.contains('hidden')) hideAddPanel();
-             else if (isEditingNote) { const editingNoteElement = activeElement.closest('.note'); if (editingNoteElement && confirm("Bạn có muốn hủy bỏ các thay đổi và đóng chỉnh sửa ghi chú không?")) { displayNotes(searchInput.value); if (addNotePanel.classList.contains('hidden')) showAddPanelBtn.classList.remove('hidden'); if (sortableInstance) sortableInstance.option('disabled', false); } }
-             else if (activeElement === searchInput && searchInput.value !== '') { searchInput.value = ''; displayNotes(); }
-             event.preventDefault(); event.stopPropagation(); return;
-        }
-
-        const isAnyModalOpen = isNoteModalOpen || isTemplateModalOpen || isSettingsModalOpen || isNotebookModalOpen;
-        const allowSaveInModal = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's' && (isEditingTemplate || isEditingNotebook);
-
-        if ((isAnyModalOpen && !allowSaveInModal) || isMoveMenuOpen) return;
-        if (isTyping && !isEditingNote && !isEditingTemplate && !isEditingNotebook) return;
-
-        const isCtrlOrCmd = event.metaKey || event.ctrlKey;
-        if (isCtrlOrCmd && event.key.toLowerCase() === 'n') {
-            event.preventDefault();
-            if (!isAnyModalOpen && addNotePanel.classList.contains('hidden') && !notesContainer.querySelector('.note .edit-input')) {
-                showAddPanel();
-            }
-        } else if (isCtrlOrCmd && event.key.toLowerCase() === 's') {
-            if (isEditingNote) { event.preventDefault(); activeElement.closest('.note')?.querySelector('.save-edit-btn')?.click(); }
-            else if (addNotePanel.contains(activeElement)) { event.preventDefault(); addNoteBtn.click(); }
-            else if (isEditingTemplate) { event.preventDefault(); saveTemplateBtn.click(); }
-            else if (isEditingNotebook) { event.preventDefault(); saveNotebookBtn.click(); }
-        } else if (isCtrlOrCmd && event.key.toLowerCase() === 'f') {
-            event.preventDefault();
-            searchInput.focus();
-            searchInput.select();
-        }
-    });
-}; // **Đã thêm dấu ; ở đây**
 
 // =====================================================================
 //  Main Event Listener Setup Function
 // =====================================================================
 const setupEventListeners = () => {
     setupThemeAndAppearanceListeners();
-    setupHeaderActionListeners();
+    setupHeaderActionListeners(); // Giữ lại nhưng một số nút sẽ bị disable/enable bởi Auth
     setupAddNotePanelListeners();
     setupSearchListener();
     setupNoteActionListeners();
     setupTemplateModalListeners();
     setupNotebookListeners();
     setupTagInputListeners();
-    setupGlobalListeners(); // Bao gồm cả listener cho resize
+    setupGlobalListeners(); // setupGlobalKeydownListeners được gọi trong này
+    setupAuthListeners(); // <<<--- Gọi hàm setup mới
 };
 
 
 // =====================================================================
-//  Initial Load Function
+//  Initial Load Function (Simplified)
 // =====================================================================
-const loadNotesAndInit = () => {
-     loadNotes();
-     loadTemplates();
-     loadNotebooks();
+const initializeApp = () => {
+     // Tải và áp dụng cài đặt giao diện trước (từ localStorage)
      applyAllAppearanceSettings();
-     isViewingArchived = false;
-     isViewingTrash = false;
-     currentNotebookId = DEFAULT_NOTEBOOK_ID;
-     renderNotebookTabs(); // Render tabs trước
-     displayNotes(); // Hiển thị notes (sẽ gọi init Masonry/Sortable)
-     populateTemplateDropdown();
+     // Thiết lập các event listeners ban đầu
      setupEventListeners();
+     // Mọi thứ khác (tải dữ liệu, cập nhật UI auth) sẽ được xử lý bởi onAuthStateChanged
+     console.log("Ứng dụng đã khởi tạo, chờ trạng thái xác thực...");
 };
+
+// =====================================================================
+//  Auth State Listener - QUAN TRỌNG (Đặt gần cuối để các hàm đã được định nghĩa)
+// =====================================================================
+onAuthStateChanged(auth, (user) => {
+    console.log("Trạng thái Auth thay đổi, user:", user ? user.uid : 'Đã đăng xuất');
+    // Cập nhật UI và gọi tải dữ liệu (nếu đăng nhập) hoặc xóa dữ liệu (nếu đăng xuất)
+    updateUIBasedOnAuthState(user);
+});
 
 // =====================================================================
 //  Start the application
 // =====================================================================
-loadNotesAndInit();
+initializeApp(); // Gọi hàm khởi tạo mới

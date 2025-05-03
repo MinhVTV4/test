@@ -48,8 +48,24 @@
 
     <div id="notes-container">
         <h2>Ghi chú của bạn</h2>
-        <p>Khu vực tạo và hiển thị ghi chú sẽ xuất hiện ở đây sau khi đăng nhập.</p>
-    </div>
+
+        <div id="add-note-form-container" class="form-container">
+            <h3>Thêm ghi chú mới</h3>
+            <form id="add-note-form">
+                <label for="note-title">Tiêu đề (tùy chọn):</label>
+                <input type="text" id="note-title">
+
+                <label for="note-content">Nội dung:</label>
+                <textarea id="note-content" rows="4" required></textarea>
+
+                <button type="submit">Thêm Ghi Chú</button>
+            </form>
+        </div>
+
+        <div id="notes-list">
+            <p>Đang tải ghi chú...</p>
+            </div>
+        </div>
 
 
     <script type="module" src="app.js"></script>

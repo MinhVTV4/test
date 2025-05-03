@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Start Notes - Notebook Tabs Feature</title>
+    <title>Start Notes</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-    <script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Lora:ital,wght@0,400;0,700;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Noto+Sans:wght@400;700&family=Open+Sans:wght@400;700&family=Roboto:wght@400;700&family=Source+Code+Pro:wght@400;700&display=swap" rel="stylesheet">
@@ -15,7 +14,7 @@
 <body>
 
     <header class="app-header">
-        <h1>Ghi Chú Khởi Đầu</h1>
+        <h1>FlexiNote 4 Everthing</h1>
         <div class="header-actions">
             <button id="manage-notebooks-btn" title="Quản lý các sổ tay">Quản lý Sổ tay</button>
             <button id="manage-templates-btn" title="Quản lý các mẫu ghi chú">Quản lý Mẫu</button>
@@ -26,18 +25,42 @@
             <button id="import-notes-btn" title="Nhập ghi chú, mẫu và sổ tay từ file JSON (Sẽ thay thế toàn bộ dữ liệu hiện tại)">Nhập Notes</button>
             <input type="file" id="import-file-input" accept=".json" class="hidden">
             <button id="settings-btn" title="Mở cài đặt giao diện">Cài đặt</button>
-            <button id="theme-toggle-btn" title=""></button>
-
+            <button id="theme-toggle-btn" title="Chuyển đổi Chế độ Sáng/Tối"></button>
         </div>
-         <div id="archive-status-indicator" class="archive-status hidden">Đang xem các ghi chú đã lưu trữ.</div>
-         <div id="trash-status-indicator" class="archive-status hidden">Đang xem Thùng rác.</div>
-      </header>
+        <div class="auth-container" id="auth-container">
+            <form id="login-form" class="auth-form hidden">
+                <input type="email" id="login-email" placeholder="Email" required autocomplete="email">
+                <input type="password" id="login-password" placeholder="Mật khẩu" required autocomplete="current-password">
+                <button type="submit" title="Đăng nhập bằng Email">Đăng nhập</button>
+                <button type="button" id="show-signup-btn" class="link-button" title="Chuyển sang form đăng ký">Chưa có TK?</button>
+                <button type="button" id="google-signin-btn" class="google-btn" title="Đăng nhập bằng Google">
+                    <svg viewBox="0 0 18 18" role="presentation" aria-hidden="true" focusable="false" style="height: 16px; width: 16px; display: block; fill: currentcolor;"><g fill="none" fill-rule="evenodd"><path d="M17.64 9.2045c0-.6381-.0573-1.2518-.1636-1.8409H9.1818v3.4818h4.7909c-.2045.9819-.8227 2.3819-2.3818 3.5682l2.8909 2.25c1.7091-1.5682 2.7364-3.9591 2.7364-6.4636z" fill="#4285F4"></path><path d="M9.1818 18c2.4455 0 4.4909-.8091 5.9864-2.1909l-2.8909-2.25c-.8091.5455-1.8545.8727-3.0955.8727-2.3636 0-4.3636-1.5955-5.0818-3.7273H1.0636v2.3318C2.5455 16.0864 5.6273 18 9.1818 18z" fill="#34A853"></path><path d="M4.1 10.7182c-.1091-.3273-.1636-.6727-.1636-1.0182s.0545-.6909.1636-1.0182V6.35H1.0636C.3773 7.65.0182 9.1136.0182 10.7s.3591 3.05.9545 4.35l3.0637-2.3318z" fill="#FBBC05"></path><path d="M9.1818 3.4773c1.3364 0 2.5318.4636 3.4818 1.3636l2.5864-2.5818C13.6682.9773 11.6227.0182 9.1818.0182 5.6273.0182 2.5455 1.9136 1.0636 4.6409l3.0364 2.3318c.7182-2.1318 2.7182-3.7273 5.0818-3.7273z" fill="#EA4335"></path></g></svg>
+                    <span>Google</span>
+                </button>
+                <div id="login-error" class="auth-error hidden"></div>
+            </form>
+
+            <form id="signup-form" class="auth-form hidden">
+                <input type="email" id="signup-email" placeholder="Email" required autocomplete="email">
+                <input type="password" id="signup-password" placeholder="Mật khẩu (6+ ký tự)" required autocomplete="new-password">
+                <button type="submit" title="Đăng ký tài khoản mới">Đăng ký</button>
+                <button type="button" id="show-login-btn" class="link-button" title="Chuyển sang form đăng nhập">Đã có TK?</button>
+                <div id="signup-error" class="auth-error hidden"></div>
+            </form>
+
+            <div id="user-info" class="user-info hidden">
+                <span id="user-email"></span>
+                <button id="logout-btn" title="Đăng xuất">Đăng xuất</button>
+            </div>
+        </div>
+        <div id="archive-status-indicator" class="archive-status hidden">Đang xem các ghi chú đã lưu trữ.</div>
+       <div id="trash-status-indicator" class="trash-status hidden">Đang xem Thùng rác.</div>
+     </header>
 
     <div id="notebook-tabs-container" class="notebook-tabs">
         <button class="tab-button active" data-notebook-id="all">Tất cả Ghi chú</button>
         <button id="add-notebook-tab-btn" class="add-tab-button" title="Thêm Sổ tay mới">+</button>
     </div>
-
 
     <div class="controls-container">
         <input type="search" id="search-input" placeholder="Tìm kiếm ghi chú (tiêu đề, nội dung hoặc #tag)...">
@@ -52,8 +75,8 @@
             <textarea id="new-note-text" placeholder="Nhập nội dung ghi chú..."></textarea>
             <input type="text" id="new-note-tags" placeholder="Tags (cách nhau bằng dấu phẩy)..." autocomplete="off">
             <div class="panel-actions">
-                 <button id="add-note-btn">Thêm Ghi Chú</button>
-                 <button id="close-add-panel-btn">Đóng</button>
+                <button id="add-note-btn">Thêm Ghi Chú</button>
+                <button id="close-add-panel-btn">Đóng</button>
             </div>
         </div>
     </div>
@@ -74,10 +97,9 @@
                     <h3>Danh sách Sổ tay</h3>
                     <div id="notebook-list-container">
                         <p class="empty-state">Chưa có sổ tay nào.</p>
-                    </div>
+                        </div>
                     <button id="show-add-notebook-panel-btn" class="modal-button primary">Tạo Sổ tay Mới</button>
                 </div>
-
                 <div id="notebook-edit-panel" class="hidden">
                     <h3 id="notebook-edit-title">Tạo Sổ tay Mới</h3>
                     <input type="hidden" id="notebook-edit-id">
@@ -108,7 +130,6 @@
                         </div>
                     <button id="show-add-template-panel-btn" class="modal-button primary">Tạo Mẫu Mới</button>
                 </div>
-
                 <div id="template-edit-panel" class="hidden">
                     <h3 id="template-edit-title">Tạo Mẫu Mới</h3>
                     <input type="hidden" id="template-edit-id">
@@ -144,7 +165,6 @@
                 <button id="close-settings-modal-btn" class="close-modal-btn" title="Đóng (Esc)" aria-label="Đóng cửa sổ cài đặt">&times;</button>
             </div>
             <div class="modal-body">
-
                 <div class="setting-section">
                     <h3>Chủ đề (Theme)</h3>
                     <div class="theme-options setting-options-grid" role="radiogroup" aria-labelledby="theme-label">
@@ -159,7 +179,7 @@
                         <button class="theme-option-btn setting-option-button" data-theme="gruvbox-light" role="radio" aria-checked="false">Gruvbox Sáng</button>
                         <button class="theme-option-btn setting-option-button" data-theme="dracula" role="radio" aria-checked="false">Dracula</button>
                         <button class="theme-option-btn setting-option-button" data-theme="monochrome" role="radio" aria-checked="false">Monochrome</button>
-                        </div>
+                    </div>
                 </div>
 
                 <div class="setting-section">
@@ -176,8 +196,8 @@
                          <button class="color-swatch-btn accent-swatch" data-color="#d63384" title="Hồng" style="background-color: #d63384;" role="radio" aria-checked="false"></button>
                          <button class="color-swatch-btn accent-swatch" data-color="#6610f2" title="Chàm (Indigo)" style="background-color: #6610f2;" role="radio" aria-checked="false"></button>
                          <button class="color-swatch-btn accent-swatch" data-color="#a0522d" title="Nâu (Sienna)" style="background-color: #a0522d;" role="radio" aria-checked="false"></button>
-                         </div>
-                 </div>
+                     </div>
+                </div>
 
                 <div class="setting-section">
                      <h3>Font chữ</h3>
@@ -193,7 +213,7 @@
                              <option value="'Merriweather', serif">Merriweather (Serif)</option>
                              <option value="'Source Code Pro', monospace">Source Code Pro (Code)</option>
                          </select>
-                    </div>
+                     </div>
                 </div>
 
                 <div class="setting-section">
@@ -204,11 +224,35 @@
                          <span id="font-size-value" aria-live="polite">100%</span>
                          <button id="reset-font-size-btn" class="modal-button secondary small-button" title="Đặt lại cỡ chữ về mặc định (100%)">Reset</button>
                      </div>
-                 </div>
+                </div>
 
-                 </div> </div> </div>
+            </div> </div> </div> <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"; // Sử dụng version phù hợp
+        // TODO: Add SDKs for Firebase products that you want to use
+        import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+        // import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"; // Sẽ dùng sau
 
-    <script src="script.js" defer></script>
+        // Your web app's Firebase configuration (ĐÃ CUNG CẤP TRƯỚC ĐÓ)
+        const firebaseConfig = {
+          apiKey: "AIzaSyACnduJi50_PdPHHoaa-rMK1xvzgZJi7uI",
+          authDomain: "ghichu-7782.firebaseapp.com",
+          projectId: "ghichu-7782",
+          storageBucket: "ghichu-7782.firebasestorage.app",
+          messagingSenderId: "1082788318638",
+          appId: "1:1082788318638:web:ed2b1026ea8a512e58cc3f"
+        };
 
-</body>
+        // Initialize Firebase
+        const firebaseApp = initializeApp(firebaseConfig); // Lưu biến này lại
+
+        // Xuất biến app và các hàm cần thiết nếu script.js cũng là module
+        // Hoặc gắn vào window nếu script.js là script thường
+        window.firebaseApp = firebaseApp;
+        window.getAuth = getAuth;
+        // window.getFirestore = getFirestore; // Sẽ dùng sau
+
+    </script>
+
+    <script src="script.js" type="module"></script> </body>
 </html>

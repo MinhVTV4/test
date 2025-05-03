@@ -8,130 +8,279 @@
 }
 
 body {
-    font-family: sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; /* Font hệ thống hiện đại */
     line-height: 1.6;
     padding: 20px;
-    background-color: #f4f4f4;
-    color: #333;
+    background-color: #f8f9fa; /* Màu nền sáng hơn */
+    color: #212529; /* Màu chữ chính tối hơn */
 }
 
 h1 {
     text-align: center;
     margin-bottom: 30px;
-    color: #5a5a5a;
+    color: #495057; /* Màu tiêu đề chính */
+    font-weight: 300; /* Font mỏng hơn */
 }
 
 h2, h3 {
-    margin-bottom: 10px;
-    color: #444;
+    margin-bottom: 15px; /* Tăng khoảng cách dưới */
+    color: #343a40;
+    font-weight: 500; /* Đậm vừa */
 }
 
 /* Định dạng các Container chính */
 #auth-container,
 #user-info,
 #notes-container {
-    max-width: 500px; /* Giới hạn chiều rộng để dễ nhìn */
-    margin: 20px auto; /* Căn giữa và tạo khoảng cách */
-    padding: 25px;
-    background-color: #fff;
-    border: 1px solid #ddd;
+    max-width: 600px; /* Tăng chiều rộng tối đa một chút */
+    margin: 25px auto; /* Tăng khoảng cách trên dưới */
+    padding: 30px; /* Tăng padding */
+    background-color: #ffffff;
+    border: 1px solid #dee2e6; /* Viền nhạt hơn */
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); /* Shadow nhẹ */
 }
 
 /* Định dạng Container của Form */
 .form-container {
-    margin-bottom: 20px;
-    padding: 15px;
-    border: 1px solid #eee;
+    margin-bottom: 25px; /* Tăng khoảng cách */
+    padding: 20px; /* Tăng padding */
+    border: 1px solid #e9ecef; /* Viền nhạt hơn */
     border-radius: 5px;
+    background-color: #fff; /* Nền trắng cho form con */
 }
 
 .form-container h3 {
     margin-top: 0;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
+    margin-bottom: 20px; /* Tăng khoảng cách */
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 15px; /* Tăng padding */
+    font-weight: 500;
 }
 
 /* Định dạng các thành phần Form */
 label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    font-size: 0.95em;
+    margin-bottom: 8px; /* Tăng khoảng cách */
+    font-weight: 500; /* Đậm vừa */
+    font-size: 0.9em;
+    color: #495057;
 }
 
 input[type="email"],
-input[type="password"] {
+input[type="password"],
+input[type="text"], /* Thêm cho note title */
+textarea { /* Thêm cho note content */
     width: 100%; /* Chiếm toàn bộ chiều rộng container */
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
+    padding: 12px; /* Tăng padding */
+    margin-bottom: 18px; /* Tăng khoảng cách */
+    border: 1px solid #ced4da;
     border-radius: 4px;
     font-size: 1em;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="text"]:focus,
+textarea:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
-button[type="submit"] {
-    display: block; /* Nút chiếm 1 dòng */
-    width: 100%;   /* Chiếm toàn bộ chiều rộng */
-    padding: 10px 15px;
+textarea {
+    resize: vertical; /* Cho phép thay đổi chiều cao */
+    min-height: 100px; /* Chiều cao tối thiểu */
+}
+
+
+button[type="submit"], /* Áp dụng cho cả 2 form auth và note */
+#signout-button { /* Áp dụng cho nút đăng xuất */
+    display: inline-block; /* Để có thể set width auto hoặc cố định */
+    width: auto; /* Reset width */
+    min-width: 120px; /* Chiều rộng tối thiểu */
+    padding: 10px 20px; /* Padding đồng đều */
     background-color: #007bff;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 1.1em;
-    transition: background-color 0.2s ease;
+    font-size: 1em; /* Kích thước font chuẩn */
+    font-weight: 500;
+    text-align: center;
+    vertical-align: middle;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    user-select: none; /* Ngăn chọn text trên nút */
 }
 
 button[type="submit"]:hover {
     background-color: #0056b3;
 }
+button[type="submit"]:disabled { /* Kiểu khi nút bị vô hiệu hóa */
+    background-color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+/* Riêng cho nút Đăng xuất */
+#signout-button {
+    background-color: #6c757d;
+    min-width: 100px;
+}
+#signout-button:hover {
+    background-color: #5a6268;
+}
+
 
 /* Định dạng Link chuyển đổi Form */
 .toggle-link {
-    text-decoration: underline;
+    text-decoration: none; /* Bỏ gạch chân mặc định */
     color: #007bff;
     cursor: pointer;
     font-size: 0.9em;
-    display: inline-block; /* Để không chiếm cả dòng */
-    margin-top: 10px;
+    display: inline-block;
+    margin-top: 15px; /* Tăng khoảng cách */
+    border-bottom: 1px dashed transparent; /* Gạch chân ẩn */
+    transition: border-color 0.2s ease;
 }
 .toggle-link:hover {
     color: #0056b3;
+    border-bottom-color: #0056b3; /* Hiện gạch chân khi hover */
 }
 
 /* Định dạng Thông báo lỗi */
 #auth-error {
     color: #dc3545; /* Màu đỏ cho lỗi */
     margin-top: 15px;
-    font-weight: bold;
-    min-height: 1.2em; /* Đảm bảo có khoảng trống ngay cả khi không có lỗi */
+    font-weight: 500; /* Đậm vừa */
+    min-height: 1.2em;
+    text-align: center; /* Căn giữa lỗi */
 }
 
 /* Định dạng Khu vực thông tin người dùng */
 #user-info {
-    text-align: center; /* Căn giữa nội dung */
+    text-align: center;
+    border-top: 1px solid #e9ecef; /* Thêm đường kẻ trên */
+    padding-top: 20px; /* Thêm padding trên */
+    margin-top: 20px;
 }
 
 #user-info p {
     margin-bottom: 15px;
+    font-size: 1.05em; /* Hơi lớn hơn chút */
+    color: #495057;
+}
+#user-info strong { /* Tên email */
+    color: #343a40;
+}
+
+
+/* --- Định dạng khu vực Ghi chú --- */
+#notes-container h2 {
+    text-align: center;
+    margin-bottom: 25px; /* Tăng khoảng cách */
+    padding-bottom: 15px; /* Tăng padding */
+    border-bottom: 1px solid #e9ecef; /* Viền nhạt */
+}
+
+/* Form thêm ghi chú */
+#add-note-form-container {
+    background-color: #f8f9fa; /* Nền sáng hơn */
+    border: 1px solid #e9ecef;
+    padding: 20px;
+    margin-bottom: 30px; /* Khoảng cách với danh sách notes */
+    border-radius: 5px;
+}
+#add-note-form-container h3 {
+    border: none; /* Bỏ đường kẻ dưới trong form này */
+    padding-bottom: 0;
+    margin-bottom: 15px;
+}
+
+
+/* Danh sách ghi chú */
+#notes-list {
+    margin-top: 30px;
+}
+/* Thông báo khi không có note hoặc đang tải */
+#notes-list p {
+    text-align: center;
+    color: #6c757d;
+    padding: 20px;
+}
+
+
+/* Định dạng cho từng thẻ ghi chú (note card) */
+.note-card {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px; /* Bo tròn hơn chút */
+    padding: 20px; /* Tăng padding */
+    margin-bottom: 20px; /* Tăng khoảng cách */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06); /* Shadow rõ hơn chút */
+    position: relative;
+    word-wrap: break-word;
+    transition: box-shadow 0.2s ease-in-out;
+}
+.note-card:hover {
+     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Shadow đậm hơn khi hover */
+}
+
+
+.note-card h4 { /* Tiêu đề ghi chú */
+    margin-top: 0;
+    margin-bottom: 10px; /* Tăng khoảng cách */
+    color: #343a40;
+    font-weight: 600; /* Đậm hơn */
     font-size: 1.1em;
 }
 
-#signout-button {
-    padding: 8px 20px;
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+.note-card p { /* Nội dung ghi chú */
+    margin-bottom: 12px; /* Tăng khoảng cách */
+    white-space: pre-wrap;
+    color: #495057; /* Màu tối hơn */
+    font-size: 1em; /* Kích thước chuẩn */
+    text-align: left; /* Reset căn giữa từ #notes-list p */
+    padding: 0; /* Reset padding từ #notes-list p */
 }
 
-#signout-button:hover {
-    background-color: #5a6268;
+.note-card .timestamp { /* Thời gian tạo/sửa */
+    font-size: 0.8em;
+    color: #adb5bd; /* Nhạt hơn */
+    display: block;
+    margin-top: 15px; /* Tăng khoảng cách */
+    text-align: right; /* Căn phải timestamp */
+}
+
+/* Nút Xóa trên thẻ ghi chú */
+.note-delete-button {
+    position: absolute;
+    top: 12px; /* Điều chỉnh vị trí */
+    right: 12px; /* Điều chỉnh vị trí */
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 28px; /* Lớn hơn chút */
+    height: 28px; /* Lớn hơn chút */
+    font-size: 16px; /* Lớn hơn chút */
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 28px;
+    text-align: center;
+    opacity: 0; /* Ẩn ban đầu */
+    transform: scale(0.8); /* Thu nhỏ ban đầu */
+    transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+}
+
+.note-card:hover .note-delete-button {
+    opacity: 0.8; /* Hiện khi hover card */
+    transform: scale(1); /* Phóng to ra */
+}
+
+.note-delete-button:hover {
+    opacity: 1; /* Rõ hơn khi hover nút */
+    background-color: #cc0000;
 }
 
 
@@ -143,4 +292,5 @@ button[type="submit"]:hover {
     display: none;
 }
 /* Form đăng nhập được hiển thị mặc định (không cần set display: block ở đây vì nó là mặc định) */
+
 

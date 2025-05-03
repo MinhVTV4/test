@@ -216,6 +216,7 @@ button[type="submit"]:disabled { /* Kiểu khi nút bị vô hiệu hóa */
     border: 1px solid #e0e0e0;
     border-radius: 6px; /* Bo tròn hơn chút */
     padding: 20px; /* Tăng padding */
+    padding-bottom: 50px; /* Thêm padding dưới để chứa nút actions */
     margin-bottom: 20px; /* Tăng khoảng cách */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06); /* Shadow rõ hơn chút */
     position: relative;
@@ -226,62 +227,206 @@ button[type="submit"]:disabled { /* Kiểu khi nút bị vô hiệu hóa */
      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Shadow đậm hơn khi hover */
 }
 
-
-.note-card h4 { /* Tiêu đề ghi chú */
+/* Thẻ hiển thị tĩnh (Thêm class để dễ target) */
+.note-card h4.note-title-display {
     margin-top: 0;
-    margin-bottom: 10px; /* Tăng khoảng cách */
+    margin-bottom: 10px;
     color: #343a40;
-    font-weight: 600; /* Đậm hơn */
+    font-weight: 600;
     font-size: 1.1em;
 }
-
-.note-card p { /* Nội dung ghi chú */
-    margin-bottom: 12px; /* Tăng khoảng cách */
+.note-card p.note-content-display {
+    margin-bottom: 12px;
     white-space: pre-wrap;
-    color: #495057; /* Màu tối hơn */
-    font-size: 1em; /* Kích thước chuẩn */
-    text-align: left; /* Reset căn giữa từ #notes-list p */
-    padding: 0; /* Reset padding từ #notes-list p */
+    color: #495057;
+    font-size: 1em;
+    text-align: left;
+    padding: 0;
 }
 
 .note-card .timestamp { /* Thời gian tạo/sửa */
     font-size: 0.8em;
     color: #adb5bd; /* Nhạt hơn */
     display: block;
-    margin-top: 15px; /* Tăng khoảng cách */
-    text-align: right; /* Căn phải timestamp */
+    position: absolute; /* Đặt ở góc dưới trái */
+    bottom: 10px;
+    left: 20px;
 }
 
-/* Nút Xóa trên thẻ ghi chú */
+/* Nút Xóa trên thẻ ghi chú (Top-right) */
 .note-delete-button {
     position: absolute;
-    top: 12px; /* Điều chỉnh vị trí */
-    right: 12px; /* Điều chỉnh vị trí */
+    top: 12px;
+    right: 12px;
     background-color: #ff4d4d;
     color: white;
     border: none;
     border-radius: 50%;
-    width: 28px; /* Lớn hơn chút */
-    height: 28px; /* Lớn hơn chút */
-    font-size: 16px; /* Lớn hơn chút */
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
     font-weight: bold;
     cursor: pointer;
     line-height: 28px;
     text-align: center;
-    opacity: 0; /* Ẩn ban đầu */
-    transform: scale(0.8); /* Thu nhỏ ban đầu */
+    opacity: 0;
+    transform: scale(0.8);
     transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+    z-index: 10; /* Đảm bảo nút xóa nằm trên các nút khác */
 }
 
 .note-card:hover .note-delete-button {
-    opacity: 0.8; /* Hiện khi hover card */
-    transform: scale(1); /* Phóng to ra */
+    opacity: 0.8;
+    transform: scale(1);
 }
 
 .note-delete-button:hover {
-    opacity: 1; /* Rõ hơn khi hover nút */
+    opacity: 1;
     background-color: #cc0000;
 }
+
+
+/* --- CSS cho Inline Editing --- */
+
+/* Định dạng chung cho các nút trong thẻ ghi chú (Sửa/Lưu/Hủy) */
+.note-card .card-button {
+    background: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 3px 8px;
+    margin-left: 5px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.note-card .card-button:hover {
+    border-color: #999;
+    background-color: #f0f0f0;
+}
+
+/* Nút Sửa (Edit) */
+.note-edit-button {
+    /* Có thể thêm style riêng nếu cần */
+}
+
+/* Nút Lưu (Save) */
+.note-save-button {
+    border-color: #28a745; /* Màu xanh lá */
+    color: #28a745;
+}
+.note-save-button:hover {
+    background-color: #28a745;
+    color: white;
+}
+/* Kiểu khi nút Lưu bị vô hiệu hóa */
+.note-save-button:disabled {
+    border-color: #6c757d;
+    color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.65;
+    background-color: transparent; /* Reset background */
+}
+
+
+/* Nút Hủy (Cancel) */
+.note-cancel-button {
+    border-color: #dc3545; /* Màu đỏ */
+    color: #dc3545;
+}
+.note-cancel-button:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Khu vực chứa các nút hành động (Sửa/Lưu/Hủy) - Bottom-right */
+.note-actions {
+    position: absolute;
+    bottom: 10px;
+    right: 15px; /* Điều chỉnh vị trí */
+    display: flex;
+    gap: 5px;
+}
+
+/* Định dạng cho các input/textarea khi chỉnh sửa */
+.note-card .note-title-input,
+.note-card .note-content-input {
+    display: block; /* Luôn là block khi hiển thị */
+    width: 100%; /* Chiếm hết chiều rộng */
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px dashed #007bff;
+    border-radius: 4px;
+    font-size: 1em;
+    font-family: inherit;
+}
+/* Riêng cho title input */
+.note-card .note-title-input {
+    font-size: 1.1em; /* Giống h4 */
+    font-weight: 600; /* Giống h4 */
+}
+/* Riêng cho content textarea */
+.note-card .note-content-input {
+    min-height: 100px; /* Giữ chiều cao tối thiểu */
+    resize: vertical;
+}
+
+
+/* --- QUAN TRỌNG: Logic ẩn/hiện bằng class '.is-editing' --- */
+
+/* Mặc định: Ẩn input/textarea, ẩn nút Lưu/Hủy */
+.note-card .note-title-input,
+.note-card .note-content-input,
+.note-card .note-save-button,
+.note-card .note-cancel-button {
+    display: none;
+}
+
+/* Mặc định: Hiện text tĩnh, hiện nút Sửa */
+/* (Không cần khai báo display vì các thẻ này mặc định là block/inline-block) */
+
+
+/* KHI THẺ CÓ CLASS '.is-editing': */
+
+/* Ẩn text tĩnh, ẩn nút Sửa */
+.note-card.is-editing .note-title-display,
+.note-card.is-editing .note-content-display,
+.note-card.is-editing .note-edit-button {
+    display: none;
+}
+
+/* Hiện input/textarea, hiện nút Lưu/Hủy */
+.note-card.is-editing .note-title-input,
+.note-card.is-editing .note-content-input,
+.note-card.is-editing .note-save-button,
+.note-card.is-editing .note-cancel-button {
+    display: block; /* Hoặc inline-block cho nút nếu muốn trên 1 hàng */
+}
+/* Đảm bảo các nút Lưu/Hủy trong .note-actions hiển thị đúng khi is-editing */
+.note-card.is-editing .note-actions .note-save-button,
+.note-card.is-editing .note-actions .note-cancel-button {
+     display: inline-block; /* Hoặc flex nếu .note-actions là flex container */
+}
+
+
+/* Điều chỉnh vị trí timestamp và nút actions khi đang sửa */
+.note-card.is-editing .timestamp {
+   /* Giữ nguyên vị trí bottom-left */
+}
+.note-card.is-editing .note-actions {
+    /* Giữ nguyên vị trí bottom-right */
+}
+
+/* Bổ sung: Giữ nút xóa hiển thị cả khi đang sửa */
+.note-card.is-editing .note-delete-button {
+    opacity: 0.8;
+    transform: scale(1);
+}
+.note-card.is-editing .note-delete-button:hover {
+     opacity: 1;
+     background-color: #cc0000;
+}
+
+/* --- KẾT THÚC CSS Inline Editing --- */
 
 
 /* --- QUAN TRỌNG: Trạng thái hiển thị ban đầu --- */
@@ -291,6 +436,5 @@ button[type="submit"]:disabled { /* Kiểu khi nút bị vô hiệu hóa */
 #notes-container {
     display: none;
 }
-/* Form đăng nhập được hiển thị mặc định (không cần set display: block ở đây vì nó là mặc định) */
-
+/* Form đăng nhập được hiển thị mặc định */
 

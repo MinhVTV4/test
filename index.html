@@ -3,252 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Start Notes</title>
-    <script type="module">
-      // Import the functions you need from the SDKs you need
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-      import { getAuth } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-      import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-      // --- Firebase Configuration ---
-      const firebaseConfig = {
-        apiKey: "AIzaSyDa_zZMV5-4Jm17eRnscHiWbbsj7lHG84c",
-        authDomain: "ghichu-0707.firebaseapp.com",
-        projectId: "ghichu-0707",
-        storageBucket: "ghichu-0707.appspot.com",
-        messagingSenderId: "1078227973532",
-        appId: "1:1078227973532:web:29c9cd9db906297d58c459"
-      };
-
-      // Initialize Firebase App
-      try {
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        window.firebaseApp = app;
-        window.firebaseAuth = auth;
-        window.firebaseDb = db;
-        console.log("Firebase Initialized Successfully.");
-      } catch (error) {
-        console.error("Firebase Initialization Failed:", error);
-        alert("Không thể khởi tạo kết nối đến máy chủ dữ liệu. Vui lòng kiểm tra lại cấu hình hoặc thử lại sau.");
-      }
-    </script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Lora:ital,wght@0,400;0,700;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Noto+Sans:wght@400;700&family=Open+Sans:wght@400;700&family=Roboto:wght@400;700&family=Source+Code+Pro:wght@400;700&display=swap" rel="stylesheet">
+    <title>Ứng dụng Ghi Chú Cá Nhân</title>
     <link rel="stylesheet" href="style.css">
-
+    <style>
+        /* CSS tạm thời để dễ nhìn hơn chút, sẽ chuyển qua style.css sau */
+        body { font-family: sans-serif; line-height: 1.6; padding: 20px; }
+        .app-container { max-width: 600px; margin: auto; background-color: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .add-note-section textarea { width: 100%; box-sizing: border-box; margin-bottom: 10px; padding: 10px; border: 1px solid #ccc; border-radius: 4px;}
+        .add-note-section button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .add-note-section button:hover { background-color: #0056b3; }
+        .notes-list-section h2 { margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 10px;}
+        #notes-list { list-style: none; padding: 0; }
+        #notes-list li { background-color: #fff; border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+        #notes-list span { flex-grow: 1; margin-right: 10px; word-break: break-word;} /* Cho phép xuống dòng nếu ghi chú dài */
+        #notes-list .delete-btn { background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.9em; }
+        #notes-list .delete-btn:hover { background-color: #c82333; }
+        .hidden { display: none; } /* Class để ẩn phần tử */
+        #no-notes-msg { color: #888; text-align: center; margin-top: 20px; }
+    </style>
 </head>
 <body>
 
-    <header class="app-header">
-        <h1>FlexiNote 4 Everthing</h1>
-        <div class="header-actions">
-            <button id="manage-notebooks-btn" class="hidden" title="Quản lý các sổ tay">Quản lý Sổ tay</button>
-            <button id="manage-templates-btn" class="hidden" title="Quản lý các mẫu ghi chú">Quản lý Mẫu</button>
-            <button id="view-archive-btn" class="hidden" title="Xem các ghi chú đã lưu trữ">Xem Lưu trữ</button>
-            <button id="view-trash-btn" class="hidden" title="Xem các ghi chú đã xóa">Thùng rác</button>
-            <button id="empty-trash-btn" class="hidden" title="Xóa vĩnh viễn tất cả ghi chú trong thùng rác">Dọn sạch Thùng rác</button>
-            <button id="export-notes-btn" class="hidden" title="Xuất tất cả ghi chú, mẫu và sổ tay ra file JSON">Xuất Notes</button>
-            <button id="import-notes-btn" class="hidden" title="Nhập ghi chú, mẫu và sổ tay từ file JSON (Sẽ thay thế toàn bộ dữ liệu hiện tại)">Nhập Notes</button>
-            <input type="file" id="import-file-input" accept=".json" class="hidden">
-            <button id="settings-btn" title="Mở cài đặt giao diện">Cài đặt</button>
-            <button id="theme-toggle-btn" title="Chuyển đổi Chế độ Sáng/Tối"></button>
-             <button id="auth-button" class="hidden">Đăng nhập</button>
-        </div>
-         <div id="user-status" class="user-status hidden">Đang đăng nhập với: <span id="user-email"></span></div>
-        <div id="archive-status-indicator" class="archive-status hidden">Đang xem các ghi chú đã lưu trữ.</div>
-        <div id="trash-status-indicator" class="trash-status hidden">Đang xem Thùng rác.</div>
-    </header>
+    <div class="app-container">
+        <h1>Ghi Chú Nhanh Cá Nhân</h1>
 
-    <div id="auth-container" class="auth-container hidden">
-        <h2>Đăng nhập / Đăng ký</h2>
-        <div id="auth-form">
-            <div class="form-group">
-                <label for="auth-email">Email:</label>
-                <input type="email" id="auth-email" required>
-            </div>
-            <div class="form-group">
-                <label for="auth-password">Mật khẩu:</label>
-                <input type="password" id="auth-password" required minlength="6">
-            </div>
-            <div class="auth-actions">
-                <button id="login-btn" class="modal-button primary">Đăng nhập</button>
-                <button id="register-btn" class="modal-button secondary">Đăng ký</button>
-            </div>
-            <p id="auth-error" class="auth-error hidden"></p>
+        <div class="add-note-section">
+            <label for="note-content" style="display:block; margin-bottom: 5px;">Nội dung ghi chú mới:</label>
+            <textarea id="note-content" rows="4" placeholder="Nhập ghi chú của bạn ở đây..."></textarea>
+            <button id="add-note-btn">Thêm Ghi Chú</button>
+        </div>
+
+        <div class="notes-list-section">
+            <h2>Danh sách ghi chú</h2>
+            <ul id="notes-list">
+                </ul>
+             <p id="no-notes-msg" class="hidden">Chưa có ghi chú nào được thêm.</p>
         </div>
     </div>
 
-    <div id="notebook-tabs-container" class="notebook-tabs">
-        </div>
-
-    <div class="controls-container">
-        <input type="search" id="search-input" class="hidden" placeholder="Tìm kiếm ghi chú (tiêu đề, nội dung hoặc #tag)...">
-        <div id="add-note-panel" class="hidden">
-             <div class="form-group">
-                 <label for="template-select">Sử dụng mẫu:</label>
-                 <select id="template-select">
-                     <option value="">-- Không dùng mẫu --</option>
-                 </select>
-             </div>
-             <input type="text" id="new-note-title" placeholder="Tiêu đề (tùy chọn)...">
-            <textarea id="new-note-text" placeholder="Nhập nội dung ghi chú..."></textarea>
-            <input type="text" id="new-note-tags" placeholder="Tags (cách nhau bằng dấu phẩy)..." autocomplete="off">
-            <div class="panel-actions">
-                 <button id="add-note-btn">Thêm Ghi Chú</button>
-                 <button id="close-add-panel-btn">Đóng</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="notes-container">
-         <p class="empty-state">Vui lòng đăng nhập để xem ghi chú.</p>
-    </div>
-
-    <button id="show-add-panel-btn" class="fab hidden" title="Thêm ghi chú mới">+</button>
-
-    <div id="notebook-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="notebook-modal-title">
-        <div class="modal-content notebook-modal-content">
-             <div class="modal-header">
-                 <h2 id="notebook-modal-title">Quản lý Sổ tay</h2>
-                 <button id="close-notebook-modal-btn" class="close-modal-btn" title="Đóng (Esc)" aria-label="Đóng cửa sổ quản lý sổ tay">&times;</button>
-             </div>
-             <div class="modal-body">
-                 <div id="notebook-list-section">
-                     <h3>Danh sách Sổ tay</h3>
-                     <div id="notebook-list-container">
-                         <p class="empty-state">Chưa có sổ tay nào.</p>
-                     </div>
-                     <button id="show-add-notebook-panel-btn" class="modal-button primary">Tạo Sổ tay Mới</button>
-                 </div>
-                 <div id="notebook-edit-panel" class="hidden">
-                     <h3 id="notebook-edit-title">Tạo Sổ tay Mới</h3>
-                     <input type="hidden" id="notebook-edit-id"> <div class="form-group">
-                         <label for="notebook-edit-name">Tên Sổ tay (bắt buộc):</label>
-                         <input type="text" id="notebook-edit-name" placeholder="Ví dụ: Công việc, Cá nhân...">
-                     </div>
-                     <div class="panel-actions">
-                         <button id="save-notebook-btn" class="modal-button primary">Lưu Sổ tay</button>
-                         <button id="cancel-edit-notebook-btn" class="modal-button secondary">Hủy</button>
-                     </div>
-                 </div>
-             </div>
-         </div>
-    </div>
-
-    <div id="template-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="template-modal-title">
-        <div class="modal-content template-modal-content">
-             <div class="modal-header">
-                 <h2 id="template-modal-title">Quản lý Mẫu Ghi Chú</h2>
-                 <button id="close-template-modal-btn" class="close-modal-btn" title="Đóng (Esc)" aria-label="Đóng cửa sổ quản lý mẫu">&times;</button>
-             </div>
-             <div class="modal-body">
-                 <div id="template-list-section">
-                     <h3>Danh sách Mẫu</h3>
-                     <div id="template-list-container">
-                         <p class="empty-state">Chưa có mẫu nào.</p>
-                     </div>
-                     <button id="show-add-template-panel-btn" class="modal-button primary">Tạo Mẫu Mới</button>
-                 </div>
-                 <div id="template-edit-panel" class="hidden">
-                     <h3 id="template-edit-title">Tạo Mẫu Mới</h3>
-                     <input type="hidden" id="template-edit-id"> <div class="form-group">
-                         <label for="template-edit-name">Tên Mẫu (bắt buộc):</label>
-                         <input type="text" id="template-edit-name" placeholder="Ví dụ: Họp hàng tuần, Ý tưởng Blog...">
-                     </div>
-                     <div class="form-group">
-                         <label for="template-edit-title-input">Tiêu đề Mẫu:</label>
-                         <input type="text" id="template-edit-title-input" placeholder="Tiêu đề mặc định...">
-                     </div>
-                     <div class="form-group">
-                         <label for="template-edit-text">Nội dung Mẫu:</label>
-                         <textarea id="template-edit-text" placeholder="Nội dung mặc định..."></textarea>
-                     </div>
-                     <div class="form-group">
-                         <label for="template-edit-tags">Tags Mẫu:</label>
-                         <input type="text" id="template-edit-tags" placeholder="Tags mặc định (cách nhau bằng dấu phẩy)...">
-                     </div>
-                     <div class="panel-actions">
-                         <button id="save-template-btn" class="modal-button primary">Lưu Mẫu</button>
-                         <button id="cancel-edit-template-btn" class="modal-button secondary">Hủy</button>
-                     </div>
-                 </div>
-             </div>
-         </div>
-    </div>
-
-    <div id="settings-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
-        <div class="modal-content settings-modal-content">
-             <div class="modal-header">
-                 <h2 id="settings-modal-title">Tùy chỉnh Giao diện</h2>
-                 <button id="close-settings-modal-btn" class="close-modal-btn" title="Đóng (Esc)" aria-label="Đóng cửa sổ cài đặt">&times;</button>
-             </div>
-             <div class="modal-body">
-                 <div class="setting-section">
-                     <h3>Chủ đề (Theme)</h3>
-                     <div class="theme-options setting-options-grid" role="radiogroup" aria-labelledby="theme-label">
-                         <span id="theme-label" class="sr-only">Chọn chủ đề</span> <button class="theme-option-btn setting-option-button" data-theme="light" role="radio" aria-checked="false">Sáng</button>
-                         <button class="theme-option-btn setting-option-button" data-theme="dark" role="radio" aria-checked="false">Tối</button>
-                         <button class="theme-option-btn setting-option-button" data-theme="sepia" role="radio" aria-checked="false">Nâu đỏ</button>
-                         <button class="theme-option-btn setting-option-button" data-theme="solarized-light" role="radio" aria-checked="false">Solarized Sáng</button>
-                         <button class="theme-option-btn setting-option-button" data-theme="solarized-dark" role="radio" aria-checked="false">Solarized Tối</button>
-                         <button class="theme-option-btn setting-option-button" data-theme="nord" role="radio" aria-checked="false">Nord</button>
-                         <button class="theme-option-btn setting-option-button" data-theme="gruvbox-dark" role="radio" aria-checked="false">Gruvbox Tối</button>
-                         <button class="theme-option-btn setting-option-button" data-theme="gruvbox-light" role="radio" aria-checked="false">Gruvbox Sáng</button>
-                         <button class="theme-option-btn setting-option-button" data-theme="dracula" role="radio" aria-checked="false">Dracula</button>
-                         <button class="theme-option-btn setting-option-button" data-theme="monochrome" role="radio" aria-checked="false">Monochrome</button>
-                     </div>
-                 </div>
-
-                 <div class="setting-section">
-                     <h3>Màu nhấn (Accent Color)</h3>
-                      <div class="accent-color-options" role="radiogroup" aria-labelledby="accent-color-label">
-                          <span id="accent-color-label" class="sr-only">Chọn màu nhấn</span> <button class="color-swatch-btn accent-swatch" data-color="default" title="Mặc định" role="radio" aria-checked="true" style="background-color: #ccc; border: 1px dashed;"></button> <button class="color-swatch-btn accent-swatch" data-color="#dc3545" title="Đỏ" style="background-color: #dc3545;" role="radio" aria-checked="false"></button>
-                          <button class="color-swatch-btn accent-swatch" data-color="#ffc107" title="Vàng" style="background-color: #ffc107;" role="radio" aria-checked="false"></button>
-                          <button class="color-swatch-btn accent-swatch" data-color="#198754" title="Xanh lá" style="background-color: #198754;" role="radio" aria-checked="false"></button>
-                          <button class="color-swatch-btn accent-swatch" data-color="#6f42c1" title="Tím" style="background-color: #6f42c1;" role="radio" aria-checked="false"></button>
-                          <button class="color-swatch-btn accent-swatch" data-color="#fd7e14" title="Cam" style="background-color: #fd7e14;" role="radio" aria-checked="false"></button>
-                          <button class="color-swatch-btn accent-swatch" data-color="#20c997" title="Xanh ngọc" style="background-color: #20c997;" role="radio" aria-checked="false"></button>
-                          <button class="color-swatch-btn accent-swatch" data-color="#d63384" title="Hồng" style="background-color: #d63384;" role="radio" aria-checked="false"></button>
-                          <button class="color-swatch-btn accent-swatch" data-color="#6610f2" title="Chàm (Indigo)" style="background-color: #6610f2;" role="radio" aria-checked="false"></button>
-                          <button class="color-swatch-btn accent-swatch" data-color="#a0522d" title="Nâu (Sienna)" style="background-color: #a0522d;" role="radio" aria-checked="false"></button>
-                      </div>
-                 </div>
-
-                 <div class="setting-section">
-                      <h3>Font chữ</h3>
-                      <div class="form-group">
-                          <label for="font-family-select">Font cho nội dung:</label>
-                          <select id="font-family-select">
-                              <option value='-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'>Mặc định hệ thống</option>
-                              <option value="'Roboto', sans-serif">Roboto</option>
-                              <option value="'Open Sans', sans-serif">Open Sans</option>
-                              <option value="'Noto Sans', sans-serif">Noto Sans</option>
-                              <option value="'Lato', sans-serif">Lato</option>
-                              <option value="'Lora', serif">Lora (Serif)</option>
-                              <option value="'Merriweather', serif">Merriweather (Serif)</option>
-                              <option value="'Source Code Pro', monospace">Source Code Pro (Code)</option>
-                          </select>
-                      </div>
-                 </div>
-
-                 <div class="setting-section">
-                      <h3>Cỡ chữ Nội dung</h3>
-                      <div class="form-group font-size-control">
-                          <label for="font-size-slider" class="sr-only">Điều chỉnh tỷ lệ cỡ chữ</label>
-                          <input type="range" id="font-size-slider" min="0.8" max="1.5" step="0.05" value="1"> <span id="font-size-value" aria-live="polite">100%</span> <button id="reset-font-size-btn" class="modal-button secondary small-button" title="Đặt lại cỡ chữ về mặc định (100%)">Reset</button>
-                      </div>
-                 </div>
-
-             </div>
-         </div>
-    </div>
-
-    <script src="script.js" defer></script>
-
+    <script src="script.js"></script>
 </body>
 </html>

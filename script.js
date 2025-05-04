@@ -17,13 +17,13 @@ const MOVE_NOTE_MENU_ID = 'move-note-menu';
 const DEBOUNCE_DELAY = 1500;
 
 let notes = [];
-let templates = [];
-let notebooks = [];
+let templates = []; // State array for templates (chưa dùng Firestore)
+let notebooks = []; // State array for notebooks
 let currentUser = null;
 let currentUid = null;
 let notesListener = null;
-let templatesListener = null;
-let notebooksListener = null;
+let templatesListener = null; // Chưa dùng
+let notebooksListener = null; // Listener for notebooks collection
 
 let isViewingArchived = false;
 let isViewingTrash = false;
@@ -137,7 +137,6 @@ const applyFontSize = (scale) => { const clampedScale = Math.max(0.8, Math.min(1
 const updateFontSizeUI = (scale) => { if (fontSizeSlider) { fontSizeSlider.value = scale; } if (fontSizeValueSpan) { fontSizeValueSpan.textContent = `${Math.round(scale * 100)}%`; } };
 const quickToggleTheme = () => { const currentTheme = getStoredPreference(THEME_NAME_KEY, DEFAULT_THEME); const lastCustomTheme = getStoredPreference(LAST_CUSTOM_THEME_KEY, null); let targetTheme; const isCurrentDark = DARK_THEME_NAMES.includes(currentTheme); if (isCurrentDark) { if (lastCustomTheme && !DARK_THEME_NAMES.includes(lastCustomTheme)) { targetTheme = lastCustomTheme; } else { targetTheme = 'light'; } } else { targetTheme = 'dark'; } applyTheme(targetTheme); localStorage.setItem(THEME_NAME_KEY, targetTheme); };
 
-// *** KIỂM TRA LẠI TÊN HÀM NÀY *** (Phần định nghĩa)
 const setupThemeAndAppearanceListeners = () => {
     quickThemeToggleBtn.addEventListener('click', quickToggleTheme);
     settingsBtn.addEventListener('click', showSettingsModal);
@@ -167,11 +166,12 @@ const loadNotes = async () => { /* TODO */ console.warn("loadNotes needs Firesto
 const addNote = async () => { /* TODO */ console.warn("addNote needs Firestore implementation"); };
 
 // =====================================================================
-//  Template Data Management (Updated for Firestore)
+//  Template Data Management (TODO: Firestore - Reverted)
 // =====================================================================
-const loadTemplates = async () => { if (!currentUser || !db) return; console.log("Attempting to load templates for user:", currentUid); if (templatesListener) { console.log("Unsubscribing previous templates listener."); templatesListener(); templatesListener = null; } try { const { collection, query, orderBy, onSnapshot } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js'); const templatesColRef = collection(db, 'users', currentUid, 'templates'); const q = query(templatesColRef, orderBy('name', 'asc')); templatesListener = onSnapshot(q, (querySnapshot) => { console.log("Templates snapshot received:", querySnapshot.size, "docs"); const newTemplates = []; querySnapshot.forEach((doc) => { newTemplates.push({ id: doc.id, ...doc.data() }); }); templates = newTemplates; console.log("Templates state updated:", templates); renderTemplateList(); populateTemplateDropdown(); }, (error) => { console.error("Error listening to templates:", error); alert("Lỗi khi tải danh sách mẫu."); templates = []; renderTemplateList(); populateTemplateDropdown(); }); console.log("Templates listener attached."); } catch (error) { console.error("Error importing Firestore functions or setting up template listener:", error); alert("Lỗi khi thiết lập kết nối đến dữ liệu mẫu."); } };
-const addOrUpdateTemplate = async () => { if (!currentUser || !db) { alert("Vui lòng đăng nhập để quản lý mẫu."); return; } const name = templateEditName.value.trim(); const title = templateEditTitleInput.value.trim(); const text = templateEditText.value; const tags = parseTags(templateEditTags.value); const templateId = templateEditId.value; if (!name) { alert("Vui lòng nhập Tên Mẫu!"); templateEditName.focus(); return; } saveTemplateBtn.disabled = true; saveTemplateBtn.textContent = 'Đang lưu...'; const templateData = { name: name, nameLower: name.toLowerCase(), title: title, text: text, tags: tags }; try { const { collection, addDoc, doc, setDoc, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js'); const templatesColRef = collection(db, 'users', currentUid, 'templates'); const lowerCaseName = name.toLowerCase(); const q = query(templatesColRef, where('nameLower', '==', lowerCaseName)); const querySnapshot = await getDocs(q); let isDuplicate = false; querySnapshot.forEach((doc) => { if (doc.id !== templateId) { isDuplicate = true; } }); if (isDuplicate) { alert(`Mẫu với tên "${name}" đã tồn tại. Vui lòng chọn tên khác.`); templateEditName.focus(); saveTemplateBtn.disabled = false; saveTemplateBtn.textContent = 'Lưu Mẫu'; return; } if (templateId) { console.log("Updating template:", templateId); const templateDocRef = doc(templatesColRef, templateId); await setDoc(templateDocRef, templateData, { merge: true }); console.log("Template updated successfully."); } else { console.log("Adding new template"); await addDoc(templatesColRef, templateData); console.log("Template added successfully."); } hideTemplateEditPanel(); } catch (error) { console.error("Error saving template:", error); alert("Lỗi khi lưu mẫu. Vui lòng thử lại."); } finally { saveTemplateBtn.disabled = false; saveTemplateBtn.textContent = 'Lưu Mẫu'; } };
-const deleteTemplate = async (templateId) => { if (!currentUser || !db || !templateId) return; const templateToDelete = templates.find(t => t.id === templateId); if (!templateToDelete) { console.error("Template to delete not found in state:", templateId); return; } const templateName = templateToDelete.name; if (!confirm(`Bạn chắc chắn muốn xóa mẫu "${escapeHTML(templateName)}"?`)) { return; } console.log("Deleting template:", templateId); try { const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js'); const templateDocRef = doc(db, 'users', currentUid, 'templates', templateId); await deleteDoc(templateDocRef); console.log("Template deleted successfully."); if (!templateEditPanel.classList.contains('hidden') && templateEditId.value === templateId) { hideTemplateEditPanel(); } } catch (error) { console.error("Error deleting template:", error); alert("Lỗi khi xóa mẫu. Vui lòng thử lại."); } };
+const saveTemplates = async () => { /* TODO: Implement Firestore save */ console.warn("saveTemplates needs Firestore implementation"); };
+const loadTemplates = async () => { /* TODO: Implement Firestore load */ console.warn("loadTemplates needs Firestore implementation"); templates = []; }; // Reset để tránh lỗi
+const addOrUpdateTemplate = async () => { /* TODO: Implement Firestore add/update */ console.warn("addOrUpdateTemplate needs Firestore implementation"); };
+const deleteTemplate = async (id) => { /* TODO: Implement Firestore delete */ console.warn("deleteTemplate needs Firestore implementation"); };
 
 // =====================================================================
 //  Helper Functions & Event Handlers (TODO: Firestore Updates for Notes)

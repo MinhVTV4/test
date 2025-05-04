@@ -10,40 +10,72 @@
             font-family: 'Inter', sans-serif;
         }
         /* Styles for Notes */
-        .note-content, .edit-textarea {
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
+        .note-content, .edit-textarea { white-space: pre-wrap; word-break: break-word; }
         .edit-textarea { min-height: 60px; }
         .note-timestamp { font-size: 0.75rem; color: #6b7280; margin-top: 0.5rem; }
 
         /* Styles for Goals */
-        .goal-item.completed .goal-name {
-            text-decoration: line-through;
-            color: #6b7280; /* text-gray-500 */
-        }
         .goal-item {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column; /* Stack content vertically */
             padding: 0.75rem; /* p-3 */
             border-radius: 0.375rem; /* rounded-md */
             background-color: #f3f4f6; /* bg-gray-100 */
             margin-bottom: 0.75rem; /* mb-3 */
+            border: 1px solid #e5e7eb; /* border-gray-200 */
         }
-         .goal-item.completed {
-             background-color: #e5e7eb; /* bg-gray-200 */
-         }
+        .goal-item.completed { background-color: #e5e7eb; /* bg-gray-200 */ }
+        .goal-item.editing { background-color: #fef3c7; /* bg-amber-100 */ } /* Highlight when editing */
+
+        .goal-header { /* Row for name and buttons */
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start; /* Align items top */
+            width: 100%;
+            margin-bottom: 0.5rem; /* mb-2 */
+        }
         .goal-name {
             flex-grow: 1;
             margin-right: 0.5rem; /* mr-2 */
+            font-weight: 600; /* semibold */
         }
+        .goal-item.completed .goal-name {
+            text-decoration: line-through;
+            color: #6b7280; /* text-gray-500 */
+            font-weight: 500; /* normal weight when completed */
+        }
+        .goal-details { /* Container for description and due date */
+            width: 100%;
+            font-size: 0.875rem; /* text-sm */
+            color: #4b5563; /* text-gray-600 */
+        }
+        .goal-description {
+             margin-bottom: 0.25rem; /* mb-1 */
+             white-space: pre-wrap; /* Preserve line breaks in description */
+             word-break: break-word;
+        }
+        .goal-due-date {
+             font-style: italic;
+        }
+        .goal-due-date.overdue {
+            color: #dc2626; /* text-red-600 */
+            font-weight: 500;
+        }
+        .goal-edit-area textarea, .goal-edit-area input[type="date"] {
+            width: 100%;
+            padding: 0.25rem 0.5rem;
+            border: 1px solid #d1d5db; /* border-gray-300 */
+            border-radius: 0.25rem; /* rounded-sm */
+            margin-bottom: 0.5rem; /* mb-2 */
+            font-size: 0.875rem; /* text-sm */
+        }
+
 
         /* General Styles */
         .action-button {
             font-size: 0.875rem; padding: 0.25rem 0.5rem; margin-left: 0.5rem;
             border-radius: 0.375rem; transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
-            font-weight: 500;
+            font-weight: 500; white-space: nowrap; /* Prevent button text wrapping */
         }
         .nav-link {
             padding: 0.5rem 1rem; border-radius: 0.375rem;
@@ -90,43 +122,46 @@
         // --- Module Building Functions ---
 
         function buildNotesUI() {
-            // (Code for buildNotesUI remains the same as previous version)
+            // (Code for buildNotesUI remains the same)
             appContent.innerHTML = `
                 <h2 class="text-xl font-semibold mb-4">Ghi Chú Nhanh</h2>
-                <div class="mb-4">
-                    <textarea id="note-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4" placeholder="Nhập ghi chú của bạn ở đây..."></textarea>
-                </div>
-                <button id="add-note-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out mb-6">
-                    Thêm Ghi Chú
-                </button>
-                <div class="mb-4">
-                    <input type="search" id="search-input" placeholder="Tìm kiếm ghi chú..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div id="notes-list" class="mt-6 space-y-3">
-                    </div>
+                <div class="mb-4"> <textarea id="note-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4" placeholder="Nhập ghi chú..."></textarea> </div>
+                <button id="add-note-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out mb-6"> Thêm Ghi Chú </button>
+                <div class="mb-4"> <input type="search" id="search-input" placeholder="Tìm kiếm ghi chú..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"> </div>
+                <div id="notes-list" class="mt-6 space-y-3"> </div>
             `;
             const noteInput = document.getElementById('note-input');
             const addNoteBtn = document.getElementById('add-note-btn');
             const searchInput = document.getElementById('search-input');
             const notesList = document.getElementById('notes-list');
             addNoteBtn.addEventListener('click', () => addNote(noteInput, searchInput));
-            noteInput.addEventListener('keydown', (event) => {
-                if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); addNote(noteInput, searchInput); }
-            });
+            noteInput.addEventListener('keydown', (event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); addNote(noteInput, searchInput); } });
             searchInput.addEventListener('input', (event) => displayNotes(notesList, searchInput, event.target.value));
             displayNotes(notesList, searchInput);
         }
 
-        // *** NEW: Build Goals UI Function ***
+        // *** UPDATED: Build Goals UI Function ***
         function buildGoalsUI() {
             appContent.innerHTML = `
                 <h2 class="text-xl font-semibold mb-4">Theo dõi Mục tiêu</h2>
-                <form id="add-goal-form" class="mb-6 flex items-center space-x-2">
-                    <input type="text" id="goal-input" placeholder="Nhập mục tiêu mới..." required class="flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">
+                <form id="add-goal-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3">
+                     <div>
+                         <label for="goal-input" class="block text-sm font-medium text-gray-700 mb-1">Tên mục tiêu:</label>
+                         <input type="text" id="goal-input" placeholder="Ví dụ: Học JavaScript nâng cao" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                     </div>
+                     <div>
+                         <label for="goal-desc-input" class="block text-sm font-medium text-gray-700 mb-1">Mô tả (tùy chọn):</label>
+                         <textarea id="goal-desc-input" placeholder="Mô tả chi tiết các bước hoặc lý do..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                     </div>
+                     <div>
+                         <label for="goal-due-date-input" class="block text-sm font-medium text-gray-700 mb-1">Hạn chót (tùy chọn):</label>
+                         <input type="date" id="goal-due-date-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                     </div>
+                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out w-full sm:w-auto">
                         Thêm Mục tiêu
                     </button>
                 </form>
+                <h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Mục tiêu</h3>
                 <div id="goals-list" class="space-y-3">
                     </div>
             `;
@@ -134,12 +169,15 @@
             // Get references to new elements
             const addGoalForm = document.getElementById('add-goal-form');
             const goalInput = document.getElementById('goal-input');
+            const goalDescInput = document.getElementById('goal-desc-input'); // New description input
+            const goalDueDateInput = document.getElementById('goal-due-date-input'); // New due date input
             const goalsList = document.getElementById('goals-list');
 
             // Attach event listeners
             addGoalForm.addEventListener('submit', (event) => {
-                event.preventDefault(); // Prevent default form submission
-                addGoal(goalInput, goalsList);
+                event.preventDefault();
+                // Pass all input elements to addGoal
+                addGoal(goalInput, goalDescInput, goalDueDateInput, goalsList);
             });
 
             // Initial display of goals
@@ -151,114 +189,38 @@
         function renderAppContent() {
             console.log(`Rendering module: ${currentModule}`);
             document.title = `Ứng dụng Cá nhân - ${currentModule === 'notes' ? 'Ghi Chú' : 'Mục tiêu'}`;
-
-            navLinks.forEach(link => {
-                link.classList.toggle('active', link.dataset.module === currentModule);
-            });
-
+            navLinks.forEach(link => { link.classList.toggle('active', link.dataset.module === currentModule); });
             switch (currentModule) {
-                case 'notes':
-                    buildNotesUI();
-                    break;
-                case 'goals':
-                    buildGoalsUI(); // Call the new function
-                    break;
-                default:
-                    appContent.innerHTML = '<p>Module không xác định.</p>';
+                case 'notes': buildNotesUI(); break;
+                case 'goals': buildGoalsUI(); break;
+                default: appContent.innerHTML = '<p>Module không xác định.</p>';
             }
         }
 
         // --- Note Management Functions ---
-        // (Code for getNotes, saveNotes, formatTimestamp, displayNotes, addNote, deleteNote, toggleEdit, saveEdit remains the same)
-        function getNotes() { /* ... */
-            const notes = localStorage.getItem('quickNotes');
-            try {
-                const parsedNotes = notes ? JSON.parse(notes) : [];
-                return parsedNotes.map(note => ({ ...note }));
-            } catch (e) { console.error("Error parsing notes:", e); return []; }
-        }
-        function saveNotes(notes) { /* ... */
-             localStorage.setItem('quickNotes', JSON.stringify(notes));
-        }
-        function formatTimestamp(timestamp) { /* ... */
-            if (!timestamp) return '';
-            const date = new Date(timestamp);
-            return `${date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}, ${date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
-        }
-        function displayNotes(notesListElement, searchInputElement, searchTerm = '') { /* ... */
-             if (!notesListElement || !searchInputElement) { return; }
-            let notes = getNotes();
-            const normalizedSearchTerm = searchTerm.toLowerCase().trim();
-            if (normalizedSearchTerm) { notes = notes.filter(note => note.content.toLowerCase().includes(normalizedSearchTerm)); }
-            notesListElement.innerHTML = '';
-            if (notes.length === 0) { notesListElement.innerHTML = `<p class="text-gray-500">${normalizedSearchTerm ? 'Không tìm thấy ghi chú nào khớp.' : 'Chưa có ghi chú nào.'}</p>`; return; }
-            notes.sort((a, b) => (b.modifiedAt || b.createdAt) - (a.modifiedAt || a.createdAt));
-            notes.forEach(note => {
-                const noteElement = document.createElement('div'); noteElement.dataset.noteId = note.id; noteElement.classList.add('bg-yellow-100', 'p-3', 'rounded-md', 'shadow-sm', 'flex', 'flex-col');
-                const topRow = document.createElement('div'); topRow.classList.add('flex', 'justify-between', 'items-start', 'w-full');
-                const contentContainer = document.createElement('div'); contentContainer.classList.add('flex-grow', 'mr-2');
-                const contentElement = document.createElement('p'); contentElement.classList.add('note-content', 'text-gray-700'); contentElement.textContent = note.content; contentContainer.appendChild(contentElement);
-                const buttonContainer = document.createElement('div'); buttonContainer.classList.add('flex-shrink-0', 'flex');
-                const editButton = document.createElement('button'); editButton.classList.add('text-blue-600', 'hover:text-blue-800', 'action-button'); editButton.textContent = 'Sửa'; editButton.onclick = () => toggleEdit(note.id, notesListElement, searchInputElement);
-                const deleteButton = document.createElement('button'); deleteButton.classList.add('text-red-500', 'hover:text-red-700', 'action-button'); deleteButton.textContent = 'Xóa'; deleteButton.onclick = () => deleteNote(note.id, notesListElement, searchInputElement);
-                buttonContainer.appendChild(editButton); buttonContainer.appendChild(deleteButton);
-                topRow.appendChild(contentContainer); topRow.appendChild(buttonContainer);
-                const timestampElement = document.createElement('p'); timestampElement.classList.add('note-timestamp', 'w-full', 'text-right'); const created = formatTimestamp(note.createdAt); const modified = formatTimestamp(note.modifiedAt); timestampElement.textContent = modified ? `Sửa đổi: ${modified}` : (created ? `Đã tạo: ${created}` : '');
-                noteElement.appendChild(topRow); if (timestampElement.textContent) { noteElement.appendChild(timestampElement); }
-                notesListElement.appendChild(noteElement);
-            });
-        }
-        function addNote(noteInputElement, searchInputElement) { /* ... */
-             if (!noteInputElement || !searchInputElement) return;
-            const noteContent = noteInputElement.value.trim();
-            if (noteContent) {
-                const notes = getNotes(); const now = Date.now();
-                const newNote = { id: now, content: noteContent, createdAt: now, modifiedAt: null };
-                notes.push(newNote); saveNotes(notes);
-                noteInputElement.value = ''; searchInputElement.value = '';
-                const currentNotesList = document.getElementById('notes-list');
-                if(currentNotesList) { displayNotes(currentNotesList, searchInputElement); }
-            }
-        }
-        function deleteNote(noteId, notesListElement, searchInputElement) { /* ... */
-            if (!window.confirm("Bạn có chắc muốn xóa ghi chú này không?")) { return; }
-            let notes = getNotes(); notes = notes.filter(note => note.id !== noteId); saveNotes(notes);
-            displayNotes(notesListElement, searchInputElement, searchInputElement.value);
-        }
-        function toggleEdit(noteId, notesListElement, searchInputElement) { /* ... */
-             displayNotes(notesListElement, searchInputElement, searchInputElement.value);
-            const noteElement = notesListElement.querySelector(`[data-note-id='${noteId}']`); if (!noteElement) return;
-            const topRow = noteElement.querySelector('div:first-child'); const contentContainer = topRow.querySelector('div:first-child'); const buttonContainer = topRow.querySelector('div:last-child');
-            const notes = getNotes(); const note = notes.find(n => n.id === noteId); if (!note) return;
-            const editInput = document.createElement('textarea'); editInput.classList.add('w-full', 'p-1', 'border', 'border-gray-300', 'rounded-md', 'focus:outline-none', 'focus:ring-1', 'focus:ring-blue-500', 'edit-textarea', 'note-content'); editInput.value = note.content;
-            const saveButton = document.createElement('button'); saveButton.classList.add('text-green-600', 'hover:text-green-800', 'action-button'); saveButton.textContent = 'Lưu'; saveButton.onclick = () => saveEdit(noteId, editInput.value, notesListElement, searchInputElement);
-            const cancelButton = document.createElement('button'); cancelButton.classList.add('text-gray-600', 'hover:text-gray-800', 'action-button'); cancelButton.textContent = 'Hủy'; cancelButton.onclick = () => displayNotes(notesListElement, searchInputElement, searchInputElement.value);
-            contentContainer.innerHTML = ''; contentContainer.appendChild(editInput);
-            buttonContainer.innerHTML = ''; buttonContainer.appendChild(saveButton); buttonContainer.appendChild(cancelButton);
-            noteElement.classList.add('editing'); editInput.focus();
-        }
-        function saveEdit(noteId, newContent, notesListElement, searchInputElement) { /* ... */
-             const trimmedContent = newContent.trim();
-            if (!trimmedContent) { displayNotes(notesListElement, searchInputElement, searchInputElement.value); return; }
-            let notes = getNotes(); const noteIndex = notes.findIndex(note => note.id === noteId);
-            if (noteIndex > -1) {
-                notes[noteIndex].content = trimmedContent; notes[noteIndex].modifiedAt = Date.now(); saveNotes(notes);
-                displayNotes(notesListElement, searchInputElement, searchInputElement.value);
-            } else { console.error("Could not find note to save:", noteId); displayNotes(notesListElement, searchInputElement, searchInputElement.value); }
-        }
+        // (Code remains the same)
+        function getNotes() { /* ... */ const n=localStorage.getItem('quickNotes'); try { const p=n?JSON.parse(n):[]; return p.map(no=>({...no})); } catch(e){console.error("Error parsing notes:",e); return [];} }
+        function saveNotes(notes) { /* ... */ localStorage.setItem('quickNotes',JSON.stringify(notes)); }
+        function formatTimestamp(timestamp) { /* ... */ if(!timestamp)return ''; const d=new Date(timestamp); return `${d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}, ${d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'})}`; }
+        function displayNotes(listEl, searchEl, term='') { /* ... */ if(!listEl||!searchEl){return;} let n=getNotes(); const s=term.toLowerCase().trim(); if(s){n=n.filter(no=>no.content.toLowerCase().includes(s));} listEl.innerHTML=''; if(n.length===0){listEl.innerHTML=`<p class="text-gray-500">${s?'Không tìm thấy ghi chú nào khớp.':'Chưa có ghi chú nào.'}</p>`; return;} n.sort((a,b)=>(b.modifiedAt||b.createdAt)-(a.modifiedAt||a.createdAt)); n.forEach(no=>{const el=document.createElement('div'); el.dataset.noteId=no.id; el.classList.add('bg-yellow-100','p-3','rounded-md','shadow-sm','flex','flex-col'); const tr=document.createElement('div'); tr.classList.add('flex','justify-between','items-start','w-full'); const cc=document.createElement('div'); cc.classList.add('flex-grow','mr-2'); const ce=document.createElement('p'); ce.classList.add('note-content','text-gray-700'); ce.textContent=no.content; cc.appendChild(ce); const bc=document.createElement('div'); bc.classList.add('flex-shrink-0','flex'); const eb=document.createElement('button'); eb.classList.add('text-blue-600','hover:text-blue-800','action-button'); eb.textContent='Sửa'; eb.onclick=()=>toggleEdit(no.id,listEl,searchEl); const db=document.createElement('button'); db.classList.add('text-red-500','hover:text-red-700','action-button'); db.textContent='Xóa'; db.onclick=()=>deleteNote(no.id,listEl,searchEl); bc.appendChild(eb); bc.appendChild(db); tr.appendChild(cc); tr.appendChild(bc); const ts=document.createElement('p'); ts.classList.add('note-timestamp','w-full','text-right'); const cr=formatTimestamp(no.createdAt); const md=formatTimestamp(no.modifiedAt); ts.textContent=md?`Sửa đổi: ${md}`:(cr?`Đã tạo: ${cr}`:''); el.appendChild(tr); if(ts.textContent){el.appendChild(ts);} listEl.appendChild(el);}); }
+        function addNote(inputEl, searchEl) { /* ... */ if(!inputEl||!searchEl)return; const c=inputEl.value.trim(); if(c){const n=getNotes(); const now=Date.now(); const nn={id:now,content:c,createdAt:now,modifiedAt:null}; n.push(nn); saveNotes(n); inputEl.value=''; searchEl.value=''; const cl=document.getElementById('notes-list'); if(cl){displayNotes(cl,searchEl);}} }
+        function deleteNote(id, listEl, searchEl) { /* ... */ if(!window.confirm("Bạn chắc chắn xóa ghi chú này?"))return; let n=getNotes(); n=n.filter(no=>no.id!==id); saveNotes(n); displayNotes(listEl,searchEl,searchEl.value); }
+        function toggleEdit(id, listEl, searchEl) { /* ... */ displayNotes(listEl,searchEl,searchEl.value); const el=listEl.querySelector(`[data-note-id='${id}']`); if(!el)return; const tr=el.querySelector('div:first-child'); const cc=tr.querySelector('div:first-child'); const bc=tr.querySelector('div:last-child'); const n=getNotes(); const no=n.find(i=>i.id===id); if(!no)return; const ei=document.createElement('textarea'); ei.classList.add('w-full','p-1','border','border-gray-300','rounded-md','focus:outline-none','focus:ring-1','focus:ring-blue-500','edit-textarea','note-content'); ei.value=no.content; const sb=document.createElement('button'); sb.classList.add('text-green-600','hover:text-green-800','action-button'); sb.textContent='Lưu'; sb.onclick=()=>saveEdit(id,ei.value,listEl,searchEl); const cb=document.createElement('button'); cb.classList.add('text-gray-600','hover:text-gray-800','action-button'); cb.textContent='Hủy'; cb.onclick=()=>displayNotes(listEl,searchEl,searchEl.value); cc.innerHTML=''; cc.appendChild(ei); bc.innerHTML=''; bc.appendChild(sb); bc.appendChild(cb); el.classList.add('editing'); ei.focus(); }
+        function saveEdit(id, content, listEl, searchEl) { /* ... */ const tc=content.trim(); if(!tc){displayNotes(listEl,searchEl,searchEl.value); return;} let n=getNotes(); const idx=n.findIndex(no=>no.id===id); if(idx>-1){n[idx].content=tc; n[idx].modifiedAt=Date.now(); saveNotes(n); displayNotes(listEl,searchEl,searchEl.value);} else {console.error("Cannot find note to save:",id); displayNotes(listEl,searchEl,searchEl.value);} }
 
 
-        // --- *** NEW: Goal Management Functions *** ---
+        // --- *** UPDATED: Goal Management Functions *** ---
 
-        const GOALS_STORAGE_KEY = 'personalGoals'; // Key for localStorage
+        const GOALS_STORAGE_KEY = 'personalGoals';
 
         function getGoals() {
             const goals = localStorage.getItem(GOALS_STORAGE_KEY);
             try {
-                return goals ? JSON.parse(goals) : [];
+                // Parse and ensure date fields are handled (though stored as strings)
+                const parsedGoals = goals ? JSON.parse(goals) : [];
+                return parsedGoals.map(goal => ({ ...goal }));
             } catch (e) {
-                console.error("Error parsing goals from localStorage:", e);
-                return [];
+                console.error("Error parsing goals:", e); return [];
             }
         }
 
@@ -266,52 +228,72 @@
             localStorage.setItem(GOALS_STORAGE_KEY, JSON.stringify(goals));
         }
 
-        function displayGoals(goalsListElement) {
-            if (!goalsListElement) {
-                console.error("Goals list element not provided for displayGoals");
-                return;
+        // Helper to format date string (YYYY-MM-DD) to DD/MM/YYYY
+        function formatDisplayDate(dateString) {
+            if (!dateString) return '';
+            try {
+                const [year, month, day] = dateString.split('-');
+                return `${day}/${month}/${year}`;
+            } catch (e) {
+                console.error("Error formatting date:", e);
+                return dateString; // Return original string on error
             }
+        }
+
+        // Helper to check if due date is overdue (and goal not completed)
+        function isOverdue(dueDateString, completed) {
+            if (!dueDateString || completed) return false;
+            try {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Set today to the beginning of the day for comparison
+                const dueDate = new Date(dueDateString);
+                dueDate.setHours(0, 0, 0, 0); // Also set due date to beginning of day
+                return dueDate < today;
+            } catch (e) {
+                return false;
+            }
+        }
+
+
+        function displayGoals(goalsListElement) {
+            if (!goalsListElement) { console.error("Goals list element needed"); return; }
             const goals = getGoals();
-            goalsListElement.innerHTML = ''; // Clear current list
+            goalsListElement.innerHTML = '';
 
             if (goals.length === 0) {
                 goalsListElement.innerHTML = '<p class="text-gray-500">Chưa có mục tiêu nào.</p>';
                 return;
             }
 
-            // Sort goals: incomplete first, then by creation date (newest first)
-            goals.sort((a, b) => {
-                if (a.completed !== b.completed) {
-                    return a.completed ? 1 : -1; // Incomplete goals come first
-                }
-                return b.createdAt - a.createdAt; // Then newest first
-            });
-
+            goals.sort((a, b) => (a.completed - b.completed) || (new Date(a.dueDate || 0) - new Date(b.dueDate || 0)) || (b.createdAt - a.createdAt)); // Sort: incomplete, by due date, then newest
 
             goals.forEach(goal => {
                 const goalElement = document.createElement('div');
                 goalElement.dataset.goalId = goal.id;
-                goalElement.classList.add('goal-item'); // Use specific goal item class
-                if (goal.completed) {
-                    goalElement.classList.add('completed'); // Add class if completed
-                }
+                goalElement.classList.add('goal-item');
+                if (goal.completed) goalElement.classList.add('completed');
+                if (goal.isEditing) goalElement.classList.add('editing'); // Add editing class if needed
 
-                // Goal Name
+                // --- Goal Header (Name + Buttons) ---
+                const goalHeader = document.createElement('div');
+                goalHeader.classList.add('goal-header');
+
                 const nameElement = document.createElement('span');
                 nameElement.classList.add('goal-name');
                 nameElement.textContent = goal.name;
 
-                // Action Buttons Container
                 const buttonContainer = document.createElement('div');
                 buttonContainer.classList.add('flex-shrink-0', 'flex');
 
+                // Edit Button
+                const editButton = document.createElement('button');
+                editButton.classList.add('text-blue-600', 'hover:text-blue-800', 'action-button');
+                editButton.textContent = 'Sửa';
+                editButton.onclick = () => toggleGoalEdit(goal.id, goalsListElement);
+
                 // Complete/Undo Button
                 const completeButton = document.createElement('button');
-                completeButton.classList.add(
-                    goal.completed ? 'text-yellow-600' : 'text-green-600', // Style based on state
-                    goal.completed ? 'hover:text-yellow-800' : 'hover:text-green-800',
-                    'action-button'
-                );
+                completeButton.classList.add(goal.completed ? 'text-yellow-600 hover:text-yellow-800' : 'text-green-600 hover:text-green-800', 'action-button');
                 completeButton.textContent = goal.completed ? 'Hoàn tác' : 'Hoàn thành';
                 completeButton.onclick = () => toggleGoalComplete(goal.id, goalsListElement);
 
@@ -321,18 +303,55 @@
                 deleteButton.textContent = 'Xóa';
                 deleteButton.onclick = () => deleteGoal(goal.id, goalsListElement);
 
+                buttonContainer.appendChild(editButton); // Add Edit button
                 buttonContainer.appendChild(completeButton);
                 buttonContainer.appendChild(deleteButton);
 
-                goalElement.appendChild(nameElement);
-                goalElement.appendChild(buttonContainer);
+                goalHeader.appendChild(nameElement);
+                goalHeader.appendChild(buttonContainer);
+
+                // --- Goal Details (Description + Due Date) ---
+                const goalDetails = document.createElement('div');
+                goalDetails.classList.add('goal-details');
+
+                // Description
+                if (goal.description) {
+                    const descElement = document.createElement('p');
+                    descElement.classList.add('goal-description');
+                    descElement.textContent = goal.description;
+                    goalDetails.appendChild(descElement);
+                }
+
+                // Due Date
+                if (goal.dueDate) {
+                    const dueDateElement = document.createElement('p');
+                    const overdue = isOverdue(goal.dueDate, goal.completed);
+                    dueDateElement.classList.add('goal-due-date');
+                     if (overdue) {
+                        dueDateElement.classList.add('overdue');
+                        dueDateElement.textContent = `Hạn chót: ${formatDisplayDate(goal.dueDate)} (Quá hạn)`;
+                     } else {
+                        dueDateElement.textContent = `Hạn chót: ${formatDisplayDate(goal.dueDate)}`;
+                     }
+                    goalDetails.appendChild(dueDateElement);
+                }
+
+                // Append header and details to the main element
+                goalElement.appendChild(goalHeader);
+                if (goalDetails.hasChildNodes()) { // Only append details if there's content
+                    goalElement.appendChild(goalDetails);
+                }
+
                 goalsListElement.appendChild(goalElement);
             });
         }
 
-        function addGoal(goalInputElement, goalsListElement) {
-            if (!goalInputElement || !goalsListElement) return;
-            const goalName = goalInputElement.value.trim();
+        // Updated addGoal to include description and due date
+        function addGoal(nameInput, descInput, dueDateInput, goalsListElement) {
+            if (!nameInput || !descInput || !dueDateInput || !goalsListElement) return;
+            const goalName = nameInput.value.trim();
+            const goalDesc = descInput.value.trim(); // Get description
+            const goalDueDate = dueDateInput.value; // Get due date (YYYY-MM-DD string or empty)
 
             if (goalName) {
                 const goals = getGoals();
@@ -340,43 +359,128 @@
                 const newGoal = {
                     id: now,
                     name: goalName,
-                    completed: false, // Default to not completed
-                    createdAt: now
+                    description: goalDesc, // Save description
+                    dueDate: goalDueDate || null, // Save due date (null if empty)
+                    completed: false,
+                    createdAt: now,
+                    modifiedAt: null // Add modifiedAt field
                 };
                 goals.push(newGoal);
                 saveGoals(goals);
-                goalInputElement.value = ''; // Clear input field
-                displayGoals(goalsListElement); // Refresh the list
+                // Clear form fields
+                nameInput.value = '';
+                descInput.value = '';
+                dueDateInput.value = '';
+                displayGoals(goalsListElement);
                 console.log("Added goal:", newGoal);
             } else {
                 console.log("Goal name is empty.");
-                // Optionally show an error message
+                alert("Tên mục tiêu không được để trống!"); // Provide user feedback
             }
         }
 
         function deleteGoal(goalId, goalsListElement) {
-            if (!window.confirm("Bạn có chắc muốn xóa mục tiêu này không?")) {
-                return;
-            }
+            if (!window.confirm("Bạn có chắc muốn xóa mục tiêu này không?")) return;
             let goals = getGoals();
             goals = goals.filter(goal => goal.id !== goalId);
             saveGoals(goals);
-            displayGoals(goalsListElement); // Refresh the list
+            displayGoals(goalsListElement);
             console.log("Deleted goal ID:", goalId);
         }
 
         function toggleGoalComplete(goalId, goalsListElement) {
             let goals = getGoals();
             const goalIndex = goals.findIndex(goal => goal.id === goalId);
+            if (goalIndex > -1) {
+                goals[goalIndex].completed = !goals[goalIndex].completed;
+                goals[goalIndex].modifiedAt = Date.now(); // Update modified time on completion change
+                saveGoals(goals);
+                displayGoals(goalsListElement);
+                console.log(`Toggled completion for goal ID: ${goalId} to ${goals[goalIndex].completed}`);
+            } else { console.error("Could not find goal to toggle:", goalId); }
+        }
+
+        // *** NEW: Toggle Edit State for Goal ***
+        function toggleGoalEdit(goalId, goalsListElement) {
+             // First, cancel any other edits by redrawing
+             displayGoals(goalsListElement);
+
+             const goalElement = goalsListElement.querySelector(`[data-goal-id='${goalId}']`);
+             if (!goalElement) return; // Should exist after redraw
+
+             const goals = getGoals();
+             const goal = goals.find(g => g.id === goalId);
+             if (!goal) return;
+
+             // --- Create Edit Form ---
+             const editArea = document.createElement('div');
+             editArea.classList.add('goal-edit-area', 'mt-2', 'pt-2', 'border-t', 'border-gray-300'); // Add some spacing and separator
+
+             // Name Input
+             const nameLabel = document.createElement('label'); nameLabel.textContent = "Tên:"; nameLabel.classList.add('block', 'text-xs', 'font-medium', 'text-gray-600', 'mb-1');
+             const nameInput = document.createElement('input'); nameInput.type = 'text'; nameInput.value = goal.name; nameInput.required = true;
+             editArea.appendChild(nameLabel); editArea.appendChild(nameInput);
+
+             // Description Textarea
+             const descLabel = document.createElement('label'); descLabel.textContent = "Mô tả:"; descLabel.classList.add('block', 'text-xs', 'font-medium', 'text-gray-600', 'mb-1', 'mt-2');
+             const descTextarea = document.createElement('textarea'); descTextarea.rows = '3'; descTextarea.value = goal.description || '';
+             editArea.appendChild(descLabel); editArea.appendChild(descTextarea);
+
+             // Due Date Input
+             const dateLabel = document.createElement('label'); dateLabel.textContent = "Hạn chót:"; dateLabel.classList.add('block', 'text-xs', 'font-medium', 'text-gray-600', 'mb-1', 'mt-2');
+             const dateInput = document.createElement('input'); dateInput.type = 'date'; dateInput.value = goal.dueDate || '';
+             editArea.appendChild(dateLabel); editArea.appendChild(dateInput);
+
+             // --- Create Save/Cancel Buttons for Edit ---
+             const editButtonContainer = document.createElement('div');
+             editButtonContainer.classList.add('flex', 'justify-end', 'mt-3'); // Align buttons right
+
+             const saveButton = document.createElement('button');
+             saveButton.classList.add('text-green-600', 'hover:text-green-800', 'action-button');
+             saveButton.textContent = 'Lưu';
+             saveButton.onclick = () => saveGoalEdit(goalId, nameInput.value, descTextarea.value, dateInput.value, goalsListElement);
+
+             const cancelButton = document.createElement('button');
+             cancelButton.classList.add('text-gray-600', 'hover:text-gray-800', 'action-button');
+             cancelButton.textContent = 'Hủy';
+             cancelButton.onclick = () => displayGoals(goalsListElement); // Cancel reverts by re-displaying
+
+             editButtonContainer.appendChild(saveButton);
+             editButtonContainer.appendChild(cancelButton);
+             editArea.appendChild(editButtonContainer);
+
+             // --- Replace Goal Content with Edit Form ---
+             // Clear existing content (header and details)
+             goalElement.innerHTML = '';
+             // Add the edit area
+             goalElement.appendChild(editArea);
+             goalElement.classList.add('editing'); // Mark as editing
+             nameInput.focus(); // Focus the first input
+        }
+
+        // *** NEW: Save Edited Goal ***
+        function saveGoalEdit(goalId, newName, newDesc, newDueDate, goalsListElement) {
+            const trimmedName = newName.trim();
+            if (!trimmedName) {
+                alert("Tên mục tiêu không được để trống!");
+                // Optionally, instead of alerting, you could highlight the input field
+                return; // Stop saving if name is empty
+            }
+
+            let goals = getGoals();
+            const goalIndex = goals.findIndex(goal => goal.id === goalId);
 
             if (goalIndex > -1) {
-                goals[goalIndex].completed = !goals[goalIndex].completed; // Toggle the completed status
-                // Optionally update a modifiedAt timestamp here if needed
+                goals[goalIndex].name = trimmedName;
+                goals[goalIndex].description = newDesc.trim();
+                goals[goalIndex].dueDate = newDueDate || null; // Store empty string as null
+                goals[goalIndex].modifiedAt = Date.now(); // Update modification timestamp
                 saveGoals(goals);
-                displayGoals(goalsListElement); // Refresh the list to show changes
-                console.log(`Toggled completion for goal ID: ${goalId} to ${goals[goalIndex].completed}`);
+                displayGoals(goalsListElement); // Refresh the list
+                console.log("Saved edit for goal ID:", goalId);
             } else {
-                console.error("Could not find goal to toggle completion:", goalId);
+                console.error("Could not find goal to save edit:", goalId);
+                displayGoals(goalsListElement); // Refresh anyway to clear potential bad state
             }
         }
 
@@ -396,7 +500,7 @@
 
         document.addEventListener('DOMContentLoaded', renderAppContent);
 
-        console.log("Personal App with Notes and Goals modules is ready!");
+        console.log("Personal App with enhanced Goals module is ready!");
 
     </script>
 

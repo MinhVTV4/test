@@ -93,16 +93,7 @@
         const navLinks = mainNav.querySelectorAll('.nav-link');
 
         // --- SVG Icons ---
-        const ICONS = {
-            edit: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>`,
-            delete: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>`,
-            check: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>`,
-            undo: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" /></svg>`,
-            save: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75 l6 6 9-13.5" /></svg>`,
-            cancel: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>`,
-            pin: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0 1 20.25 6v12A2.25 2.25 0 0 1 18 20.25H6A2.25 2.25 0 0 1 3.75 18V6A2.25 2.25 0 0 1 6 3.75h1.5m9 0h-9" /></svg>`,
-            pin_filled: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M16.5 3.75a.75.75 0 0 1 .75.75v11.19l-4.72-2.36a.75.75 0 0 0-.56 0L7.5 15.69V4.5a.75.75 0 0 1 .75-.75h7.5Z" clip-rule="evenodd" /><path d="M18 3.75a2.25 2.25 0 0 1 2.25 2.25v12a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6A2.25 2.25 0 0 1 6 3.75h12Z" /></svg>` // Filled pin icon
-        };
+        const ICONS = { edit: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>`, delete: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>`, check: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>`, undo: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" /></svg>`, save: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75 l6 6 9-13.5" /></svg>`, cancel: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>`, pin: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0 1 20.25 6v12A2.25 2.25 0 0 1 18 20.25H6A2.25 2.25 0 0 1 3.75 18V6A2.25 2.25 0 0 1 6 3.75h1.5m9 0h-9" /></svg>`, pin_filled: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M16.5 3.75a.75.75 0 0 1 .75.75v11.19l-4.72-2.36a.75.75 0 0 0-.56 0L7.5 15.69V4.5a.75.75 0 0 1 .75-.75h7.5Z" clip-rule="evenodd" /><path d="M18 3.75a2.25 2.25 0 0 1 2.25 2.25v12a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6A2.25 2.25 0 0 1 6 3.75h12Z" /></svg>` };
 
         // --- Module Building Functions ---
         function buildNotesUI() { /* ... (no changes) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Ghi Chú Nhanh</h2><div class="mb-4"><textarea id="note-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="4" placeholder="Nhập ghi chú..."></textarea></div><button id="add-note-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out mb-6">Thêm Ghi Chú</button><div class="mb-4"><input type="search" id="search-input" placeholder="Tìm kiếm ghi chú..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div id="notes-list" class="mt-6 space-y-3"></div>`; const ni=document.getElementById('note-input'); const ab=document.getElementById('add-note-btn'); const si=document.getElementById('search-input'); const nl=document.getElementById('notes-list'); ab.addEventListener('click',()=>addNote(ni,si)); ni.addEventListener('keydown',(e)=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();addNote(ni,si);}}); si.addEventListener('input',(e)=>displayNotes(nl,si,e.target.value)); displayNotes(nl,si); }
@@ -112,11 +103,11 @@
         function renderAppContent() { /* ... (no changes) ... */ console.log(`Rendering module: ${currentModule}`); document.title=`Ứng dụng Cá nhân - ${currentModule==='notes'?'Ghi Chú':'Mục tiêu'}`; navLinks.forEach(l=>{l.classList.toggle('active',l.dataset.module===currentModule);}); appContent.innerHTML=`<p class="empty-state-message">Đang tải ${currentModule==='notes'?'Ghi chú':'Mục tiêu'}...</p>`; setTimeout(()=>{switch(currentModule){case 'notes':buildNotesUI();break;case 'goals':buildGoalsUI();break;default:appContent.innerHTML='<p class="empty-state-message">Module không xác định.</p>';}},0); }
 
         // --- Note Management Functions ---
-        function getNotes() { const n=localStorage.getItem('quickNotes'); try { const p=n?JSON.parse(n):[]; return p.map(no=>({...no, isPinned: no.isPinned || false })); } catch(e){console.error("Error parsing notes:",e); return [];} } // Ensure isPinned exists
+        function getNotes() { const n=localStorage.getItem('quickNotes'); try { const p=n?JSON.parse(n):[]; return p.map(no=>({...no, isPinned: no.isPinned || false })); } catch(e){console.error("Error parsing notes:",e); return [];} }
         function saveNotes(notes) { localStorage.setItem('quickNotes',JSON.stringify(notes)); }
         function formatTimestamp(timestamp) { if(!timestamp)return ''; const d=new Date(timestamp); return `${d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}, ${d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'})}`; }
 
-        // Updated displayNotes for Pinning
+        // *** FIXED: displayNotes Function ***
         function displayNotes(listEl, searchEl, term='') {
              if(!listEl||!searchEl){return;}
              let notes = getNotes();
@@ -126,203 +117,54 @@
 
              if(notes.length===0){ listEl.innerHTML=`<p class="empty-state-message">${s?'Không tìm thấy ghi chú nào khớp.':'Chưa có ghi chú nào.'}</p>`; return; }
 
-             // Sort: Pinned first, then by modified/created date
              notes.sort((a, b) => (b.isPinned - a.isPinned) || (b.modifiedAt || b.createdAt) - (a.modifiedAt || a.createdAt));
 
              notes.forEach(note=>{
-                 const noteElement = document.createElement('div');
+                 const noteElement = document.createElement('div'); // Renamed to noteElement
                  noteElement.dataset.noteId = note.id;
                  noteElement.classList.add('note-item', 'list-item-hover', 'flex', 'flex-col');
-                 if (note.isPinned) { // Add pinned class if note is pinned
-                     noteElement.classList.add('pinned');
-                 }
-
-                 // Add Pin Indicator Icon if pinned
-                 if (note.isPinned) {
-                     const pinIndicator = document.createElement('span');
-                     pinIndicator.classList.add('pin-indicator');
-                     pinIndicator.innerHTML = ICONS.pin_filled;
-                     noteElement.appendChild(pinIndicator);
-                 }
+                 if (note.isPinned) { noteElement.classList.add('pinned'); }
+                 if (note.isPinned) { const pi = document.createElement('span'); pi.classList.add('pin-indicator'); pi.innerHTML = ICONS.pin_filled; noteElement.appendChild(pi); }
 
                  const topRow = document.createElement('div'); topRow.classList.add('flex','justify-between','items-start','w-full');
                  const contentContainer = document.createElement('div'); contentContainer.classList.add('flex-grow','mr-2');
                  const contentElement = document.createElement('p'); contentElement.classList.add('note-content','text-gray-800'); contentElement.textContent=note.content; contentContainer.appendChild(contentElement);
                  const buttonContainer = document.createElement('div'); buttonContainer.classList.add('flex-shrink-0','flex','items-center');
 
-                 // Pin Button
-                 const pinButton = document.createElement('button');
-                 pinButton.classList.add('action-button-icon', 'pin-icon-btn');
-                 if (note.isPinned) {
-                     pinButton.classList.add('pinned'); // Style if already pinned
-                     pinButton.innerHTML = ICONS.pin_filled;
-                     pinButton.setAttribute('aria-label', 'Bỏ ghim ghi chú');
-                 } else {
-                     pinButton.innerHTML = ICONS.pin;
-                     pinButton.setAttribute('aria-label', 'Ghim ghi chú');
-                 }
-                 pinButton.onclick = () => toggleNotePin(note.id, listEl, searchEl);
-
-                 // Edit Button
+                 const pinButton = document.createElement('button'); pinButton.classList.add('action-button-icon','pin-icon-btn'); if(note.isPinned){pinButton.classList.add('pinned'); pinButton.innerHTML=ICONS.pin_filled; pinButton.setAttribute('aria-label','Bỏ ghim ghi chú');} else {pinButton.innerHTML=ICONS.pin; pinButton.setAttribute('aria-label','Ghim ghi chú');} pinButton.onclick=()=>toggleNotePin(note.id,listEl,searchEl);
                  const editButton = document.createElement('button'); editButton.classList.add('action-button-icon','edit-icon-btn'); editButton.innerHTML=ICONS.edit; editButton.setAttribute('aria-label','Sửa ghi chú'); editButton.onclick=()=>toggleEdit(note.id,listEl,searchEl);
-                 // Delete Button
                  const deleteButton = document.createElement('button'); deleteButton.classList.add('action-button-icon','delete-icon-btn'); deleteButton.innerHTML=ICONS.delete; deleteButton.setAttribute('aria-label','Xóa ghi chú'); deleteButton.onclick=()=>deleteNote(note.id,listEl,searchEl);
 
-                 buttonContainer.appendChild(pinButton); // Add pin button first
-                 buttonContainer.appendChild(editButton);
-                 buttonContainer.appendChild(deleteButton);
-
+                 buttonContainer.appendChild(pinButton); buttonContainer.appendChild(editButton); buttonContainer.appendChild(deleteButton);
                  topRow.appendChild(contentContainer); topRow.appendChild(buttonContainer);
+
                  const ts = document.createElement('p'); ts.classList.add('note-timestamp','w-full','text-right'); const cr=formatTimestamp(note.createdAt); const md=formatTimestamp(note.modifiedAt); ts.textContent=md?`Sửa đổi: ${md}`:(cr?`Đã tạo: ${cr}`:'');
-                 noteElement.appendChild(topRow); if(ts.textContent){el.appendChild(ts);}
-                 listEl.appendChild(noteElement);
+
+                 noteElement.appendChild(topRow); // Append topRow first
+                 if(ts.textContent){ noteElement.appendChild(ts); } // *** FIX HERE: Use noteElement instead of el ***
+                 listEl.appendChild(noteElement); // Append the main noteElement
              });
         }
 
-        // Updated addNote to include isPinned
-        function addNote(inputEl, searchEl) {
-             if(!inputEl||!searchEl)return;
-             const c=inputEl.value.trim();
-             if(c){
-                 const n=getNotes();
-                 const now=Date.now();
-                 const nn={id:now, content:c, createdAt:now, modifiedAt:null, isPinned: false }; // Add isPinned: false
-                 n.push(nn);
-                 saveNotes(n);
-                 inputEl.value=''; searchEl.value='';
-                 const cl=document.getElementById('notes-list');
-                 if(cl){displayNotes(cl,searchEl);}
-             }
-        }
-
+        function addNote(inputEl, searchEl) { if(!inputEl||!searchEl)return; const c=inputEl.value.trim(); if(c){const n=getNotes(); const now=Date.now(); const nn={id:now, content:c, createdAt:now, modifiedAt:null, isPinned: false }; n.push(nn); saveNotes(n); inputEl.value=''; searchEl.value=''; const cl=document.getElementById('notes-list'); if(cl){displayNotes(cl,searchEl);}} }
         function deleteNote(id, listEl, searchEl) { if(!window.confirm("Bạn chắc chắn xóa ghi chú này?"))return; let n=getNotes(); n=n.filter(no=>no.id!==id); saveNotes(n); displayNotes(listEl,searchEl,searchEl.value); }
         function toggleEdit(id, listEl, searchEl) { /* ... (no changes) ... */ displayNotes(listEl,searchEl,searchEl.value); const el=listEl.querySelector(`[data-note-id='${id}']`); if(!el)return; const tr=el.querySelector('div:first-child'); const cc=tr.querySelector('div:first-child'); const bc=tr.querySelector('div:last-child'); const n=getNotes(); const no=n.find(i=>i.id===id); if(!no)return; cc.innerHTML=''; bc.innerHTML=''; const ei=document.createElement('textarea'); ei.classList.add('w-full','p-1','border','border-gray-300','rounded-md','focus:outline-none','focus:ring-1','focus:ring-blue-500','edit-textarea','note-content'); ei.value=no.content; cc.appendChild(ei); const sb=document.createElement('button'); sb.classList.add('action-button-icon','save-icon-btn'); sb.innerHTML=ICONS.save; sb.setAttribute('aria-label','Lưu thay đổi'); sb.onclick=()=>saveEdit(id,ei.value,listEl,searchEl); const cb=document.createElement('button'); cb.classList.add('action-button-icon','cancel-icon-btn'); cb.innerHTML=ICONS.cancel; cb.setAttribute('aria-label','Hủy bỏ'); cb.onclick=()=>displayNotes(listEl,searchEl,searchEl.value); bc.appendChild(sb); bc.appendChild(cb); el.classList.add('editing'); ei.focus(); }
         function saveEdit(id, content, listEl, searchEl) { /* ... (no changes) ... */ const tc=content.trim(); if(!tc){displayNotes(listEl,searchEl,searchEl.value); return;} let n=getNotes(); const idx=n.findIndex(no=>no.id===id); if(idx>-1){n[idx].content=tc; n[idx].modifiedAt=Date.now(); saveNotes(n); displayNotes(listEl,searchEl,searchEl.value);} else {console.error("Cannot find note to save:",id); displayNotes(listEl,searchEl,searchEl.value);} }
-
-        // *** NEW: Toggle Pin State for Note ***
-        function toggleNotePin(noteId, listEl, searchEl) {
-            let notes = getNotes();
-            const noteIndex = notes.findIndex(note => note.id === noteId);
-            if (noteIndex > -1) {
-                notes[noteIndex].isPinned = !notes[noteIndex].isPinned; // Toggle pin status
-                notes[noteIndex].modifiedAt = Date.now(); // Optionally update modified time
-                saveNotes(notes);
-                displayNotes(listEl, searchEl, searchEl.value); // Refresh display with current search term
-                console.log(`Toggled pin for note ID: ${noteId} to ${notes[noteIndex].isPinned}`);
-            } else {
-                console.error("Could not find note to toggle pin:", noteId);
-            }
-        }
-
+        function toggleNotePin(noteId, listEl, searchEl) { let notes = getNotes(); const noteIndex = notes.findIndex(note => note.id === noteId); if (noteIndex > -1) { notes[noteIndex].isPinned = !notes[noteIndex].isPinned; notes[noteIndex].modifiedAt = Date.now(); saveNotes(notes); displayNotes(listEl, searchEl, searchEl.value); console.log(`Toggled pin for note ID: ${noteId} to ${notes[noteIndex].isPinned}`); } else { console.error("Could not find note to toggle pin:", noteId); } }
 
         // --- Goal Management Functions ---
         const GOALS_STORAGE_KEY = 'personalGoals';
-        function getGoals() { const g=localStorage.getItem(GOALS_STORAGE_KEY); try { const p=g?JSON.parse(g):[]; return p.map(go=>({...go, isPinned: go.isPinned || false })); } catch(e){console.error("Error parsing goals:",e); return [];} } // Ensure isPinned exists
-        function saveGoals(goals) { localStorage.setItem(GOALS_STORAGE_KEY,JSON.stringify(goals)); }
-        function formatDisplayDate(dateString) { if(!dateString)return ''; try{const [y,m,d]=dateString.split('-'); return `${d}/${m}/${y}`;} catch(e){console.error("Error formatting date:",e); return dateString;} }
-        function calculateDaysRemaining(dueDateString) { if (!dueDateString) return { text: '', class: '' }; try { const t=new Date(); t.setHours(0,0,0,0); const d=new Date(dueDateString); d.setHours(0,0,0,0); const diffTime=d.getTime()-t.getTime(); const diffDays=Math.ceil(diffTime/(1000*60*60*24)); if(diffDays<0){return { text:`Quá hạn ${Math.abs(diffDays)} ngày`, class:'overdue'};} else if(diffDays===0){return { text:'Hết hạn hôm nay', class:'due-soon'};} else if(diffDays<=7){return { text:`Còn ${diffDays} ngày`, class:'due-soon'};} else {return { text:`Còn ${diffDays} ngày`, class:'on-track'};} } catch(e){console.error("Error calculating days remaining:",e); return { text:'', class:''};} }
-
-        // Updated displayGoals for Pinning
-        function displayGoals(goalsListElement) {
-            if (!goalsListElement) { console.error("Goals list element needed"); return; }
-            const goals = getGoals();
-            goalsListElement.innerHTML = '';
-
-            if (goals.length === 0) { goalsListElement.innerHTML = '<p class="empty-state-message">Chưa có mục tiêu nào.</p>'; return; }
-
-            // Sort: Pinned desc, Completed asc, DueDate asc, CreatedAt desc
-            goals.sort((a, b) =>
-                (b.isPinned - a.isPinned) || // Pinned first
-                (a.completed - b.completed) ||
-                (new Date(a.dueDate || '9999-12-31') - new Date(b.dueDate || '9999-12-31')) ||
-                (b.createdAt - a.createdAt)
-            );
-
-            goals.forEach(goal => {
-                const goalElement = document.createElement('div');
-                goalElement.dataset.goalId = goal.id;
-                goalElement.classList.add('goal-item', 'list-item-hover');
-                if (goal.completed) goalElement.classList.add('completed');
-                if (goal.isPinned) goalElement.classList.add('pinned'); // Add pinned class
-
-                 // Add Pin Indicator Icon if pinned
-                 if (goal.isPinned) {
-                    const pinIndicator = document.createElement('span');
-                    pinIndicator.classList.add('pin-indicator'); // Reuse note's pin indicator style
-                    pinIndicator.style.color = '#4f46e5'; // Use indigo color for goal pin
-                    pinIndicator.innerHTML = ICONS.pin_filled;
-                    goalElement.appendChild(pinIndicator);
-                }
-
-                const goalHeader = document.createElement('div'); goalHeader.classList.add('goal-header');
-                const nameElement = document.createElement('span'); nameElement.classList.add('goal-name'); nameElement.textContent=goal.name;
-                const buttonContainer = document.createElement('div'); buttonContainer.classList.add('flex-shrink-0','flex','items-center');
-
-                // Pin Button
-                const pinButton = document.createElement('button');
-                pinButton.classList.add('action-button-icon', 'pin-icon-btn');
-                 if (goal.isPinned) {
-                     pinButton.classList.add('pinned');
-                     pinButton.innerHTML = ICONS.pin_filled;
-                     pinButton.setAttribute('aria-label', 'Bỏ ghim mục tiêu');
-                 } else {
-                     pinButton.innerHTML = ICONS.pin;
-                     pinButton.setAttribute('aria-label', 'Ghim mục tiêu');
-                 }
-                pinButton.onclick = () => toggleGoalPin(goal.id, goalsListElement);
-
-                // Other buttons...
-                const editButton = document.createElement('button'); editButton.classList.add('action-button-icon','edit-icon-btn'); editButton.innerHTML=ICONS.edit; editButton.setAttribute('aria-label','Sửa mục tiêu'); editButton.onclick=()=>toggleGoalEdit(goal.id,goalsListElement);
-                const completeButton = document.createElement('button'); completeButton.classList.add('action-button-icon'); if(goal.completed){completeButton.classList.add('undo-icon-btn'); completeButton.innerHTML=ICONS.undo; completeButton.setAttribute('aria-label','Đánh dấu chưa hoàn thành');} else {completeButton.classList.add('complete-icon-btn'); completeButton.innerHTML=ICONS.check; completeButton.setAttribute('aria-label','Đánh dấu hoàn thành');} completeButton.onclick=()=>toggleGoalComplete(goal.id,goalsListElement);
-                const deleteButton = document.createElement('button'); deleteButton.classList.add('action-button-icon','delete-icon-btn'); deleteButton.innerHTML=ICONS.delete; deleteButton.setAttribute('aria-label','Xóa mục tiêu'); deleteButton.onclick=()=>deleteGoal(goal.id,goalsListElement);
-
-                buttonContainer.appendChild(pinButton); // Add pin button
-                buttonContainer.appendChild(editButton);
-                buttonContainer.appendChild(completeButton);
-                buttonContainer.appendChild(deleteButton);
-
-                goalHeader.appendChild(nameElement); goalHeader.appendChild(buttonContainer);
-                const goalDetails = document.createElement('div'); goalDetails.classList.add('goal-details');
-                if(goal.description){ const d=document.createElement('p'); d.classList.add('goal-description'); d.textContent=goal.description; goalDetails.appendChild(d); }
-                if(goal.dueDate&&!goal.completed){ const di=document.createElement('div'); const r=calculateDaysRemaining(goal.dueDate); di.classList.add('goal-due-date-info',r.class); const dt=document.createElement('span'); dt.classList.add('goal-due-date'); dt.textContent=`Hạn: ${formatDisplayDate(goal.dueDate)}`; const rt=document.createElement('span'); rt.classList.add('goal-days-remaining'); rt.textContent=r.text; di.appendChild(dt); di.appendChild(rt); goalDetails.appendChild(di); } else if(goal.dueDate&&goal.completed){ const cd=document.createElement('p'); cd.classList.add('goal-due-date','text-gray-400'); cd.textContent=`(Hạn chót: ${formatDisplayDate(goal.dueDate)})`; goalDetails.appendChild(cd); }
-
-                goalElement.appendChild(goalHeader); if(goalDetails.hasChildNodes()){ goalElement.appendChild(goalDetails); }
-                goalsListElement.appendChild(goalElement);
-            });
-        }
-
-        // Updated addGoal to include isPinned
-        function addGoal(nameInput, descInput, dueDateInput, goalsListElement) {
-            if (!nameInput||!descInput||!dueDateInput||!goalsListElement) return;
-            const gn=nameInput.value.trim(); const gd=descInput.value.trim(); const gdd=dueDateInput.value;
-            if(gn){
-                const g=getGoals(); const n=Date.now();
-                const ng={id:n, name:gn, description:gd, dueDate:gdd||null, completed:false, createdAt:n, modifiedAt:null, isPinned: false }; // Add isPinned: false
-                g.push(ng); saveGoals(g);
-                nameInput.value=''; descInput.value=''; dueDateInput.value='';
-                displayGoals(goalsListElement); console.log("Added goal:",ng);
-            } else { console.log("Goal name empty."); alert("Tên mục tiêu không được để trống!"); }
-        }
-
+        function getGoals() { /* ... (no changes) ... */ const g=localStorage.getItem(GOALS_STORAGE_KEY); try { const p=g?JSON.parse(g):[]; return p.map(go=>({...go, isPinned: go.isPinned || false })); } catch(e){console.error("Error parsing goals:",e); return [];} }
+        function saveGoals(goals) { /* ... (no changes) ... */ localStorage.setItem(GOALS_STORAGE_KEY,JSON.stringify(goals)); }
+        function formatDisplayDate(dateString) { /* ... (no changes) ... */ if(!dateString)return ''; try{const [y,m,d]=dateString.split('-'); return `${d}/${m}/${y}`;} catch(e){console.error("Error formatting date:",e); return dateString;} }
+        function calculateDaysRemaining(dueDateString) { /* ... (no changes) ... */ if (!dueDateString) return { text: '', class: '' }; try { const t=new Date(); t.setHours(0,0,0,0); const d=new Date(dueDateString); d.setHours(0,0,0,0); const diffTime=d.getTime()-t.getTime(); const diffDays=Math.ceil(diffTime/(1000*60*60*24)); if(diffDays<0){return { text:`Quá hạn ${Math.abs(diffDays)} ngày`, class:'overdue'};} else if(diffDays===0){return { text:'Hết hạn hôm nay', class:'due-soon'};} else if(diffDays<=7){return { text:`Còn ${diffDays} ngày`, class:'due-soon'};} else {return { text:`Còn ${diffDays} ngày`, class:'on-track'};} } catch(e){console.error("Error calculating days remaining:",e); return { text:'', class:''};} }
+        function displayGoals(goalsListElement) { /* ... (no changes) ... */ if(!goalsListElement){console.error("Goals list element needed");return;} const g=getGoals(); goalsListElement.innerHTML=''; if(g.length===0){goalsListElement.innerHTML='<p class="empty-state-message">Chưa có mục tiêu nào.</p>';return;} g.sort((a,b)=>(b.isPinned-a.isPinned)||(a.completed-b.completed)||(new Date(a.dueDate||'9999-12-31')-new Date(b.dueDate||'9999-12-31'))||(b.createdAt-a.createdAt)); g.forEach(go=>{const ge=document.createElement('div'); ge.dataset.goalId=go.id; ge.classList.add('goal-item','list-item-hover'); if(go.completed)ge.classList.add('completed'); if(go.isPinned)ge.classList.add('pinned'); if(go.isPinned){const pi=document.createElement('span'); pi.classList.add('pin-indicator'); pi.style.color='#4f46e5'; pi.innerHTML=ICONS.pin_filled; ge.appendChild(pi);} const gh=document.createElement('div'); gh.classList.add('goal-header'); const ne=document.createElement('span'); ne.classList.add('goal-name'); ne.textContent=go.name; const bc=document.createElement('div'); bc.classList.add('flex-shrink-0','flex','items-center'); const pb=document.createElement('button'); pb.classList.add('action-button-icon','pin-icon-btn'); if(go.isPinned){pb.classList.add('pinned'); pb.innerHTML=ICONS.pin_filled; pb.setAttribute('aria-label','Bỏ ghim mục tiêu');} else {pb.innerHTML=ICONS.pin; pb.setAttribute('aria-label','Ghim mục tiêu');} pb.onclick=()=>toggleGoalPin(go.id,goalsListElement); const eb=document.createElement('button'); eb.classList.add('action-button-icon','edit-icon-btn'); eb.innerHTML=ICONS.edit; eb.setAttribute('aria-label','Sửa mục tiêu'); eb.onclick=()=>toggleGoalEdit(go.id,goalsListElement); const cb=document.createElement('button'); cb.classList.add('action-button-icon'); if(go.completed){cb.classList.add('undo-icon-btn'); cb.innerHTML=ICONS.undo; cb.setAttribute('aria-label','Đánh dấu chưa hoàn thành');} else {cb.classList.add('complete-icon-btn'); cb.innerHTML=ICONS.check; cb.setAttribute('aria-label','Đánh dấu hoàn thành');} cb.onclick=()=>toggleGoalComplete(go.id,goalsListElement); const db=document.createElement('button'); db.classList.add('action-button-icon','delete-icon-btn'); db.innerHTML=ICONS.delete; db.setAttribute('aria-label','Xóa mục tiêu'); db.onclick=()=>deleteGoal(go.id,goalsListElement); bc.appendChild(pb); bc.appendChild(eb); bc.appendChild(cb); bc.appendChild(db); gh.appendChild(ne); gh.appendChild(bc); const gd=document.createElement('div'); gd.classList.add('goal-details'); if(go.description){const d=document.createElement('p'); d.classList.add('goal-description'); d.textContent=go.description; gd.appendChild(d);} if(go.dueDate&&!go.completed){const di=document.createElement('div'); const r=calculateDaysRemaining(go.dueDate); di.classList.add('goal-due-date-info',r.class); const dt=document.createElement('span'); dt.classList.add('goal-due-date'); dt.textContent=`Hạn: ${formatDisplayDate(go.dueDate)}`; const rt=document.createElement('span'); rt.classList.add('goal-days-remaining'); rt.textContent=r.text; di.appendChild(dt); di.appendChild(rt); gd.appendChild(di);} else if(go.dueDate&&go.completed){const cd=document.createElement('p'); cd.classList.add('goal-due-date','text-gray-400'); cd.textContent=`(Hạn chót: ${formatDisplayDate(go.dueDate)})`; gd.appendChild(cd);} ge.appendChild(gh); if(gd.hasChildNodes()){ge.appendChild(gd);} goalsListElement.appendChild(ge);}); }
+        function addGoal(nameInput, descInput, dueDateInput, goalsListElement) { /* ... (no changes) ... */ if (!nameInput||!descInput||!dueDateInput||!goalsListElement) return; const gn=nameInput.value.trim(); const gd=descInput.value.trim(); const gdd=dueDateInput.value; if(gn){const g=getGoals(); const n=Date.now(); const ng={id:n, name:gn, description:gd, dueDate:gdd||null, completed:false, createdAt:n, modifiedAt:null, isPinned: false }; g.push(ng); saveGoals(g); nameInput.value=''; descInput.value=''; dueDateInput.value=''; displayGoals(goalsListElement); console.log("Added goal:",ng);} else { console.log("Goal name empty."); alert("Tên mục tiêu không được để trống!"); } }
         function deleteGoal(goalId, goalsListElement) { /* ... (no changes) ... */ if (!window.confirm("Bạn có chắc muốn xóa mục tiêu này không?")) return; let g=getGoals(); g=g.filter(go=>go.id!==goalId); saveGoals(g); displayGoals(goalsListElement); console.log("Deleted goal ID:",goalId); }
         function toggleGoalComplete(goalId, goalsListElement) { /* ... (no changes) ... */ let g=getGoals(); const i=g.findIndex(go=>go.id===goalId); if(i>-1){g[i].completed=!g[i].completed; g[i].modifiedAt=Date.now(); saveGoals(g); displayGoals(goalsListElement); console.log(`Toggled completion: ${goalId} to ${g[i].completed}`);} else {console.error("Cannot find goal to toggle:",goalId);} }
         function toggleGoalEdit(goalId, goalsListElement) { /* ... (no changes) ... */ displayGoals(goalsListElement); const el=goalsListElement.querySelector(`[data-goal-id='${goalId}']`); if(!el)return; const g=getGoals(); const go=g.find(i=>i.id===goalId); if(!go)return; const ea=document.createElement('div'); ea.classList.add('goal-edit-area','mt-2','pt-2','border-t','border-gray-300'); const nl=document.createElement('label'); nl.textContent="Tên:"; nl.classList.add('block','text-xs','font-medium','text-gray-600','mb-1'); const ni=document.createElement('input'); ni.type='text'; ni.value=go.name; ni.required=true; ea.appendChild(nl); ea.appendChild(ni); const dl=document.createElement('label'); dl.textContent="Mô tả:"; dl.classList.add('block','text-xs','font-medium','text-gray-600','mb-1','mt-2'); const dt=document.createElement('textarea'); dt.rows='3'; dt.value=go.description||''; ea.appendChild(dl); ea.appendChild(dt); const ddl=document.createElement('label'); ddl.textContent="Hạn chót:"; ddl.classList.add('block','text-xs','font-medium','text-gray-600','mb-1','mt-2'); const ddi=document.createElement('input'); ddi.type='date'; ddi.value=go.dueDate||''; ea.appendChild(ddl); ea.appendChild(ddi); const ebc=document.createElement('div'); ebc.classList.add('flex','justify-end','mt-3'); const sb=document.createElement('button'); sb.classList.add('action-button-icon','save-icon-btn'); sb.innerHTML=ICONS.save; sb.setAttribute('aria-label','Lưu thay đổi'); sb.onclick=()=>saveGoalEdit(goalId,ni.value,dt.value,ddi.value,goalsListElement); const cb=document.createElement('button'); cb.classList.add('action-button-icon','cancel-icon-btn'); cb.innerHTML=ICONS.cancel; cb.setAttribute('aria-label','Hủy bỏ'); cb.onclick=()=>displayGoals(goalsListElement); ebc.appendChild(sb); ebc.appendChild(cb); ea.appendChild(ebc); el.innerHTML=''; el.appendChild(ea); el.classList.add('editing'); ni.focus(); }
         function saveGoalEdit(goalId, newName, newDesc, newDueDate, goalsListElement) { /* ... (no changes) ... */ const tn=newName.trim(); if(!tn){alert("Tên mục tiêu không được để trống!"); return;} let g=getGoals(); const i=g.findIndex(go=>go.id===goalId); if(i>-1){g[i].name=tn; g[i].description=newDesc.trim(); g[i].dueDate=newDueDate||null; g[i].modifiedAt=Date.now(); saveGoals(g); displayGoals(goalsListElement); console.log("Saved edit for goal:",goalId);} else {console.error("Cannot find goal to save:",goalId); displayGoals(goalsListElement);} }
-
-        // *** NEW: Toggle Pin State for Goal ***
-        function toggleGoalPin(goalId, goalsListElement) {
-            let goals = getGoals();
-            const goalIndex = goals.findIndex(goal => goal.id === goalId);
-            if (goalIndex > -1) {
-                goals[goalIndex].isPinned = !goals[goalIndex].isPinned; // Toggle pin status
-                goals[goalIndex].modifiedAt = Date.now(); // Optionally update modified time
-                saveGoals(goals);
-                displayGoals(goalsListElement); // Refresh display
-                console.log(`Toggled pin for goal ID: ${goalId} to ${goals[goalIndex].isPinned}`);
-            } else {
-                console.error("Could not find goal to toggle pin:", goalId);
-            }
-        }
+        function toggleGoalPin(goalId, goalsListElement) { let goals = getGoals(); const goalIndex = goals.findIndex(goal => goal.id === goalId); if (goalIndex > -1) { goals[goalIndex].isPinned = !goals[goalIndex].isPinned; goals[goalIndex].modifiedAt = Date.now(); saveGoals(goals); displayGoals(goalsListElement); console.log(`Toggled pin for goal ID: ${goalId} to ${goals[goalIndex].isPinned}`); } else { console.error("Could not find goal to toggle pin:", goalId); } }
 
         // --- Initialization and Event Listeners ---
         navLinks.forEach(link => { /* ... (no changes) ... */ link.addEventListener('click',(e)=>{e.preventDefault(); const sm=e.target.dataset.module; if(sm&&sm!==currentModule){currentModule=sm; renderAppContent();}}); });

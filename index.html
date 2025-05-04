@@ -6,45 +6,33 @@
     <title>Start Notes</title>
     <script type="module">
       // Import the functions you need from the SDKs you need
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"; // Sử dụng phiên bản 11.6.1 như bạn cung cấp
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
       import { getAuth } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
       import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-      // --- Firebase Configuration (Sử dụng cấu hình bạn cung cấp) ---
-      // CẢNH BÁO: Việc để lộ API key và các thông tin cấu hình khác trực tiếp
-      // trong mã nguồn phía client có thể tiềm ẩn rủi ro bảo mật trong một số trường hợp.
-      // Hãy đảm bảo bạn đã thiết lập các quy tắc bảo mật (Security Rules)
-      // cho Firestore và Authentication một cách chặt chẽ.
+      // --- Firebase Configuration ---
       const firebaseConfig = {
-        apiKey: "AIzaSyDa_zZMV5-4Jm17eRnscHiWbbsj7lHG84c", // Từ cấu hình của bạn
-        authDomain: "ghichu-0707.firebaseapp.com", // Từ cấu hình của bạn
-        projectId: "ghichu-0707", // Từ cấu hình của bạn
-        storageBucket: "ghichu-0707.appspot.com", // Sửa lại đuôi cho đúng chuẩn storageBucket
-        messagingSenderId: "1078227973532", // Từ cấu hình của bạn
-        appId: "1:1078227973532:web:29c9cd9db906297d58c459" // Từ cấu hình của bạn
+        apiKey: "AIzaSyDa_zZMV5-4Jm17eRnscHiWbbsj7lHG84c",
+        authDomain: "ghichu-0707.firebaseapp.com",
+        projectId: "ghichu-0707",
+        storageBucket: "ghichu-0707.appspot.com",
+        messagingSenderId: "1078227973532",
+        appId: "1:1078227973532:web:29c9cd9db906297d58c459"
       };
 
       // Initialize Firebase App
       try {
         const app = initializeApp(firebaseConfig);
-
-        // Initialize Firebase Services
         const auth = getAuth(app);
-        const db = getFirestore(app); // 'db' là tên thường dùng cho Firestore instance
-
-        // !!! Quan trọng: Đưa các instance vào global scope (window)
-        // để script.js (chưa phải module) có thể truy cập được.
+        const db = getFirestore(app);
         window.firebaseApp = app;
         window.firebaseAuth = auth;
         window.firebaseDb = db;
-
-        console.log("Firebase Initialized Successfully."); // Log để kiểm tra
-
+        console.log("Firebase Initialized Successfully.");
       } catch (error) {
         console.error("Firebase Initialization Failed:", error);
         alert("Không thể khởi tạo kết nối đến máy chủ dữ liệu. Vui lòng kiểm tra lại cấu hình hoặc thử lại sau.");
       }
-
     </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
@@ -59,18 +47,20 @@
     <header class="app-header">
         <h1>FlexiNote 4 Everthing</h1>
         <div class="header-actions">
-            <button id="manage-notebooks-btn" title="Quản lý các sổ tay">Quản lý Sổ tay</button>
-            <button id="manage-templates-btn" title="Quản lý các mẫu ghi chú">Quản lý Mẫu</button>
-            <button id="view-archive-btn" title="Xem các ghi chú đã lưu trữ">Xem Lưu trữ</button>
-            <button id="view-trash-btn" title="Xem các ghi chú đã xóa">Thùng rác</button>
+            <button id="manage-notebooks-btn" class="hidden" title="Quản lý các sổ tay">Quản lý Sổ tay</button>
+            <button id="manage-templates-btn" class="hidden" title="Quản lý các mẫu ghi chú">Quản lý Mẫu</button>
+            <button id="view-archive-btn" class="hidden" title="Xem các ghi chú đã lưu trữ">Xem Lưu trữ</button>
+            <button id="view-trash-btn" class="hidden" title="Xem các ghi chú đã xóa">Thùng rác</button>
             <button id="empty-trash-btn" class="hidden" title="Xóa vĩnh viễn tất cả ghi chú trong thùng rác">Dọn sạch Thùng rác</button>
-            <button id="export-notes-btn" title="Xuất tất cả ghi chú, mẫu và sổ tay ra file JSON">Xuất Notes</button>
-            <button id="import-notes-btn" title="Nhập ghi chú, mẫu và sổ tay từ file JSON (Sẽ thay thế toàn bộ dữ liệu hiện tại)">Nhập Notes</button>
+            <button id="export-notes-btn" class="hidden" title="Xuất tất cả ghi chú, mẫu và sổ tay ra file JSON">Xuất Notes</button>
+            <button id="import-notes-btn" class="hidden" title="Nhập ghi chú, mẫu và sổ tay từ file JSON (Sẽ thay thế toàn bộ dữ liệu hiện tại)">Nhập Notes</button>
             <input type="file" id="import-file-input" accept=".json" class="hidden">
             <button id="settings-btn" title="Mở cài đặt giao diện">Cài đặt</button>
             <button id="theme-toggle-btn" title="Chuyển đổi Chế độ Sáng/Tối"></button>
-             <button id="auth-button" class="hidden">Đăng nhập</button> </div>
-         <div id="user-status" class="user-status hidden">Đang đăng nhập với: <span id="user-email"></span></div> <div id="archive-status-indicator" class="archive-status hidden">Đang xem các ghi chú đã lưu trữ.</div>
+             <button id="auth-button" class="hidden">Đăng nhập</button>
+        </div>
+         <div id="user-status" class="user-status hidden">Đang đăng nhập với: <span id="user-email"></span></div>
+        <div id="archive-status-indicator" class="archive-status hidden">Đang xem các ghi chú đã lưu trữ.</div>
         <div id="trash-status-indicator" class="trash-status hidden">Đang xem Thùng rác.</div>
     </header>
 
@@ -94,12 +84,10 @@
     </div>
 
     <div id="notebook-tabs-container" class="notebook-tabs">
-        <button class="tab-button active" data-notebook-id="all">Tất cả Ghi chú</button>
-        <button id="add-notebook-tab-btn" class="add-tab-button" title="Thêm Sổ tay mới">+</button>
-    </div>
+        </div>
 
     <div class="controls-container">
-        <input type="search" id="search-input" placeholder="Tìm kiếm ghi chú (tiêu đề, nội dung hoặc #tag)...">
+        <input type="search" id="search-input" class="hidden" placeholder="Tìm kiếm ghi chú (tiêu đề, nội dung hoặc #tag)...">
         <div id="add-note-panel" class="hidden">
              <div class="form-group">
                  <label for="template-select">Sử dụng mẫu:</label>
@@ -118,9 +106,12 @@
     </div>
 
     <div id="notes-container">
-        <p class="empty-state">Vui lòng đăng nhập để xem ghi chú.</p> </div>
+         <p class="empty-state">Vui lòng đăng nhập để xem ghi chú.</p>
+    </div>
 
-    <button id="show-add-panel-btn" class="fab hidden" title="Thêm ghi chú mới">+</button> <div id="notebook-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="notebook-modal-title">
+    <button id="show-add-panel-btn" class="fab hidden" title="Thêm ghi chú mới">+</button>
+
+    <div id="notebook-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="notebook-modal-title">
         <div class="modal-content notebook-modal-content">
              <div class="modal-header">
                  <h2 id="notebook-modal-title">Quản lý Sổ tay</h2>

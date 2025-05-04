@@ -10,98 +10,50 @@
             font-family: 'Inter', sans-serif;
         }
         /* --- General UI Refinements --- */
-        .app-module-container { /* Added container for consistent padding */
-             background-color: white;
-             padding: 1.5rem; /* p-6 */
-             border-radius: 0.5rem; /* rounded-lg */
-             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* shadow-md */
-             min-height: 300px;
-        }
-        .empty-state-message { /* Style for "Chưa có..." messages */
-            text-align: center;
-            color: #6b7280; /* text-gray-500 */
-            padding: 2rem 0; /* py-8 */
-            font-style: italic;
-        }
-        .list-item-hover:hover { /* Hover effect for list items */
-             background-color: #f9fafb; /* bg-gray-50 */
-        }
-        .action-button-icon { /* Base style for icon buttons */
-            padding: 0.3rem; /* Slightly smaller padding */
-            margin-left: 0.5rem; /* ml-2 */
-            border-radius: 9999px; /* rounded-full */
-            transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
-            display: inline-flex; /* Needed for SVG alignment */
-            align-items: center;
-            justify-content: center;
-            width: 28px; /* Fixed width */
-            height: 28px; /* Fixed height */
-        }
-        .action-button-icon svg { /* Size for SVGs inside buttons */
-            width: 16px;
-            height: 16px;
-        }
-        .action-button-icon:hover {
-             background-color: rgba(0, 0, 0, 0.05); /* Subtle background on hover */
-        }
-        /* Specific icon button colors */
-        .edit-icon-btn { color: #2563eb; /* text-blue-600 */ }
-        .delete-icon-btn { color: #dc2626; /* text-red-600 */ }
-        .complete-icon-btn { color: #16a34a; /* text-green-600 */ }
-        .undo-icon-btn { color: #ca8a04; /* text-yellow-600 */ }
-        .save-icon-btn { color: #16a34a; /* text-green-600 */ }
-        .cancel-icon-btn { color: #4b5563; /* text-gray-600 */ }
-
-        /* Nav link refinement */
-        .nav-link {
-            padding: 0.5rem 1rem; border-radius: 0.375rem;
-            transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out; /* Added color transition */
-             cursor: pointer; font-weight: 500;
-             border: 1px solid transparent; /* Add transparent border for layout consistency */
-        }
-        .nav-link:hover {
-             background-color: rgba(255, 255, 255, 0.1);
-             color: #e0f2fe; /* sky-100 on hover */
-        }
-        .nav-link.active {
-             background-color: white; /* White background for active */
-             color: #2563eb; /* Blue text for active */
-             font-weight: 600;
-             border-color: #d1d5db; /* gray-300 border */
-        }
+        .app-module-container { background-color: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); min-height: 300px; }
+        .empty-state-message { text-align: center; color: #6b7280; padding: 2rem 0; font-style: italic; }
+        .list-item-hover:hover { background-color: #f9fafb; }
+        .action-button-icon { padding: 0.3rem; margin-left: 0.5rem; border-radius: 9999px; transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; }
+        .action-button-icon svg { width: 16px; height: 16px; }
+        .action-button-icon:hover { background-color: rgba(0, 0, 0, 0.05); }
+        .edit-icon-btn { color: #2563eb; } .delete-icon-btn { color: #dc2626; } .complete-icon-btn { color: #16a34a; } .undo-icon-btn { color: #ca8a04; } .save-icon-btn { color: #16a34a; } .cancel-icon-btn { color: #4b5563; }
+        .nav-link { padding: 0.5rem 1rem; border-radius: 0.375rem; transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out; cursor: pointer; font-weight: 500; border: 1px solid transparent; }
+        .nav-link:hover { background-color: rgba(255, 255, 255, 0.1); color: #e0f2fe; }
+        .nav-link.active { background-color: white; color: #2563eb; font-weight: 600; border-color: #d1d5db; }
 
         /* --- Notes Specific --- */
-        .note-item { /* Added specific class for note items */
-            background-color: #fefce8; /* bg-yellow-50 */
-            padding: 0.75rem; border-radius: 0.375rem;
-            border: 1px solid #fef9c3; /* border-yellow-100 */
-            transition: background-color 0.15s ease-in-out;
-        }
+        .note-item { background-color: #fefce8; padding: 0.75rem; border-radius: 0.375rem; border: 1px solid #fef9c3; transition: background-color 0.15s ease-in-out; }
         .note-content, .edit-textarea { white-space: pre-wrap; word-break: break-word; }
         .edit-textarea { min-height: 60px; }
-        .note-timestamp { font-size: 0.75rem; color: #a16207; /* text-yellow-700 */ margin-top: 0.5rem; }
+        .note-timestamp { font-size: 0.75rem; color: #a16207; margin-top: 0.5rem; }
 
         /* --- Goals Specific --- */
-        .goal-item {
-            display: flex; flex-direction: column; padding: 1rem; /* Increased padding */
-            border-radius: 0.375rem; background-color: #f3f4f6;
-            margin-bottom: 0.75rem; border: 1px solid #e5e7eb;
-            transition: background-color 0.15s ease-in-out;
-        }
+        .goal-item { display: flex; flex-direction: column; padding: 1rem; border-radius: 0.375rem; background-color: #f3f4f6; margin-bottom: 0.75rem; border: 1px solid #e5e7eb; transition: background-color 0.15s ease-in-out; }
         .goal-item.completed { background-color: #e5e7eb; }
-        .goal-item.editing { background-color: #f0f9ff; border-color: #bfdbfe; } /* Light blue for editing goal */
-
+        .goal-item.editing { background-color: #f0f9ff; border-color: #bfdbfe; }
         .goal-header { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; margin-bottom: 0.5rem; }
         .goal-name { flex-grow: 1; margin-right: 0.5rem; font-weight: 600; }
         .goal-item.completed .goal-name { text-decoration: line-through; color: #6b7280; font-weight: 500; }
-        .goal-details { width: 100%; font-size: 0.875rem; color: #4b5563; margin-top: 0.25rem; /* Added margin-top */ }
+        .goal-details { width: 100%; font-size: 0.875rem; color: #4b5563; margin-top: 0.25rem; }
         .goal-description { margin-bottom: 0.25rem; white-space: pre-wrap; word-break: break-word; }
-        .goal-due-date { font-style: italic; }
-        .goal-due-date.overdue { color: #dc2626; font-weight: 500; }
-        .goal-edit-area textarea, .goal-edit-area input[type="date"], .goal-edit-area input[type="text"] {
-            width: 100%; padding: 0.25rem 0.5rem; border: 1px solid #d1d5db;
-            border-radius: 0.25rem; margin-bottom: 0.5rem; font-size: 0.875rem;
+        /* Due Date Styling */
+        .goal-due-date-info { /* Container for date and remaining days */
+             display: flex;
+             justify-content: space-between; /* Place date and remaining side-by-side */
+             align-items: baseline; /* Align baselines */
+             margin-top: 0.3rem; /* Add a bit more space */
+             padding: 0.25rem 0.5rem; /* Add some padding */
+             border-radius: 0.25rem; /* Slightly rounded */
+             background-color: rgba(0, 0, 0, 0.02); /* Very subtle background */
         }
+        .goal-due-date { font-style: italic; font-weight: 500; }
+        .goal-days-remaining { font-weight: 600; font-size: 0.8rem; }
+        /* Color coding for urgency */
+        .due-soon { color: #ca8a04; /* text-yellow-600 */ background-color: #fefce8; /* yellow-50 */ border-left: 3px solid #facc15; /* yellow-400 */ }
+        .overdue { color: #b91c1c; /* text-red-700 */ background-color: #fee2e2; /* red-100 */ border-left: 3px solid #ef4444; /* red-500 */ }
+        .on-track { color: #15803d; /* text-green-700 */ background-color: #f0fdf4; /* green-50 */ border-left: 3px solid #4ade80; /* green-400 */ }
+
+        .goal-edit-area textarea, .goal-edit-area input[type="date"], .goal-edit-area input[type="text"] { width: 100%; padding: 0.25rem 0.5rem; border: 1px solid #d1d5db; border-radius: 0.25rem; margin-bottom: 0.5rem; font-size: 0.875rem; }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -138,219 +90,62 @@
         const mainNav = document.getElementById('main-nav');
         const navLinks = mainNav.querySelectorAll('.nav-link');
 
-        // --- SVG Icons --- (Define SVGs for reuse)
-        const ICONS = {
-            edit: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>`,
-            delete: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>`,
-            check: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>`,
-            undo: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" /></svg>`,
-            save: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75 l6 6 9-13.5" /></svg>`, // Reusing check for save
-            cancel: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>`
-        };
+        // --- SVG Icons ---
+        const ICONS = { edit: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>`, delete: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>`, check: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>`, undo: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" /></svg>`, save: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75 l6 6 9-13.5" /></svg>`, cancel: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>` };
 
         // --- Module Building Functions ---
-
-        function buildNotesUI() {
-             // Add app-module-container class to the outer div if it's not already there
-            if (!appContent.classList.contains('app-module-container')) {
-                 appContent.className = 'app-module-container'; // Reset class
-            }
-            appContent.innerHTML = `
-                <h2 class="text-xl font-semibold mb-4">Ghi Chú Nhanh</h2>
-                <div class="mb-4"> <textarea id="note-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="4" placeholder="Nhập ghi chú..."></textarea> </div>
-                <button id="add-note-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out mb-6"> Thêm Ghi Chú </button>
-                <div class="mb-4"> <input type="search" id="search-input" placeholder="Tìm kiếm ghi chú..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> </div>
-                <div id="notes-list" class="mt-6 space-y-3"> </div>
-            `;
-            const noteInput = document.getElementById('note-input');
-            const addNoteBtn = document.getElementById('add-note-btn');
-            const searchInput = document.getElementById('search-input');
-            const notesList = document.getElementById('notes-list');
-            addNoteBtn.addEventListener('click', () => addNote(noteInput, searchInput));
-            noteInput.addEventListener('keydown', (event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); addNote(noteInput, searchInput); } });
-            searchInput.addEventListener('input', (event) => displayNotes(notesList, searchInput, event.target.value));
-            displayNotes(notesList, searchInput);
-        }
-
-        function buildGoalsUI() {
-             if (!appContent.classList.contains('app-module-container')) {
-                 appContent.className = 'app-module-container'; // Reset class
-            }
-            appContent.innerHTML = `
-                <h2 class="text-xl font-semibold mb-4">Theo dõi Mục tiêu</h2>
-                <form id="add-goal-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3">
-                     <div>
-                         <label for="goal-input" class="block text-sm font-medium text-gray-700 mb-1">Tên mục tiêu:</label>
-                         <input type="text" id="goal-input" placeholder="Ví dụ: Học JavaScript nâng cao" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                     </div>
-                     <div>
-                         <label for="goal-desc-input" class="block text-sm font-medium text-gray-700 mb-1">Mô tả (tùy chọn):</label>
-                         <textarea id="goal-desc-input" placeholder="Mô tả chi tiết các bước hoặc lý do..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
-                     </div>
-                     <div>
-                         <label for="goal-due-date-input" class="block text-sm font-medium text-gray-700 mb-1">Hạn chót (tùy chọn):</label>
-                         <input type="date" id="goal-due-date-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                     </div>
-                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out w-full sm:w-auto">
-                        Thêm Mục tiêu
-                    </button>
-                </form>
-                <h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Mục tiêu</h3>
-                <div id="goals-list" class="space-y-3">
-                    </div>
-            `;
-            const addGoalForm = document.getElementById('add-goal-form');
-            const goalInput = document.getElementById('goal-input');
-            const goalDescInput = document.getElementById('goal-desc-input');
-            const goalDueDateInput = document.getElementById('goal-due-date-input');
-            const goalsList = document.getElementById('goals-list');
-            addGoalForm.addEventListener('submit', (event) => {
-                event.preventDefault();
-                addGoal(goalInput, goalDescInput, goalDueDateInput, goalsList);
-            });
-            displayGoals(goalsList);
-        }
+        function buildNotesUI() { /* ... (no changes needed in this function) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Ghi Chú Nhanh</h2><div class="mb-4"><textarea id="note-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="4" placeholder="Nhập ghi chú..."></textarea></div><button id="add-note-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out mb-6">Thêm Ghi Chú</button><div class="mb-4"><input type="search" id="search-input" placeholder="Tìm kiếm ghi chú..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div id="notes-list" class="mt-6 space-y-3"></div>`; const ni=document.getElementById('note-input'); const ab=document.getElementById('add-note-btn'); const si=document.getElementById('search-input'); const nl=document.getElementById('notes-list'); ab.addEventListener('click',()=>addNote(ni,si)); ni.addEventListener('keydown',(e)=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();addNote(ni,si);}}); si.addEventListener('input',(e)=>displayNotes(nl,si,e.target.value)); displayNotes(nl,si); }
+        function buildGoalsUI() { /* ... (no changes needed in this function) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Theo dõi Mục tiêu</h2><form id="add-goal-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3"><div><label for="goal-input" class="block text-sm font-medium text-gray-700 mb-1">Tên mục tiêu:</label><input type="text" id="goal-input" placeholder="Ví dụ: Học JavaScript nâng cao" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div><label for="goal-desc-input" class="block text-sm font-medium text-gray-700 mb-1">Mô tả (tùy chọn):</label><textarea id="goal-desc-input" placeholder="Mô tả chi tiết các bước hoặc lý do..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea></div><div><label for="goal-due-date-input" class="block text-sm font-medium text-gray-700 mb-1">Hạn chót (tùy chọn):</label><input type="date" id="goal-due-date-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out w-full sm:w-auto">Thêm Mục tiêu</button></form><h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Mục tiêu</h3><div id="goals-list" class="space-y-3"></div>`; const agf=document.getElementById('add-goal-form'); const gi=document.getElementById('goal-input'); const gdi=document.getElementById('goal-desc-input'); const gddi=document.getElementById('goal-due-date-input'); const gl=document.getElementById('goals-list'); agf.addEventListener('submit',(e)=>{e.preventDefault();addGoal(gi,gdi,gddi,gl);}); displayGoals(gl); }
 
         // --- Core Application Logic ---
-
-        function renderAppContent() {
-            console.log(`Rendering module: ${currentModule}`);
-            document.title = `Ứng dụng Cá nhân - ${currentModule === 'notes' ? 'Ghi Chú' : 'Mục tiêu'}`;
-            navLinks.forEach(link => { link.classList.toggle('active', link.dataset.module === currentModule); });
-            // Clear previous content before building new UI
-            appContent.innerHTML = `<p class="empty-state-message">Đang tải ${currentModule === 'notes' ? 'Ghi chú' : 'Mục tiêu'}...</p>`; // Show loading state briefly
-            // Use setTimeout to allow the loading message to render before potentially heavy UI building
-            setTimeout(() => {
-                switch (currentModule) {
-                    case 'notes': buildNotesUI(); break;
-                    case 'goals': buildGoalsUI(); break;
-                    default: appContent.innerHTML = '<p class="empty-state-message">Module không xác định.</p>';
-                }
-            }, 0); // Timeout 0ms ensures it runs after current execution stack clears
-        }
+        function renderAppContent() { /* ... (no changes needed in this function) ... */ console.log(`Rendering module: ${currentModule}`); document.title=`Ứng dụng Cá nhân - ${currentModule==='notes'?'Ghi Chú':'Mục tiêu'}`; navLinks.forEach(l=>{l.classList.toggle('active',l.dataset.module===currentModule);}); appContent.innerHTML=`<p class="empty-state-message">Đang tải ${currentModule==='notes'?'Ghi chú':'Mục tiêu'}...</p>`; setTimeout(()=>{switch(currentModule){case 'notes':buildNotesUI();break;case 'goals':buildGoalsUI();break;default:appContent.innerHTML='<p class="empty-state-message">Module không xác định.</p>';}},0); }
 
         // --- Note Management Functions ---
-        function getNotes() { const n=localStorage.getItem('quickNotes'); try { const p=n?JSON.parse(n):[]; return p.map(no=>({...no})); } catch(e){console.error("Error parsing notes:",e); return [];} }
-        function saveNotes(notes) { localStorage.setItem('quickNotes',JSON.stringify(notes)); }
-        function formatTimestamp(timestamp) { if(!timestamp)return ''; const d=new Date(timestamp); return `${d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}, ${d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'})}`; }
-
-        // Updated displayNotes with Icons and Hover
-        function displayNotes(listEl, searchEl, term='') {
-             if(!listEl||!searchEl){return;}
-             let notes = getNotes();
-             const s = term.toLowerCase().trim();
-             if(s){ notes = notes.filter(no=>no.content.toLowerCase().includes(s)); }
-             listEl.innerHTML=''; // Clear list
-
-             if(notes.length===0){
-                 listEl.innerHTML=`<p class="empty-state-message">${s?'Không tìm thấy ghi chú nào khớp.':'Chưa có ghi chú nào.'}</p>`;
-                 return;
-             }
-
-             notes.sort((a,b)=>(b.modifiedAt||b.createdAt)-(a.modifiedAt||a.createdAt));
-
-             notes.forEach(note=>{
-                 const noteElement = document.createElement('div');
-                 noteElement.dataset.noteId = note.id;
-                 // Add note-item and list-item-hover classes
-                 noteElement.classList.add('note-item', 'list-item-hover', 'flex', 'flex-col');
-
-                 const topRow = document.createElement('div');
-                 topRow.classList.add('flex', 'justify-between', 'items-start', 'w-full');
-
-                 const contentContainer = document.createElement('div');
-                 contentContainer.classList.add('flex-grow', 'mr-2');
-                 const contentElement = document.createElement('p');
-                 contentElement.classList.add('note-content', 'text-gray-800'); // Darker text
-                 contentElement.textContent = note.content;
-                 contentContainer.appendChild(contentElement);
-
-                 const buttonContainer = document.createElement('div');
-                 buttonContainer.classList.add('flex-shrink-0', 'flex', 'items-center'); // Align icons vertically
-
-                 // Edit Button (Icon)
-                 const editButton = document.createElement('button');
-                 editButton.classList.add('action-button-icon', 'edit-icon-btn');
-                 editButton.innerHTML = ICONS.edit; // Use SVG icon
-                 editButton.setAttribute('aria-label', 'Sửa ghi chú'); // Accessibility
-                 editButton.onclick=()=>toggleEdit(note.id,listEl,searchEl);
-
-                 // Delete Button (Icon)
-                 const deleteButton = document.createElement('button');
-                 deleteButton.classList.add('action-button-icon', 'delete-icon-btn');
-                 deleteButton.innerHTML = ICONS.delete; // Use SVG icon
-                 deleteButton.setAttribute('aria-label', 'Xóa ghi chú'); // Accessibility
-                 deleteButton.onclick=()=>deleteNote(note.id,listEl,searchEl);
-
-                 buttonContainer.appendChild(editButton);
-                 buttonContainer.appendChild(deleteButton);
-
-                 topRow.appendChild(contentContainer);
-                 topRow.appendChild(buttonContainer);
-
-                 const ts = document.createElement('p');
-                 ts.classList.add('note-timestamp', 'w-full', 'text-right'); // Align right
-                 const cr = formatTimestamp(note.createdAt);
-                 const md = formatTimestamp(note.modifiedAt);
-                 ts.textContent = md ? `Sửa đổi: ${md}` : (cr ? `Đã tạo: ${cr}` : '');
-
-                 noteElement.appendChild(topRow);
-                 if(ts.textContent){ noteElement.appendChild(ts); }
-                 listEl.appendChild(noteElement);
-             });
-        }
-
-        function addNote(inputEl, searchEl) { if(!inputEl||!searchEl)return; const c=inputEl.value.trim(); if(c){const n=getNotes(); const now=Date.now(); const nn={id:now,content:c,createdAt:now,modifiedAt:null}; n.push(nn); saveNotes(n); inputEl.value=''; searchEl.value=''; const cl=document.getElementById('notes-list'); if(cl){displayNotes(cl,searchEl);}} }
-        function deleteNote(id, listEl, searchEl) { if(!window.confirm("Bạn chắc chắn xóa ghi chú này?"))return; let n=getNotes(); n=n.filter(no=>no.id!==id); saveNotes(n); displayNotes(listEl,searchEl,searchEl.value); }
-
-        // Updated toggleEdit with Icons
-        function toggleEdit(id, listEl, searchEl) {
-             displayNotes(listEl,searchEl,searchEl.value); // Refresh first
-             const el=listEl.querySelector(`[data-note-id='${id}']`); if(!el)return;
-             const tr=el.querySelector('div:first-child'); const cc=tr.querySelector('div:first-child'); const bc=tr.querySelector('div:last-child');
-             const n=getNotes(); const no=n.find(i=>i.id===id); if(!no)return;
-
-             // Keep top row structure, replace content and buttons
-             cc.innerHTML = ''; // Clear original content <p>
-             bc.innerHTML = ''; // Clear original buttons
-
-             const ei=document.createElement('textarea');
-             ei.classList.add('w-full','p-1','border','border-gray-300','rounded-md','focus:outline-none','focus:ring-1','focus:ring-blue-500','edit-textarea','note-content');
-             ei.value=no.content;
-             cc.appendChild(ei); // Add textarea to content container
-
-             // Save Button (Icon)
-             const saveButton = document.createElement('button');
-             saveButton.classList.add('action-button-icon', 'save-icon-btn');
-             saveButton.innerHTML = ICONS.save;
-             saveButton.setAttribute('aria-label', 'Lưu thay đổi');
-             saveButton.onclick=()=>saveEdit(id,ei.value,listEl,searchEl);
-
-             // Cancel Button (Icon)
-             const cancelButton = document.createElement('button');
-             cancelButton.classList.add('action-button-icon', 'cancel-icon-btn');
-             cancelButton.innerHTML = ICONS.cancel;
-             cancelButton.setAttribute('aria-label', 'Hủy bỏ');
-             cancelButton.onclick=()=>displayNotes(listEl,searchEl,searchEl.value);
-
-             bc.appendChild(saveButton);
-             bc.appendChild(cancelButton);
-
-             el.classList.add('editing'); // Mark visually if needed (optional)
-             ei.focus();
-        }
-
-        function saveEdit(id, content, listEl, searchEl) { const tc=content.trim(); if(!tc){displayNotes(listEl,searchEl,searchEl.value); return;} let n=getNotes(); const idx=n.findIndex(no=>no.id===id); if(idx>-1){n[idx].content=tc; n[idx].modifiedAt=Date.now(); saveNotes(n); displayNotes(listEl,searchEl,searchEl.value);} else {console.error("Cannot find note to save:",id); displayNotes(listEl,searchEl,searchEl.value);} }
+        function getNotes() { /* ... (no changes) ... */ const n=localStorage.getItem('quickNotes'); try { const p=n?JSON.parse(n):[]; return p.map(no=>({...no})); } catch(e){console.error("Error parsing notes:",e); return [];} }
+        function saveNotes(notes) { /* ... (no changes) ... */ localStorage.setItem('quickNotes',JSON.stringify(notes)); }
+        function formatTimestamp(timestamp) { /* ... (no changes) ... */ if(!timestamp)return ''; const d=new Date(timestamp); return `${d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}, ${d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'})}`; }
+        function displayNotes(listEl, searchEl, term='') { /* ... (no changes needed in this function) ... */ if(!listEl||!searchEl){return;} let n=getNotes(); const s=term.toLowerCase().trim(); if(s){n=n.filter(no=>no.content.toLowerCase().includes(s));} listEl.innerHTML=''; if(n.length===0){listEl.innerHTML=`<p class="empty-state-message">${s?'Không tìm thấy ghi chú nào khớp.':'Chưa có ghi chú nào.'}</p>`; return;} n.sort((a,b)=>(b.modifiedAt||b.createdAt)-(a.modifiedAt||a.createdAt)); n.forEach(no=>{const el=document.createElement('div'); el.dataset.noteId=no.id; el.classList.add('note-item','list-item-hover','flex','flex-col'); const tr=document.createElement('div'); tr.classList.add('flex','justify-between','items-start','w-full'); const cc=document.createElement('div'); cc.classList.add('flex-grow','mr-2'); const ce=document.createElement('p'); ce.classList.add('note-content','text-gray-800'); ce.textContent=no.content; cc.appendChild(ce); const bc=document.createElement('div'); bc.classList.add('flex-shrink-0','flex','items-center'); const eb=document.createElement('button'); eb.classList.add('action-button-icon','edit-icon-btn'); eb.innerHTML=ICONS.edit; eb.setAttribute('aria-label','Sửa ghi chú'); eb.onclick=()=>toggleEdit(no.id,listEl,searchEl); const db=document.createElement('button'); db.classList.add('action-button-icon','delete-icon-btn'); db.innerHTML=ICONS.delete; db.setAttribute('aria-label','Xóa ghi chú'); db.onclick=()=>deleteNote(no.id,listEl,searchEl); bc.appendChild(eb); bc.appendChild(db); tr.appendChild(cc); tr.appendChild(bc); const ts=document.createElement('p'); ts.classList.add('note-timestamp','w-full','text-right'); const cr=formatTimestamp(no.createdAt); const md=formatTimestamp(no.modifiedAt); ts.textContent=md?`Sửa đổi: ${md}`:(cr?`Đã tạo: ${cr}`:''); el.appendChild(tr); if(ts.textContent){el.appendChild(ts);} listEl.appendChild(el);}); }
+        function addNote(inputEl, searchEl) { /* ... (no changes) ... */ if(!inputEl||!searchEl)return; const c=inputEl.value.trim(); if(c){const n=getNotes(); const now=Date.now(); const nn={id:now,content:c,createdAt:now,modifiedAt:null}; n.push(nn); saveNotes(n); inputEl.value=''; searchEl.value=''; const cl=document.getElementById('notes-list'); if(cl){displayNotes(cl,searchEl);}} }
+        function deleteNote(id, listEl, searchEl) { /* ... (no changes) ... */ if(!window.confirm("Bạn chắc chắn xóa ghi chú này?"))return; let n=getNotes(); n=n.filter(no=>no.id!==id); saveNotes(n); displayNotes(listEl,searchEl,searchEl.value); }
+        function toggleEdit(id, listEl, searchEl) { /* ... (no changes needed in this function) ... */ displayNotes(listEl,searchEl,searchEl.value); const el=listEl.querySelector(`[data-note-id='${id}']`); if(!el)return; const tr=el.querySelector('div:first-child'); const cc=tr.querySelector('div:first-child'); const bc=tr.querySelector('div:last-child'); const n=getNotes(); const no=n.find(i=>i.id===id); if(!no)return; cc.innerHTML=''; bc.innerHTML=''; const ei=document.createElement('textarea'); ei.classList.add('w-full','p-1','border','border-gray-300','rounded-md','focus:outline-none','focus:ring-1','focus:ring-blue-500','edit-textarea','note-content'); ei.value=no.content; cc.appendChild(ei); const sb=document.createElement('button'); sb.classList.add('action-button-icon','save-icon-btn'); sb.innerHTML=ICONS.save; sb.setAttribute('aria-label','Lưu thay đổi'); sb.onclick=()=>saveEdit(id,ei.value,listEl,searchEl); const cb=document.createElement('button'); cb.classList.add('action-button-icon','cancel-icon-btn'); cb.innerHTML=ICONS.cancel; cb.setAttribute('aria-label','Hủy bỏ'); cb.onclick=()=>displayNotes(listEl,searchEl,searchEl.value); bc.appendChild(sb); bc.appendChild(cb); el.classList.add('editing'); ei.focus(); }
+        function saveEdit(id, content, listEl, searchEl) { /* ... (no changes) ... */ const tc=content.trim(); if(!tc){displayNotes(listEl,searchEl,searchEl.value); return;} let n=getNotes(); const idx=n.findIndex(no=>no.id===id); if(idx>-1){n[idx].content=tc; n[idx].modifiedAt=Date.now(); saveNotes(n); displayNotes(listEl,searchEl,searchEl.value);} else {console.error("Cannot find note to save:",id); displayNotes(listEl,searchEl,searchEl.value);} }
 
 
         // --- Goal Management Functions ---
         const GOALS_STORAGE_KEY = 'personalGoals';
-        function getGoals() { const g=localStorage.getItem(GOALS_STORAGE_KEY); try { const p=g?JSON.parse(g):[]; return p.map(go=>({...go})); } catch(e){console.error("Error parsing goals:",e); return [];} }
-        function saveGoals(goals) { localStorage.setItem(GOALS_STORAGE_KEY,JSON.stringify(goals)); }
-        function formatDisplayDate(dateString) { if(!dateString)return ''; try{const [y,m,d]=dateString.split('-'); return `${d}/${m}/${y}`;} catch(e){console.error("Error formatting date:",e); return dateString;} }
-        function isOverdue(dueDateString, completed) { if(!dueDateString||completed)return false; try{const t=new Date(); t.setHours(0,0,0,0); const d=new Date(dueDateString); d.setHours(0,0,0,0); return d<t;}catch(e){return false;} }
+        function getGoals() { /* ... (no changes) ... */ const g=localStorage.getItem(GOALS_STORAGE_KEY); try { const p=g?JSON.parse(g):[]; return p.map(go=>({...go})); } catch(e){console.error("Error parsing goals:",e); return [];} }
+        function saveGoals(goals) { /* ... (no changes) ... */ localStorage.setItem(GOALS_STORAGE_KEY,JSON.stringify(goals)); }
+        function formatDisplayDate(dateString) { /* ... (no changes) ... */ if(!dateString)return ''; try{const [y,m,d]=dateString.split('-'); return `${d}/${m}/${y}`;} catch(e){console.error("Error formatting date:",e); return dateString;} }
 
-        // Updated displayGoals with Icons and Hover
+        // *** NEW: Helper Function to Calculate Days Remaining ***
+        function calculateDaysRemaining(dueDateString) {
+            if (!dueDateString) return { text: '', class: '' }; // No due date
+
+            try {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Set to start of today
+                const dueDate = new Date(dueDateString);
+                dueDate.setHours(0, 0, 0, 0); // Set to start of due date
+
+                const diffTime = dueDate.getTime() - today.getTime();
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Calculate difference in days
+
+                if (diffDays < 0) {
+                    return { text: `Quá hạn ${Math.abs(diffDays)} ngày`, class: 'overdue' };
+                } else if (diffDays === 0) {
+                    return { text: 'Hết hạn hôm nay', class: 'due-soon' }; // Or 'overdue' depending on preference
+                } else if (diffDays <= 7) { // Example: Highlight if due within a week
+                    return { text: `Còn ${diffDays} ngày`, class: 'due-soon' };
+                } else {
+                    return { text: `Còn ${diffDays} ngày`, class: 'on-track' };
+                }
+            } catch (e) {
+                console.error("Error calculating days remaining:", e);
+                return { text: '', class: '' }; // Return empty on error
+            }
+        }
+
+        // *** UPDATED: displayGoals Function ***
         function displayGoals(goalsListElement) {
             if (!goalsListElement) { console.error("Goals list element needed"); return; }
             const goals = getGoals();
@@ -361,64 +156,62 @@
                 return;
             }
 
-            goals.sort((a, b) => (a.completed - b.completed) || (new Date(a.dueDate || 0) - new Date(b.dueDate || 0)) || (b.createdAt - a.createdAt));
+            // Sort: incomplete, by due date (earliest first), then newest created
+            goals.sort((a, b) =>
+                (a.completed - b.completed) ||
+                (new Date(a.dueDate || '9999-12-31') - new Date(b.dueDate || '9999-12-31')) || // Sort by due date (treat null as far future)
+                (b.createdAt - a.createdAt)
+            );
+
 
             goals.forEach(goal => {
                 const goalElement = document.createElement('div');
                 goalElement.dataset.goalId = goal.id;
-                // Add list-item-hover class
                 goalElement.classList.add('goal-item', 'list-item-hover');
                 if (goal.completed) goalElement.classList.add('completed');
 
                 const goalHeader = document.createElement('div');
                 goalHeader.classList.add('goal-header');
-
                 const nameElement = document.createElement('span');
                 nameElement.classList.add('goal-name');
                 nameElement.textContent = goal.name;
-
                 const buttonContainer = document.createElement('div');
-                buttonContainer.classList.add('flex-shrink-0', 'flex', 'items-center'); // Align icons
-
-                // Edit Button (Icon)
-                const editButton = document.createElement('button');
-                editButton.classList.add('action-button-icon', 'edit-icon-btn');
-                editButton.innerHTML = ICONS.edit;
-                editButton.setAttribute('aria-label', 'Sửa mục tiêu');
-                editButton.onclick = () => toggleGoalEdit(goal.id, goalsListElement);
-
-                // Complete/Undo Button (Icon)
-                const completeButton = document.createElement('button');
-                completeButton.classList.add('action-button-icon');
-                if (goal.completed) {
-                    completeButton.classList.add('undo-icon-btn');
-                    completeButton.innerHTML = ICONS.undo;
-                    completeButton.setAttribute('aria-label', 'Đánh dấu chưa hoàn thành');
-                } else {
-                    completeButton.classList.add('complete-icon-btn');
-                    completeButton.innerHTML = ICONS.check;
-                    completeButton.setAttribute('aria-label', 'Đánh dấu hoàn thành');
-                }
-                completeButton.onclick = () => toggleGoalComplete(goal.id, goalsListElement);
-
-                // Delete Button (Icon)
-                const deleteButton = document.createElement('button');
-                deleteButton.classList.add('action-button-icon', 'delete-icon-btn');
-                deleteButton.innerHTML = ICONS.delete;
-                deleteButton.setAttribute('aria-label', 'Xóa mục tiêu');
-                deleteButton.onclick = () => deleteGoal(goal.id, goalsListElement);
-
-                buttonContainer.appendChild(editButton);
-                buttonContainer.appendChild(completeButton);
-                buttonContainer.appendChild(deleteButton);
-
-                goalHeader.appendChild(nameElement);
-                goalHeader.appendChild(buttonContainer);
+                buttonContainer.classList.add('flex-shrink-0', 'flex', 'items-center');
+                const editButton = document.createElement('button'); editButton.classList.add('action-button-icon','edit-icon-btn'); editButton.innerHTML=ICONS.edit; editButton.setAttribute('aria-label','Sửa mục tiêu'); editButton.onclick=()=>toggleGoalEdit(goal.id,goalsListElement);
+                const completeButton = document.createElement('button'); completeButton.classList.add('action-button-icon'); if(goal.completed){completeButton.classList.add('undo-icon-btn'); completeButton.innerHTML=ICONS.undo; completeButton.setAttribute('aria-label','Đánh dấu chưa hoàn thành');} else {completeButton.classList.add('complete-icon-btn'); completeButton.innerHTML=ICONS.check; completeButton.setAttribute('aria-label','Đánh dấu hoàn thành');} completeButton.onclick=()=>toggleGoalComplete(goal.id,goalsListElement);
+                const deleteButton = document.createElement('button'); deleteButton.classList.add('action-button-icon','delete-icon-btn'); deleteButton.innerHTML=ICONS.delete; deleteButton.setAttribute('aria-label','Xóa mục tiêu'); deleteButton.onclick=()=>deleteGoal(goal.id,goalsListElement);
+                buttonContainer.appendChild(editButton); buttonContainer.appendChild(completeButton); buttonContainer.appendChild(deleteButton);
+                goalHeader.appendChild(nameElement); goalHeader.appendChild(buttonContainer);
 
                 const goalDetails = document.createElement('div');
                 goalDetails.classList.add('goal-details');
                 if (goal.description) { const d=document.createElement('p'); d.classList.add('goal-description'); d.textContent=goal.description; goalDetails.appendChild(d); }
-                if (goal.dueDate) { const d=document.createElement('p'); const o=isOverdue(goal.dueDate,goal.completed); d.classList.add('goal-due-date'); if(o){d.classList.add('overdue'); d.textContent=`Hạn chót: ${formatDisplayDate(goal.dueDate)} (Quá hạn)`;} else {d.textContent=`Hạn chót: ${formatDisplayDate(goal.dueDate)}`;} goalDetails.appendChild(d); }
+
+                // *** NEW: Due Date Info Display ***
+                if (goal.dueDate && !goal.completed) { // Only show due date info if set and not completed
+                    const dueDateInfoElement = document.createElement('div');
+                    const remaining = calculateDaysRemaining(goal.dueDate); // Calculate remaining days
+
+                    dueDateInfoElement.classList.add('goal-due-date-info', remaining.class); // Add base class and urgency class
+
+                    const dueDateText = document.createElement('span');
+                    dueDateText.classList.add('goal-due-date');
+                    dueDateText.textContent = `Hạn: ${formatDisplayDate(goal.dueDate)}`;
+
+                    const remainingText = document.createElement('span');
+                    remainingText.classList.add('goal-days-remaining');
+                    remainingText.textContent = remaining.text; // Display calculated text
+
+                    dueDateInfoElement.appendChild(dueDateText);
+                    dueDateInfoElement.appendChild(remainingText);
+                    goalDetails.appendChild(dueDateInfoElement); // Append to details
+                } else if (goal.dueDate && goal.completed) {
+                     // Optionally show original due date even if completed, but without remaining days/urgency
+                     const completedDueDate = document.createElement('p');
+                     completedDueDate.classList.add('goal-due-date', 'text-gray-400'); // Dim completed due date
+                     completedDueDate.textContent = `(Hạn chót: ${formatDisplayDate(goal.dueDate)})`;
+                     goalDetails.appendChild(completedDueDate);
+                }
 
                 goalElement.appendChild(goalHeader);
                 if (goalDetails.hasChildNodes()) { goalElement.appendChild(goalDetails); }
@@ -426,67 +219,15 @@
             });
         }
 
-        function addGoal(nameInput, descInput, dueDateInput, goalsListElement) { if (!nameInput||!descInput||!dueDateInput||!goalsListElement) return; const gn=nameInput.value.trim(); const gd=descInput.value.trim(); const gdd=dueDateInput.value; if(gn){const g=getGoals(); const n=Date.now(); const ng={id:n,name:gn,description:gd,dueDate:gdd||null,completed:false,createdAt:n,modifiedAt:null}; g.push(ng); saveGoals(g); nameInput.value=''; descInput.value=''; dueDateInput.value=''; displayGoals(goalsListElement); console.log("Added goal:",ng);} else {console.log("Goal name empty."); alert("Tên mục tiêu không được để trống!");} }
-        function deleteGoal(goalId, goalsListElement) { if (!window.confirm("Bạn có chắc muốn xóa mục tiêu này không?")) return; let g=getGoals(); g=g.filter(go=>go.id!==goalId); saveGoals(g); displayGoals(goalsListElement); console.log("Deleted goal ID:",goalId); }
-        function toggleGoalComplete(goalId, goalsListElement) { let g=getGoals(); const i=g.findIndex(go=>go.id===goalId); if(i>-1){g[i].completed=!g[i].completed; g[i].modifiedAt=Date.now(); saveGoals(g); displayGoals(goalsListElement); console.log(`Toggled completion: ${goalId} to ${g[i].completed}`);} else {console.error("Cannot find goal to toggle:",goalId);} }
-
-        // Updated toggleGoalEdit with Icons
-        function toggleGoalEdit(goalId, goalsListElement) {
-             displayGoals(goalsListElement); // Refresh first
-             const goalElement = goalsListElement.querySelector(`[data-goal-id='${goalId}']`); if (!goalElement) return;
-             const goals = getGoals(); const goal = goals.find(g => g.id === goalId); if (!goal) return;
-
-             const editArea = document.createElement('div'); editArea.classList.add('goal-edit-area', 'mt-2', 'pt-2', 'border-t', 'border-gray-300');
-             const nameLabel = document.createElement('label'); nameLabel.textContent="Tên:"; nameLabel.classList.add('block','text-xs','font-medium','text-gray-600','mb-1');
-             const nameInput = document.createElement('input'); nameInput.type='text'; nameInput.value=goal.name; nameInput.required=true;
-             editArea.appendChild(nameLabel); editArea.appendChild(nameInput);
-             const descLabel = document.createElement('label'); descLabel.textContent="Mô tả:"; descLabel.classList.add('block','text-xs','font-medium','text-gray-600','mb-1','mt-2');
-             const descTextarea = document.createElement('textarea'); descTextarea.rows='3'; descTextarea.value=goal.description||'';
-             editArea.appendChild(descLabel); editArea.appendChild(descTextarea);
-             const dateLabel = document.createElement('label'); dateLabel.textContent="Hạn chót:"; dateLabel.classList.add('block','text-xs','font-medium','text-gray-600','mb-1','mt-2');
-             const dateInput = document.createElement('input'); dateInput.type='date'; dateInput.value=goal.dueDate||'';
-             editArea.appendChild(dateLabel); editArea.appendChild(dateInput);
-
-             const editButtonContainer = document.createElement('div'); editButtonContainer.classList.add('flex', 'justify-end', 'mt-3');
-
-             // Save Button (Icon)
-             const saveButton = document.createElement('button');
-             saveButton.classList.add('action-button-icon', 'save-icon-btn');
-             saveButton.innerHTML = ICONS.save;
-             saveButton.setAttribute('aria-label', 'Lưu thay đổi');
-             saveButton.onclick = () => saveGoalEdit(goalId, nameInput.value, descTextarea.value, dateInput.value, goalsListElement);
-
-             // Cancel Button (Icon)
-             const cancelButton = document.createElement('button');
-             cancelButton.classList.add('action-button-icon', 'cancel-icon-btn');
-             cancelButton.innerHTML = ICONS.cancel;
-             cancelButton.setAttribute('aria-label', 'Hủy bỏ');
-             cancelButton.onclick = () => displayGoals(goalsListElement);
-
-             editButtonContainer.appendChild(saveButton);
-             editButtonContainer.appendChild(cancelButton);
-             editArea.appendChild(editButtonContainer);
-
-             goalElement.innerHTML = ''; // Clear existing content
-             goalElement.appendChild(editArea); // Add edit form
-             goalElement.classList.add('editing');
-             nameInput.focus();
-        }
-
-        function saveGoalEdit(goalId, newName, newDesc, newDueDate, goalsListElement) { const tn=newName.trim(); if(!tn){alert("Tên mục tiêu không được để trống!"); return;} let g=getGoals(); const i=g.findIndex(go=>go.id===goalId); if(i>-1){g[i].name=tn; g[i].description=newDesc.trim(); g[i].dueDate=newDueDate||null; g[i].modifiedAt=Date.now(); saveGoals(g); displayGoals(goalsListElement); console.log("Saved edit for goal:",goalId);} else {console.error("Cannot find goal to save:",goalId); displayGoals(goalsListElement);} }
+        function addGoal(nameInput, descInput, dueDateInput, goalsListElement) { /* ... (no changes) ... */ if (!nameInput||!descInput||!dueDateInput||!goalsListElement) return; const gn=nameInput.value.trim(); const gd=descInput.value.trim(); const gdd=dueDateInput.value; if(gn){const g=getGoals(); const n=Date.now(); const ng={id:n,name:gn,description:gd,dueDate:gdd||null,completed:false,createdAt:n,modifiedAt:null}; g.push(ng); saveGoals(g); nameInput.value=''; descInput.value=''; dueDateInput.value=''; displayGoals(goalsListElement); console.log("Added goal:",ng);} else {console.log("Goal name empty."); alert("Tên mục tiêu không được để trống!");} }
+        function deleteGoal(goalId, goalsListElement) { /* ... (no changes) ... */ if (!window.confirm("Bạn có chắc muốn xóa mục tiêu này không?")) return; let g=getGoals(); g=g.filter(go=>go.id!==goalId); saveGoals(g); displayGoals(goalsListElement); console.log("Deleted goal ID:",goalId); }
+        function toggleGoalComplete(goalId, goalsListElement) { /* ... (no changes) ... */ let g=getGoals(); const i=g.findIndex(go=>go.id===goalId); if(i>-1){g[i].completed=!g[i].completed; g[i].modifiedAt=Date.now(); saveGoals(g); displayGoals(goalsListElement); console.log(`Toggled completion: ${goalId} to ${g[i].completed}`);} else {console.error("Cannot find goal to toggle:",goalId);} }
+        function toggleGoalEdit(goalId, goalsListElement) { /* ... (no changes needed in this function) ... */ displayGoals(goalsListElement); const el=goalsListElement.querySelector(`[data-goal-id='${goalId}']`); if(!el)return; const g=getGoals(); const go=g.find(i=>i.id===goalId); if(!go)return; const ea=document.createElement('div'); ea.classList.add('goal-edit-area','mt-2','pt-2','border-t','border-gray-300'); const nl=document.createElement('label'); nl.textContent="Tên:"; nl.classList.add('block','text-xs','font-medium','text-gray-600','mb-1'); const ni=document.createElement('input'); ni.type='text'; ni.value=go.name; ni.required=true; ea.appendChild(nl); ea.appendChild(ni); const dl=document.createElement('label'); dl.textContent="Mô tả:"; dl.classList.add('block','text-xs','font-medium','text-gray-600','mb-1','mt-2'); const dt=document.createElement('textarea'); dt.rows='3'; dt.value=go.description||''; ea.appendChild(dl); ea.appendChild(dt); const ddl=document.createElement('label'); ddl.textContent="Hạn chót:"; ddl.classList.add('block','text-xs','font-medium','text-gray-600','mb-1','mt-2'); const ddi=document.createElement('input'); ddi.type='date'; ddi.value=go.dueDate||''; ea.appendChild(ddl); ea.appendChild(ddi); const ebc=document.createElement('div'); ebc.classList.add('flex','justify-end','mt-3'); const sb=document.createElement('button'); sb.classList.add('action-button-icon','save-icon-btn'); sb.innerHTML=ICONS.save; sb.setAttribute('aria-label','Lưu thay đổi'); sb.onclick=()=>saveGoalEdit(goalId,ni.value,dt.value,ddi.value,goalsListElement); const cb=document.createElement('button'); cb.classList.add('action-button-icon','cancel-icon-btn'); cb.innerHTML=ICONS.cancel; cb.setAttribute('aria-label','Hủy bỏ'); cb.onclick=()=>displayGoals(goalsListElement); ebc.appendChild(sb); ebc.appendChild(cb); ea.appendChild(ebc); el.innerHTML=''; el.appendChild(ea); el.classList.add('editing'); ni.focus(); }
+        function saveGoalEdit(goalId, newName, newDesc, newDueDate, goalsListElement) { /* ... (no changes) ... */ const tn=newName.trim(); if(!tn){alert("Tên mục tiêu không được để trống!"); return;} let g=getGoals(); const i=g.findIndex(go=>go.id===goalId); if(i>-1){g[i].name=tn; g[i].description=newDesc.trim(); g[i].dueDate=newDueDate||null; g[i].modifiedAt=Date.now(); saveGoals(g); displayGoals(goalsListElement); console.log("Saved edit for goal:",goalId);} else {console.error("Cannot find goal to save:",goalId); displayGoals(goalsListElement);} }
 
 
         // --- Initialization and Event Listeners ---
-        navLinks.forEach(link => {
-            link.addEventListener('click', (event) => {
-                event.preventDefault();
-                const selectedModule = event.target.dataset.module;
-                if (selectedModule && selectedModule !== currentModule) {
-                    currentModule = selectedModule;
-                    renderAppContent();
-                }
-            });
-        });
+        navLinks.forEach(link => { /* ... (no changes) ... */ link.addEventListener('click',(e)=>{e.preventDefault(); const sm=e.target.dataset.module; if(sm&&sm!==currentModule){currentModule=sm; renderAppContent();}}); });
         document.addEventListener('DOMContentLoaded', renderAppContent);
         console.log("Personal App UI Refinements Applied!");
 

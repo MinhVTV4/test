@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ứng dụng Phát triển Cá nhân v0.4</title> 
+    <title>Ứng dụng Phát triển Cá nhân v0.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -28,16 +28,16 @@
 
         /* --- Notes Specific --- */
         .note-item { background-color: #fefce8; padding: 0.75rem; border-radius: 0.375rem; border: 1px solid #fef9c3; transition: background-color 0.15s ease-in-out; position: relative; }
-        .note-item.pinned { background-color: #fef9c3; border-left: 3px solid #facc15; padding-left: 1.25rem; /* Add padding for indicator */ }
+        .note-item.pinned { background-color: #fef9c3; border-left: 3px solid #facc15; padding-left: 1.25rem; }
         .note-item .pin-indicator { color: #a16207; }
         .note-content, .edit-textarea { white-space: pre-wrap; word-break: break-word; }
         .edit-textarea { min-height: 60px; }
         .note-timestamp { font-size: 0.75rem; color: #a16207; margin-top: 0.5rem; }
-        .note-item.editing { background-color: #fef3c7; } /* Indicate editing state */
+        .note-item.editing { background-color: #fef3c7; }
 
         /* --- Goals Specific --- */
         .goal-item { display: flex; flex-direction: column; padding: 1rem; border-radius: 0.375rem; background-color: #f3f4f6; margin-bottom: 0.75rem; border: 1px solid #e5e7eb; transition: background-color 0.15s ease-in-out; position: relative; }
-        .goal-item.pinned { background-color: #eef2ff; border-left: 3px solid #6366f1; padding-left: 1.5rem; /* Add padding for indicator */ }
+        .goal-item.pinned { background-color: #eef2ff; border-left: 3px solid #6366f1; padding-left: 1.5rem; }
         .goal-item .pin-indicator { color: #4f46e5; }
         .goal-item.completed { background-color: #e5e7eb; }
         .goal-item.editing { background-color: #f0f9ff; border-color: #bfdbfe; }
@@ -67,6 +67,19 @@
         .habit-checkbox-label.checked { background-color: #10b981; border-color: #059669; }
         .habit-checkbox-label.checked svg { color: white; width: 20px; height: 20px; }
         .habit-checkbox { display: none; }
+        /* Habit Stats */
+        .habit-stats {
+            background-color: #f8fafc; /* bg-slate-50 */
+            border: 1px solid #e2e8f0; /* border-slate-200 */
+            padding: 0.75rem 1rem; /* p-3 px-4 */
+            border-radius: 0.375rem; /* rounded-md */
+            margin-bottom: 1.5rem; /* mb-6 */
+            font-size: 0.875rem; /* text-sm */
+            color: #475569; /* text-slate-600 */
+        }
+        .habit-stats strong {
+            color: #1e293b; /* text-slate-800 */
+        }
 
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -110,12 +123,57 @@
         // --- Module Building Functions ---
         function buildNotesUI() { /* ... (no changes) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Ghi Chú Nhanh</h2><div class="mb-4"><textarea id="note-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="4" placeholder="Nhập ghi chú..."></textarea></div><button id="add-note-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out mb-6">Thêm Ghi Chú</button><div class="mb-4"><input type="search" id="search-input" placeholder="Tìm kiếm ghi chú..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div id="notes-list" class="mt-6 space-y-3"></div>`; const ni=document.getElementById('note-input'); const ab=document.getElementById('add-note-btn'); const si=document.getElementById('search-input'); const nl=document.getElementById('notes-list'); ab.addEventListener('click',()=>addNote(ni,si)); ni.addEventListener('keydown',(e)=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();addNote(ni,si);}}); si.addEventListener('input',(e)=>displayNotes(nl,si,e.target.value)); displayNotes(nl,si); }
         function buildGoalsUI() { /* ... (no changes) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Theo dõi Mục tiêu</h2><form id="add-goal-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3"><div><label for="goal-input" class="block text-sm font-medium text-gray-700 mb-1">Tên mục tiêu:</label><input type="text" id="goal-input" placeholder="Ví dụ: Học JavaScript nâng cao" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div><label for="goal-desc-input" class="block text-sm font-medium text-gray-700 mb-1">Mô tả (tùy chọn):</label><textarea id="goal-desc-input" placeholder="Mô tả chi tiết các bước hoặc lý do..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea></div><div><label for="goal-due-date-input" class="block text-sm font-medium text-gray-700 mb-1">Hạn chót (tùy chọn):</label><input type="date" id="goal-due-date-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out w-full sm:w-auto">Thêm Mục tiêu</button></form><h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Mục tiêu</h3><div id="goals-list" class="space-y-3"></div>`; const agf=document.getElementById('add-goal-form'); const gi=document.getElementById('goal-input'); const gdi=document.getElementById('goal-desc-input'); const gddi=document.getElementById('goal-due-date-input'); const gl=document.getElementById('goals-list'); agf.addEventListener('submit',(e)=>{e.preventDefault();addGoal(gi,gdi,gddi,gl);}); displayGoals(gl); }
-        function buildHabitsUI() { /* ... (no changes) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Theo dõi Thói quen</h2><form id="add-habit-form" class="mb-6 flex items-center space-x-2"><input type="text" id="habit-input" placeholder="Nhập thói quen mới (ví dụ: Đọc sách 30 phút)" required class="flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm Thói quen</button></form><h3 class="text-lg font-semibold mb-3 text-gray-700">Thói quen Hôm nay (${getTodayDateString()})</h3><div id="habits-list" class="space-y-2"></div>`; const ahf=document.getElementById('add-habit-form'); const hi=document.getElementById('habit-input'); const hl=document.getElementById('habits-list'); ahf.addEventListener('submit',(e)=>{e.preventDefault();addHabit(hi,hl);}); displayHabits(hl); }
+
+        // *** UPDATED: buildHabitsUI Function ***
+        function buildHabitsUI() {
+            if (!appContent.classList.contains('app-module-container')) {
+                 appContent.className = 'app-module-container';
+            }
+            // Calculate stats before building the rest of the UI
+            const stats = calculateHabitStats();
+
+            appContent.innerHTML = `
+                <h2 class="text-xl font-semibold mb-4">Theo dõi Thói quen</h2>
+
+                <div id="habit-stats-area" class="habit-stats">
+                    ${stats.totalHabits > 0 ?
+                        `Hoàn thành hôm nay: <strong>${stats.completedToday} / ${stats.totalHabits}</strong> (${stats.todayCompletionRate}%)` :
+                        'Thêm thói quen để bắt đầu theo dõi!'}
+                    ${stats.totalHabits > 0 ? `<br>Tỷ lệ hoàn thành (7 ngày qua): <strong>${stats.last7DaysCompletionRate}%</strong>` : ''}
+                </div>
+
+                <form id="add-habit-form" class="mb-6 flex items-center space-x-2">
+                    <input type="text" id="habit-input" placeholder="Nhập thói quen mới..." required class="flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">
+                        Thêm Thói quen
+                    </button>
+                </form>
+
+                <h3 class="text-lg font-semibold mb-3 text-gray-700">Thói quen Hôm nay (${getTodayDateString()})</h3>
+                <div id="habits-list" class="space-y-2">
+                    </div>
+            `;
+
+            // Get references
+            const addHabitForm = document.getElementById('add-habit-form');
+            const habitInput = document.getElementById('habit-input');
+            const habitsList = document.getElementById('habits-list');
+
+            // Attach event listeners
+            addHabitForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                addHabit(habitInput, habitsList);
+            });
+
+            // Initial display
+            displayHabits(habitsList);
+        }
+
 
         // --- Core Application Logic ---
         function renderAppContent() {
             console.log(`Rendering module: ${currentModule}`);
-            let baseTitle = "Ứng dụng Phát triển Cá nhân v0.4"; // Updated version
+            let baseTitle = "Ứng dụng Phát triển Cá nhân v0.5"; // Updated version
             let moduleTitle = "";
             if (currentModule === 'notes') moduleTitle = " - Ghi Chú";
             else if (currentModule === 'goals') moduleTitle = " - Mục tiêu";
@@ -138,105 +196,10 @@
         function getNotes() { /* ... (no changes) ... */ const n=localStorage.getItem('quickNotes'); try { const p=n?JSON.parse(n):[]; return p.map(no=>({...no, isPinned: no.isPinned || false })); } catch(e){console.error("Error parsing notes:",e); return [];} }
         function saveNotes(notes) { /* ... (no changes) ... */ localStorage.setItem('quickNotes',JSON.stringify(notes)); }
         function formatTimestamp(timestamp) { /* ... (no changes) ... */ if(!timestamp)return ''; const d=new Date(timestamp); return `${d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}, ${d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'})}`; }
-
-        // *** UPDATED: displayNotes Function (Add specific classes) ***
-        function displayNotes(listEl, searchEl, term='') {
-             if(!listEl||!searchEl){return;}
-             let notes = getNotes();
-             const s = term.toLowerCase().trim();
-             if(s){ notes = notes.filter(no=>no.content.toLowerCase().includes(s)); }
-             listEl.innerHTML='';
-
-             if(notes.length===0){ listEl.innerHTML=`<p class="empty-state-message">${s?'Không tìm thấy ghi chú nào khớp.':'Chưa có ghi chú nào.'}</p>`; return; }
-
-             notes.sort((a,b)=>(b.isPinned-a.isPinned)||(b.modifiedAt||b.createdAt)-(a.modifiedAt||a.createdAt));
-
-             notes.forEach(note=>{
-                 const noteElement = document.createElement('div');
-                 noteElement.dataset.noteId = note.id;
-                 noteElement.classList.add('note-item', 'list-item-hover', 'flex', 'flex-col');
-                 if (note.isPinned) { noteElement.classList.add('pinned'); }
-                 if (note.isPinned) { const pi=document.createElement('span'); pi.classList.add('pin-indicator'); pi.innerHTML=ICONS.pin_filled; noteElement.appendChild(pi); }
-
-                 // --- Add specific classes to children ---
-                 const topRow = document.createElement('div');
-                 topRow.classList.add('flex','justify-between','items-start','w-full', 'note-top-row'); // Added note-top-row
-
-                 const contentContainer = document.createElement('div');
-                 contentContainer.classList.add('flex-grow','mr-2', 'note-content-container'); // Added note-content-container
-                 const contentElement = document.createElement('p');
-                 contentElement.classList.add('note-content','text-gray-800');
-                 contentElement.textContent=note.content;
-                 contentContainer.appendChild(contentElement);
-
-                 const buttonContainer = document.createElement('div');
-                 buttonContainer.classList.add('flex-shrink-0','flex','items-center', 'note-button-container'); // Added note-button-container
-
-                 const pinButton = document.createElement('button'); pinButton.classList.add('action-button-icon','pin-icon-btn'); if(note.isPinned){pinButton.classList.add('pinned'); pinButton.innerHTML=ICONS.pin_filled; pinButton.setAttribute('aria-label','Bỏ ghim ghi chú');} else {pinButton.innerHTML=ICONS.pin; pinButton.setAttribute('aria-label','Ghim ghi chú');} pinButton.onclick=()=>toggleNotePin(note.id,listEl,searchEl);
-                 const editButton = document.createElement('button'); editButton.classList.add('action-button-icon','edit-icon-btn'); editButton.innerHTML=ICONS.edit; editButton.setAttribute('aria-label','Sửa ghi chú'); editButton.onclick=()=>toggleEdit(note.id,listEl,searchEl);
-                 const deleteButton = document.createElement('button'); deleteButton.classList.add('action-button-icon','delete-icon-btn'); deleteButton.innerHTML=ICONS.delete; deleteButton.setAttribute('aria-label','Xóa ghi chú'); deleteButton.onclick=()=>deleteNote(note.id,listEl,searchEl);
-
-                 buttonContainer.appendChild(pinButton); buttonContainer.appendChild(editButton); buttonContainer.appendChild(deleteButton);
-                 topRow.appendChild(contentContainer); topRow.appendChild(buttonContainer);
-
-                 const ts = document.createElement('p'); ts.classList.add('note-timestamp','w-full','text-right'); const cr=formatTimestamp(note.createdAt); const md=formatTimestamp(note.modifiedAt); ts.textContent=md?`Sửa đổi: ${md}`:(cr?`Đã tạo: ${cr}`:'');
-
-                 noteElement.appendChild(topRow);
-                 if(ts.textContent){ noteElement.appendChild(ts); }
-                 listEl.appendChild(noteElement);
-             });
-        }
-
+        function displayNotes(listEl, searchEl, term='') { /* ... (no changes) ... */ if(!listEl||!searchEl){return;} let n=getNotes(); const s=term.toLowerCase().trim(); if(s){n=n.filter(no=>no.content.toLowerCase().includes(s));} listEl.innerHTML=''; if(n.length===0){listEl.innerHTML=`<p class="empty-state-message">${s?'Không tìm thấy ghi chú nào khớp.':'Chưa có ghi chú nào.'}</p>`; return;} n.sort((a,b)=>(b.isPinned-a.isPinned)||(b.modifiedAt||b.createdAt)-(a.modifiedAt||a.createdAt)); n.forEach(no=>{const ne=document.createElement('div'); ne.dataset.noteId=no.id; ne.classList.add('note-item','list-item-hover','flex','flex-col'); if(no.isPinned){ne.classList.add('pinned');} if(no.isPinned){const pi=document.createElement('span'); pi.classList.add('pin-indicator'); pi.innerHTML=ICONS.pin_filled; ne.appendChild(pi);} const tr=document.createElement('div'); tr.classList.add('flex','justify-between','items-start','w-full','note-top-row'); const cc=document.createElement('div'); cc.classList.add('flex-grow','mr-2','note-content-container'); const ce=document.createElement('p'); ce.classList.add('note-content','text-gray-800'); ce.textContent=no.content; cc.appendChild(ce); const bc=document.createElement('div'); bc.classList.add('flex-shrink-0','flex','items-center','note-button-container'); const pb=document.createElement('button'); pb.classList.add('action-button-icon','pin-icon-btn'); if(no.isPinned){pb.classList.add('pinned'); pb.innerHTML=ICONS.pin_filled; pb.setAttribute('aria-label','Bỏ ghim ghi chú');} else {pb.innerHTML=ICONS.pin; pb.setAttribute('aria-label','Ghim ghi chú');} pb.onclick=()=>toggleNotePin(no.id,listEl,searchEl); const eb=document.createElement('button'); eb.classList.add('action-button-icon','edit-icon-btn'); eb.innerHTML=ICONS.edit; eb.setAttribute('aria-label','Sửa ghi chú'); eb.onclick=()=>toggleEdit(no.id,listEl,searchEl); const db=document.createElement('button'); db.classList.add('action-button-icon','delete-icon-btn'); db.innerHTML=ICONS.delete; db.setAttribute('aria-label','Xóa ghi chú'); db.onclick=()=>deleteNote(no.id,listEl,searchEl); bc.appendChild(pb); bc.appendChild(eb); bc.appendChild(db); tr.appendChild(cc); tr.appendChild(bc); const ts=document.createElement('p'); ts.classList.add('note-timestamp','w-full','text-right'); const cr=formatTimestamp(no.createdAt); const md=formatTimestamp(no.modifiedAt); ts.textContent=md?`Sửa đổi: ${md}`:(cr?`Đã tạo: ${cr}`:''); ne.appendChild(tr); if(ts.textContent){ne.appendChild(ts);} listEl.appendChild(ne);}); }
         function addNote(inputEl, searchEl) { /* ... (no changes) ... */ if(!inputEl||!searchEl)return; const c=inputEl.value.trim(); if(c){const n=getNotes(); const now=Date.now(); const nn={id:now, content:c, createdAt:now, modifiedAt:null, isPinned: false }; n.push(nn); saveNotes(n); inputEl.value=''; searchEl.value=''; const cl=document.getElementById('notes-list'); if(cl){displayNotes(cl,searchEl);}} }
         function deleteNote(id, listEl, searchEl) { /* ... (no changes) ... */ if(!window.confirm("Bạn chắc chắn xóa ghi chú này?"))return; let n=getNotes(); n=n.filter(no=>no.id!==id); saveNotes(n); displayNotes(listEl,searchEl,searchEl.value); }
-
-        // *** UPDATED: toggleEdit Function (Use specific classes for selectors) ***
-        function toggleEdit(id, listEl, searchEl) {
-             displayNotes(listEl, searchEl, searchEl.value); // Refresh first
-             const noteElement = listEl.querySelector(`[data-note-id='${id}']`); // Use noteElement instead of el
-             if (!noteElement) return;
-
-             // --- Use specific classes for robust selection ---
-             const contentContainer = noteElement.querySelector('.note-content-container');
-             const buttonContainer = noteElement.querySelector('.note-button-container');
-
-             // Check if containers were found
-             if (!contentContainer || !buttonContainer) {
-                 console.error("Could not find content or button container for note edit:", id);
-                 return; // Stop if containers are missing
-             }
-
-             const notes = getNotes(); // Use notes instead of n
-             const note = notes.find(n => n.id === id); // Use note instead of no
-             if (!note) return;
-
-             contentContainer.innerHTML = ''; // Clear original content <p>
-             buttonContainer.innerHTML = ''; // Clear original buttons
-
-             const editInput = document.createElement('textarea'); // Use editInput instead of ei
-             editInput.classList.add('w-full','p-1','border','border-gray-300','rounded-md','focus:outline-none','focus:ring-1','focus:ring-blue-500','edit-textarea','note-content');
-             editInput.value = note.content;
-             contentContainer.appendChild(editInput); // Add textarea to content container
-
-             const saveButton = document.createElement('button'); // Use saveButton instead of sb
-             saveButton.classList.add('action-button-icon','save-icon-btn');
-             saveButton.innerHTML = ICONS.save;
-             saveButton.setAttribute('aria-label','Lưu thay đổi');
-             saveButton.onclick = () => saveEdit(id, editInput.value, listEl, searchEl);
-
-             const cancelButton = document.createElement('button'); // Use cancelButton instead of cb
-             cancelButton.classList.add('action-button-icon','cancel-icon-btn');
-             cancelButton.innerHTML = ICONS.cancel;
-             cancelButton.setAttribute('aria-label','Hủy bỏ');
-             cancelButton.onclick = () => displayNotes(listEl, searchEl, searchEl.value);
-
-             buttonContainer.appendChild(saveButton);
-             buttonContainer.appendChild(cancelButton);
-
-             noteElement.classList.add('editing'); // Add editing class for visual feedback
-             editInput.focus();
-        }
-
+        function toggleEdit(id, listEl, searchEl) { /* ... (no changes) ... */ displayNotes(listEl,searchEl,searchEl.value); const ne=listEl.querySelector(`[data-note-id='${id}']`); if(!ne)return; const cc=ne.querySelector('.note-content-container'); const bc=ne.querySelector('.note-button-container'); if(!cc||!bc){console.error("Could not find content/button container for note edit:",id); return;} const ns=getNotes(); const no=ns.find(n=>n.id===id); if(!no)return; cc.innerHTML=''; bc.innerHTML=''; const ei=document.createElement('textarea'); ei.classList.add('w-full','p-1','border','border-gray-300','rounded-md','focus:outline-none','focus:ring-1','focus:ring-blue-500','edit-textarea','note-content'); ei.value=no.content; cc.appendChild(ei); const sb=document.createElement('button'); sb.classList.add('action-button-icon','save-icon-btn'); sb.innerHTML=ICONS.save; sb.setAttribute('aria-label','Lưu thay đổi'); sb.onclick=()=>saveEdit(id,ei.value,listEl,searchEl); const cb=document.createElement('button'); cb.classList.add('action-button-icon','cancel-icon-btn'); cb.innerHTML=ICONS.cancel; cb.setAttribute('aria-label','Hủy bỏ'); cb.onclick=()=>displayNotes(listEl,searchEl,searchEl.value); bc.appendChild(sb); bc.appendChild(cb); ne.classList.add('editing'); ei.focus(); }
         function saveEdit(id, content, listEl, searchEl) { /* ... (no changes) ... */ const tc=content.trim(); if(!tc){displayNotes(listEl,searchEl,searchEl.value); return;} let n=getNotes(); const idx=n.findIndex(no=>no.id===id); if(idx>-1){n[idx].content=tc; n[idx].modifiedAt=Date.now(); saveNotes(n); displayNotes(listEl,searchEl,searchEl.value);} else {console.error("Cannot find note to save:",id); displayNotes(listEl,searchEl,searchEl.value);} }
         function toggleNotePin(noteId, listEl, searchEl) { /* ... (no changes) ... */ let n=getNotes(); const i=n.findIndex(no=>no.id===noteId); if(i>-1){n[i].isPinned=!n[i].isPinned; n[i].modifiedAt=Date.now(); saveNotes(n); displayNotes(listEl,searchEl,searchEl.value); console.log(`Toggled pin note: ${noteId} to ${n[i].isPinned}`);} else {console.error("Cannot find note to pin:",noteId);} }
 
@@ -261,10 +224,60 @@
         function getHabits() { /* ... (no changes) ... */ const h=localStorage.getItem(HABITS_STORAGE_KEY); try { const p=h?JSON.parse(h):[]; return p.map(ha=>({...ha, completedDates:Array.isArray(ha.completedDates)?ha.completedDates:[]})); } catch(e){console.error("Error parsing habits:",e); return [];} }
         function saveHabits(habits) { /* ... (no changes) ... */ localStorage.setItem(HABITS_STORAGE_KEY,JSON.stringify(habits)); }
         function calculateCurrentStreak(completedDates) { /* ... (no changes) ... */ if(!Array.isArray(completedDates)||completedDates.length===0){return 0;} const sd=completedDates.map(ds=>new Date(ds)).sort((a,b)=>b-a); let s=0; const t=new Date(); t.setHours(0,0,0,0); const y=new Date(t); y.setDate(t.getDate()-1); if(sd[0].getTime()===t.getTime()||sd[0].getTime()===y.getTime()){s=1; let ced=new Date(sd[0]); for(let i=1;i<sd.length;i++){ced.setDate(ced.getDate()-1); if(sd[i].getTime()===ced.getTime()){s++;} else {break;}}} return s; }
+
+        // *** NEW: Calculate Habit Statistics ***
+        function calculateHabitStats() {
+            const habits = getHabits();
+            const todayStr = getTodayDateString();
+            const totalHabits = habits.length;
+            let completedToday = 0;
+            let totalCompletionsLast7Days = 0;
+            let totalPossibleCompletionsLast7Days = 0;
+
+            // Calculate today's completion
+            habits.forEach(habit => {
+                if (habit.completedDates.includes(todayStr)) {
+                    completedToday++;
+                }
+            });
+
+            // Calculate last 7 days completion rate
+            for (let i = 0; i < 7; i++) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+                let dailyCompletions = 0;
+                habits.forEach(habit => {
+                    // Consider only habits that existed on that day
+                    if (habit.createdAt <= date.getTime()) {
+                         totalPossibleCompletionsLast7Days++; // Increment possible completions for each habit active on that day
+                        if (habit.completedDates.includes(dateStr)) {
+                            dailyCompletions++;
+                            totalCompletionsLast7Days++;
+                        }
+                    }
+                });
+            }
+
+
+            const todayCompletionRate = totalHabits > 0 ? Math.round((completedToday / totalHabits) * 100) : 0;
+             // Avoid division by zero for the 7-day rate
+            const last7DaysCompletionRate = totalPossibleCompletionsLast7Days > 0 ? Math.round((totalCompletionsLast7Days / totalPossibleCompletionsLast7Days) * 100) : 0;
+
+
+            return {
+                totalHabits,
+                completedToday,
+                todayCompletionRate,
+                last7DaysCompletionRate
+            };
+        }
+
         function displayHabits(habitsListElement) { /* ... (no changes) ... */ if(!habitsListElement){console.error("Habits list element needed");return;} const h=getHabits(); const ts=getTodayDateString(); habitsListElement.innerHTML=''; if(h.length===0){habitsListElement.innerHTML='<p class="empty-state-message">Chưa có thói quen nào được tạo.</p>';return;} h.sort((a,b)=>a.name.localeCompare(b.name)); h.forEach(ha=>{const he=document.createElement('div'); he.dataset.habitId=ha.id; he.classList.add('habit-item','list-item-hover'); const hi=document.createElement('div'); hi.classList.add('habit-info'); const ne=document.createElement('span'); ne.classList.add('habit-name'); ne.textContent=ha.name; hi.appendChild(ne); const cs=calculateCurrentStreak(ha.completedDates); if(cs>0){const se=document.createElement('span'); se.classList.add('habit-streak'); se.innerHTML=`${ICONS.fire} ${cs}`; se.title=`Chuỗi ${cs} ngày liên tiếp!`; hi.appendChild(se);} const cc=document.createElement('div'); cc.classList.add('flex','items-center'); const ict=ha.completedDates.includes(ts); const ci=`habit-check-${ha.id}`; const cl=document.createElement('label'); cl.htmlFor=ci; cl.classList.add('habit-checkbox-label'); if(ict){cl.classList.add('checked'); cl.innerHTML=ICONS.check;} const cb=document.createElement('input'); cb.type='checkbox'; cb.id=ci; cb.checked=ict; cb.classList.add('habit-checkbox'); cb.onchange=()=>toggleHabitCompletion(ha.id,habitsListElement); const eb=document.createElement('button'); eb.classList.add('action-button-icon','edit-icon-btn'); eb.innerHTML=ICONS.edit; eb.setAttribute('aria-label','Sửa tên thói quen'); eb.onclick=()=>toggleHabitEdit(ha.id,habitsListElement); const hb=document.createElement('button'); hb.classList.add('action-button-icon','history-icon-btn'); hb.innerHTML=ICONS.history; hb.setAttribute('aria-label','Xem lịch sử'); hb.onclick=()=>showHabitHistory(ha.id); const db=document.createElement('button'); db.classList.add('action-button-icon','delete-icon-btn'); db.innerHTML=ICONS.delete; db.setAttribute('aria-label','Xóa thói quen'); db.onclick=()=>deleteHabit(ha.id,habitsListElement); cc.appendChild(cl); cc.appendChild(cb); cc.appendChild(eb); cc.appendChild(hb); cc.appendChild(db); he.appendChild(hi); he.appendChild(cc); habitsListElement.appendChild(he);}); }
-        function addHabit(habitInputElement, habitsListElement) { /* ... (no changes) ... */ if(!habitInputElement||!habitsListElement)return; const hn=habitInputElement.value.trim(); if(hn){const h=getHabits(); if(h.some(ha=>ha.name.toLowerCase()===hn.toLowerCase())){alert(`Thói quen "${hn}" đã tồn tại!`); return;} const n=Date.now(); const nh={id:n, name:hn, createdAt:n, completedDates:[]}; h.push(nh); saveHabits(h); habitInputElement.value=''; displayHabits(habitsListElement); console.log("Added habit:",nh);} else {alert("Tên thói quen không được để trống!");} }
-        function deleteHabit(habitId, habitsListElement) { /* ... (no changes) ... */ if(!window.confirm("Bạn có chắc muốn xóa thói quen này? Việc này cũng sẽ xóa lịch sử hoàn thành của nó."))return; let h=getHabits(); h=h.filter(ha=>ha.id!==habitId); saveHabits(h); displayHabits(habitsListElement); console.log("Deleted habit ID:",habitId); }
-        function toggleHabitCompletion(habitId, habitsListElement) { /* ... (no changes) ... */ let h=getHabits(); const i=h.findIndex(ha=>ha.id===habitId); const t=getTodayDateString(); if(i>-1){const cd=h[i].completedDates; const di=cd.indexOf(t); if(di>-1){cd.splice(di,1); console.log(`Unmarked habit ${habitId} for ${t}`);} else {cd.push(t); console.log(`Marked habit ${habitId} for ${t}`);} saveHabits(h); displayHabits(habitsListElement);} else {console.error("Cannot find habit to toggle:",habitId);} }
+        function addHabit(habitInputElement, habitsListElement) { /* ... (no changes) ... */ if(!habitInputElement||!habitsListElement)return; const hn=habitInputElement.value.trim(); if(hn){const h=getHabits(); if(h.some(ha=>ha.name.toLowerCase()===hn.toLowerCase())){alert(`Thói quen "${hn}" đã tồn tại!`); return;} const n=Date.now(); const nh={id:n, name:hn, createdAt:n, completedDates:[]}; h.push(nh); saveHabits(h); habitInputElement.value=''; displayHabits(habitsListElement); const statsArea = document.getElementById('habit-stats-area'); if(statsArea) { const stats = calculateHabitStats(); statsArea.innerHTML = `${stats.totalHabits > 0 ? `Hoàn thành hôm nay: <strong>${stats.completedToday} / ${stats.totalHabits}</strong> (${stats.todayCompletionRate}%)` : 'Thêm thói quen để bắt đầu theo dõi!'} ${stats.totalHabits > 0 ? `<br>Tỷ lệ hoàn thành (7 ngày qua): <strong>${stats.last7DaysCompletionRate}%</strong>` : ''}`; } console.log("Added habit:",nh);} else {alert("Tên thói quen không được để trống!");} }
+        function deleteHabit(habitId, habitsListElement) { /* ... (no changes) ... */ if(!window.confirm("Bạn có chắc muốn xóa thói quen này? Việc này cũng sẽ xóa lịch sử hoàn thành của nó."))return; let h=getHabits(); h=h.filter(ha=>ha.id!==habitId); saveHabits(h); displayHabits(habitsListElement); const statsArea = document.getElementById('habit-stats-area'); if(statsArea) { const stats = calculateHabitStats(); statsArea.innerHTML = `${stats.totalHabits > 0 ? `Hoàn thành hôm nay: <strong>${stats.completedToday} / ${stats.totalHabits}</strong> (${stats.todayCompletionRate}%)` : 'Thêm thói quen để bắt đầu theo dõi!'} ${stats.totalHabits > 0 ? `<br>Tỷ lệ hoàn thành (7 ngày qua): <strong>${stats.last7DaysCompletionRate}%</strong>` : ''}`; } console.log("Deleted habit ID:",habitId); }
+        function toggleHabitCompletion(habitId, habitsListElement) { /* ... (no changes) ... */ let h=getHabits(); const i=h.findIndex(ha=>ha.id===habitId); const t=getTodayDateString(); if(i>-1){const cd=h[i].completedDates; const di=cd.indexOf(t); if(di>-1){cd.splice(di,1); console.log(`Unmarked habit ${habitId} for ${t}`);} else {cd.push(t); console.log(`Marked habit ${habitId} for ${t}`);} saveHabits(h); displayHabits(habitsListElement); const statsArea = document.getElementById('habit-stats-area'); if(statsArea) { const stats = calculateHabitStats(); statsArea.innerHTML = `${stats.totalHabits > 0 ? `Hoàn thành hôm nay: <strong>${stats.completedToday} / ${stats.totalHabits}</strong> (${stats.todayCompletionRate}%)` : 'Thêm thói quen để bắt đầu theo dõi!'} ${stats.totalHabits > 0 ? `<br>Tỷ lệ hoàn thành (7 ngày qua): <strong>${stats.last7DaysCompletionRate}%</strong>` : ''}`; }} else {console.error("Cannot find habit to toggle:",habitId);} }
         function showHabitHistory(habitId) { /* ... (no changes) ... */ const h=getHabits(); const ha=h.find(i=>i.id===habitId); if(ha){console.log(`Lịch sử hoàn thành cho "${ha.name}" (ID: ${habitId}):`); if(ha.completedDates.length>0){const sd=[...ha.completedDates].sort(); console.log(sd); alert(`Lịch sử hoàn thành cho "${ha.name}":\n${sd.join('\n')}`);} else {console.log("Chưa hoàn thành ngày nào."); alert(`Chưa hoàn thành ngày nào cho "${ha.name}".`);}} else {console.error("Không tìm thấy thói quen để xem lịch sử:",habitId);} }
         function toggleHabitEdit(habitId, habitsListElement) { /* ... (no changes) ... */ displayHabits(habitsListElement); const el=habitsListElement.querySelector(`[data-habit-id='${habitId}']`); if(!el)return; const h=getHabits(); const ha=h.find(i=>i.id===habitId); if(!ha)return; const hic=el.querySelector('.habit-info'); const cc=el.querySelector('.flex.items-center'); if(!hic||!cc)return; hic.innerHTML=''; const ei=document.createElement('input'); ei.type='text'; ei.value=ha.name; ei.classList.add('habit-edit-input'); ei.required=true; hic.appendChild(ei); cc.innerHTML=''; const sb=document.createElement('button'); sb.classList.add('action-button-icon','save-icon-btn'); sb.innerHTML=ICONS.save; sb.setAttribute('aria-label','Lưu tên thói quen'); sb.onclick=()=>saveHabitEdit(habitId,ei.value,habitsListElement); const cb=document.createElement('button'); cb.classList.add('action-button-icon','cancel-icon-btn'); cb.innerHTML=ICONS.cancel; cb.setAttribute('aria-label','Hủy bỏ'); cb.onclick=()=>displayHabits(habitsListElement); cc.appendChild(sb); cc.appendChild(cb); el.classList.add('editing'); ei.focus(); ei.select(); }
         function saveHabitEdit(habitId, newName, habitsListElement) { /* ... (no changes) ... */ const tn=newName.trim(); if(!tn){alert("Tên thói quen không được để trống!");return;} let h=getHabits(); const de=h.some(ha=>ha.id!==habitId&&ha.name.toLowerCase()===tn.toLowerCase()); if(de){alert(`Tên thói quen "${tn}" đã tồn tại! Vui lòng chọn tên khác.`);return;} const i=h.findIndex(ha=>ha.id===habitId); if(i>-1){h[i].name=tn; saveHabits(h); displayHabits(habitsListElement); console.log(`Saved edit for habit ID: ${habitId}, new name: ${tn}`);} else {console.error("Could not find habit to save edit:",habitId); displayHabits(habitsListElement);} }
@@ -272,7 +285,7 @@
         // --- Initialization and Event Listeners ---
         navLinks.forEach(link => { /* ... (no changes) ... */ link.addEventListener('click',(e)=>{e.preventDefault(); const sm=e.target.dataset.module; if(sm&&sm!==currentModule){currentModule=sm; renderAppContent();}}); });
         document.addEventListener('DOMContentLoaded', renderAppContent);
-        console.log("Personal App v0.4 with Note Edit Pin Fix!"); // Updated console log
+        console.log("Personal App v0.5 with Habit Stats Added!"); // Updated console log
 
     </script>
 

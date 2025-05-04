@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ứng dụng Phát triển Cá nhân v1.8</title>
+    <title>Ứng dụng Phát triển Cá nhân v1.9</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -33,7 +33,7 @@
         .pin-indicator svg { width: 12px; height: 12px; }
 
         /* --- Notes Specific --- */
-        .note-item { background-color: white; padding: 0.75rem; border-radius: 0.375rem; border: 1px solid #e5e7eb; transition: background-color 0.15s ease-in-out; position: relative; margin-bottom: 0.75rem; } /* Consistent margin */
+        .note-item { background-color: white; padding: 0.75rem; border-radius: 0.375rem; border: 1px solid #e5e7eb; transition: background-color 0.15s ease-in-out; position: relative; margin-bottom: 0.75rem; }
         .note-item.pinned { background-color: #fef9c3 !important; border-left: 3px solid #facc15; padding-left: 1.25rem; }
         .note-item .pin-indicator { color: #a16207; }
         .note-content, .edit-textarea { white-space: pre-wrap; word-break: break-word; }
@@ -42,7 +42,7 @@
         .note-item.editing { background-color: #fef3c7 !important; }
 
         /* --- Goals Specific --- */
-        .goal-item { display: flex; flex-direction: column; padding: 1rem; border-radius: 0.375rem; background-color: white; margin-bottom: 0.75rem; border: 1px solid #e5e7eb; transition: background-color 0.15s ease-in-out; position: relative; } /* Consistent margin */
+        .goal-item { display: flex; flex-direction: column; padding: 1rem; border-radius: 0.375rem; background-color: white; margin-bottom: 0.75rem; border: 1px solid #e5e7eb; transition: background-color 0.15s ease-in-out; position: relative; }
         .goal-item.pinned { background-color: #eef2ff !important; border-left: 3px solid #6366f1; padding-left: 1.5rem; }
         .goal-item .pin-indicator { color: #4f46e5; }
         .goal-item.completed { background-color: #e5e7eb !important; }
@@ -61,7 +61,7 @@
         .goal-edit-area textarea, .goal-edit-area input[type="date"], .goal-edit-area input[type="text"] { width: 100%; padding: 0.25rem 0.5rem; border: 1px solid #d1d5db; border-radius: 0.25rem; margin-bottom: 0.5rem; font-size: 0.875rem; }
 
         /* --- Habits Specific --- */
-        .habit-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-radius: 0.375rem; background-color: white; margin-bottom: 0.75rem; border: 1px solid #e5e7eb; transition: background-color 0.15s ease-in-out; } /* Consistent margin */
+        .habit-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-radius: 0.375rem; background-color: white; margin-bottom: 0.75rem; border: 1px solid #e5e7eb; transition: background-color 0.15s ease-in-out; }
         .habit-item.editing { background-color: #f5f3ff !important; border-color: #c4b5fd; }
         .habit-info { display: flex; align-items: baseline; flex-grow: 1; margin-right: 1rem; }
         .habit-name { font-weight: 500; }
@@ -87,7 +87,7 @@
         .calendar-day.completed { background-color: #a7f3d0; color: #047857; font-weight: 600; }
 
         /* --- Skills Specific --- */
-        .skill-item { background-color: white; padding: 1rem; border-radius: 0.375rem; border: 1px solid #e5e7eb; margin-bottom: 0.75rem; } /* Consistent margin */
+        .skill-item { background-color: white; padding: 1rem; border-radius: 0.375rem; border: 1px solid #e5e7eb; margin-bottom: 0.75rem; }
         .skill-item.editing { background-color: #fffbeb !important; border-color: #fcd34d; }
         .skill-header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .skill-info { display: flex; align-items: center; flex-grow: 1; margin-right: 1rem; }
@@ -113,10 +113,10 @@
 <body class="bg-gray-100 text-gray-800">
 
     <header class="bg-blue-600 text-white p-4 shadow-md">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold">Ứng dụng Cá nhân</h1>
+        <div class="container mx-auto flex flex-col md:flex-row md:items-center md:justify-between">
+            <h1 class="text-2xl font-bold mb-2 md:mb-0">Ứng dụng Cá nhân</h1> 
             <nav id="main-nav">
-                <ul class="flex space-x-2">
+                <ul class="flex flex-wrap space-x-2"> 
                     <li><a href="#" id="nav-notes" class="nav-link" data-module="notes">Ghi chú</a></li>
                     <li><a href="#" id="nav-goals" class="nav-link" data-module="goals">Mục tiêu</a></li>
                     <li><a href="#" id="nav-habits" class="nav-link" data-module="habits">Thói quen</a></li>

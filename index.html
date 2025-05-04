@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ứng dụng Phát triển Cá nhân v0.2</title> {/* --- UPDATED TITLE --- */}
+    <title>Ứng dụng Phát triển Cá nhân v0.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -122,7 +122,7 @@
         // --- Core Application Logic ---
         function renderAppContent() {
             console.log(`Rendering module: ${currentModule}`);
-            let baseTitle = "Ứng dụng Phát triển Cá nhân v0.2"; // Updated version
+            let baseTitle = "Ứng dụng Phát triển Cá nhân v0.3"; // Updated version
             let moduleTitle = "";
             if (currentModule === 'notes') moduleTitle = " - Ghi Chú";
             else if (currentModule === 'goals') moduleTitle = " - Mục tiêu";
@@ -174,7 +174,7 @@
         function saveHabits(habits) { /* ... (no changes) ... */ localStorage.setItem(HABITS_STORAGE_KEY,JSON.stringify(habits)); }
         function calculateCurrentStreak(completedDates) { /* ... (no changes) ... */ if(!Array.isArray(completedDates)||completedDates.length===0){return 0;} const sd=completedDates.map(ds=>new Date(ds)).sort((a,b)=>b-a); let s=0; const t=new Date(); t.setHours(0,0,0,0); const y=new Date(t); y.setDate(t.getDate()-1); if(sd[0].getTime()===t.getTime()||sd[0].getTime()===y.getTime()){s=1; let ced=new Date(sd[0]); for(let i=1;i<sd.length;i++){ced.setDate(ced.getDate()-1); if(sd[i].getTime()===ced.getTime()){s++;} else {break;}}} return s; }
 
-        // *** UPDATED: displayHabits Function ***
+        // *** UPDATED: displayHabits Function (Fix history button onclick) ***
         function displayHabits(habitsListElement) {
             if (!habitsListElement) { console.error("Habits list element needed"); return; }
             const habits = getHabits();
@@ -185,61 +185,34 @@
 
             habits.sort((a, b) => a.name.localeCompare(b.name));
 
-            habits.forEach(habit => {
+            habits.forEach(habit => { // Use 'habit' as the iterator variable
                 const habitElement = document.createElement('div');
                 habitElement.dataset.habitId = habit.id;
                 habitElement.classList.add('habit-item', 'list-item-hover');
-                // Add editing class if applicable (will be handled by toggleHabitEdit)
-                // if (habit.isEditing) habitElement.classList.add('editing');
 
-                // Container for name/input and streak
                 const habitInfo = document.createElement('div');
-                habitInfo.classList.add('habit-info'); // Use existing class
-
+                habitInfo.classList.add('habit-info');
                 const nameElement = document.createElement('span');
                 nameElement.classList.add('habit-name');
                 nameElement.textContent = habit.name;
                 habitInfo.appendChild(nameElement);
-
                 const currentStreak = calculateCurrentStreak(habit.completedDates);
-                if (currentStreak > 0) {
-                    const streakElement = document.createElement('span');
-                    streakElement.classList.add('habit-streak');
-                    streakElement.innerHTML = `${ICONS.fire} ${currentStreak}`;
-                    streakElement.title = `Chuỗi ${currentStreak} ngày liên tiếp!`;
-                    habitInfo.appendChild(streakElement);
-                }
+                if (currentStreak > 0) { const s=document.createElement('span'); s.classList.add('habit-streak'); s.innerHTML=`${ICONS.fire} ${currentStreak}`; s.title=`Chuỗi ${currentStreak} ngày liên tiếp!`; habitInfo.appendChild(s); }
 
-                // --- Controls Container ---
                 const controlsContainer = document.createElement('div');
                 controlsContainer.classList.add('flex', 'items-center');
-
-                // Checkbox
                 const isCompletedToday = habit.completedDates.includes(todayStr);
                 const checkboxId = `habit-check-${habit.id}`;
                 const checkboxLabel = document.createElement('label'); checkboxLabel.htmlFor=checkboxId; checkboxLabel.classList.add('habit-checkbox-label'); if(isCompletedToday){checkboxLabel.classList.add('checked'); checkboxLabel.innerHTML=ICONS.check;}
                 const checkbox = document.createElement('input'); checkbox.type='checkbox'; checkbox.id=checkboxId; checkbox.checked=isCompletedToday; checkbox.classList.add('habit-checkbox'); checkbox.onchange=()=>toggleHabitCompletion(habit.id,habitsListElement);
-
-                // Edit Button
-                const editButton = document.createElement('button');
-                editButton.classList.add('action-button-icon', 'edit-icon-btn');
-                editButton.innerHTML = ICONS.edit;
-                editButton.setAttribute('aria-label', 'Sửa tên thói quen');
-                editButton.onclick = () => toggleHabitEdit(habit.id, habitsListElement); // Call toggle edit
-
-                // History Button
-                const historyButton = document.createElement('button'); historyButton.classList.add('action-button-icon','history-icon-btn'); historyButton.innerHTML=ICONS.history; historyButton.setAttribute('aria-label','Xem lịch sử'); historyButton.onclick=()=>showHabitHistory(ha.id);
-                // Delete Button
+                const editButton = document.createElement('button'); editButton.classList.add('action-button-icon','edit-icon-btn'); editButton.innerHTML=ICONS.edit; editButton.setAttribute('aria-label','Sửa tên thói quen'); editButton.onclick=()=>toggleHabitEdit(habit.id,habitsListElement);
+                const historyButton = document.createElement('button'); historyButton.classList.add('action-button-icon','history-icon-btn'); historyButton.innerHTML=ICONS.history; historyButton.setAttribute('aria-label','Xem lịch sử');
+                // *** FIX HERE: Use habit.id instead of ha.id ***
+                historyButton.onclick = () => showHabitHistory(habit.id);
                 const deleteButton = document.createElement('button'); deleteButton.classList.add('action-button-icon','delete-icon-btn'); deleteButton.innerHTML=ICONS.delete; deleteButton.setAttribute('aria-label','Xóa thói quen'); deleteButton.onclick=()=>deleteHabit(habit.id,habitsListElement);
 
-                controlsContainer.appendChild(checkboxLabel);
-                controlsContainer.appendChild(checkbox);
-                controlsContainer.appendChild(editButton); // Add Edit button
-                controlsContainer.appendChild(historyButton);
-                controlsContainer.appendChild(deleteButton);
-
-                habitElement.appendChild(habitInfo);
-                habitElement.appendChild(controlsContainer);
+                controlsContainer.appendChild(checkboxLabel); controlsContainer.appendChild(checkbox); controlsContainer.appendChild(editButton); controlsContainer.appendChild(historyButton); controlsContainer.appendChild(deleteButton);
+                habitElement.appendChild(habitInfo); habitElement.appendChild(controlsContainer);
                 habitsListElement.appendChild(habitElement);
             });
         }
@@ -248,95 +221,13 @@
         function deleteHabit(habitId, habitsListElement) { /* ... (no changes) ... */ if(!window.confirm("Bạn có chắc muốn xóa thói quen này? Việc này cũng sẽ xóa lịch sử hoàn thành của nó."))return; let h=getHabits(); h=h.filter(ha=>ha.id!==habitId); saveHabits(h); displayHabits(habitsListElement); console.log("Deleted habit ID:",habitId); }
         function toggleHabitCompletion(habitId, habitsListElement) { /* ... (no changes) ... */ let h=getHabits(); const i=h.findIndex(ha=>ha.id===habitId); const t=getTodayDateString(); if(i>-1){const cd=h[i].completedDates; const di=cd.indexOf(t); if(di>-1){cd.splice(di,1); console.log(`Unmarked habit ${habitId} for ${t}`);} else {cd.push(t); console.log(`Marked habit ${habitId} for ${t}`);} saveHabits(h); displayHabits(habitsListElement);} else {console.error("Cannot find habit to toggle:",habitId);} }
         function showHabitHistory(habitId) { /* ... (no changes) ... */ const h=getHabits(); const ha=h.find(i=>i.id===habitId); if(ha){console.log(`Lịch sử hoàn thành cho "${ha.name}" (ID: ${habitId}):`); if(ha.completedDates.length>0){const sd=[...ha.completedDates].sort(); console.log(sd); alert(`Lịch sử hoàn thành cho "${ha.name}":\n${sd.join('\n')}`);} else {console.log("Chưa hoàn thành ngày nào."); alert(`Chưa hoàn thành ngày nào cho "${ha.name}".`);}} else {console.error("Không tìm thấy thói quen để xem lịch sử:",habitId);} }
-
-        // *** NEW: Toggle Edit State for Habit ***
-        function toggleHabitEdit(habitId, habitsListElement) {
-            displayHabits(habitsListElement); // Refresh to cancel other edits
-
-            const habitElement = habitsListElement.querySelector(`[data-habit-id='${habitId}']`);
-            if (!habitElement) return;
-
-            const habits = getHabits();
-            const habit = habits.find(h => h.id === habitId);
-            if (!habit) return;
-
-            const habitInfoContainer = habitElement.querySelector('.habit-info');
-            const controlsContainer = habitElement.querySelector('.flex.items-center'); // Find controls container
-
-            if (!habitInfoContainer || !controlsContainer) return; // Safety check
-
-            // Store original controls to restore on cancel (optional, redraw is simpler)
-            // const originalControlsHTML = controlsContainer.innerHTML;
-
-            // --- Create Edit Input ---
-            habitInfoContainer.innerHTML = ''; // Clear name and streak
-            const editInput = document.createElement('input');
-            editInput.type = 'text';
-            editInput.value = habit.name;
-            editInput.classList.add('habit-edit-input'); // Apply specific style
-            editInput.required = true;
-            habitInfoContainer.appendChild(editInput); // Add input to the info container
-
-            // --- Create Save/Cancel Buttons ---
-            controlsContainer.innerHTML = ''; // Clear existing buttons
-
-            const saveButton = document.createElement('button');
-            saveButton.classList.add('action-button-icon', 'save-icon-btn');
-            saveButton.innerHTML = ICONS.save;
-            saveButton.setAttribute('aria-label', 'Lưu tên thói quen');
-            saveButton.onclick = () => saveHabitEdit(habitId, editInput.value, habitsListElement);
-
-            const cancelButton = document.createElement('button');
-            cancelButton.classList.add('action-button-icon', 'cancel-icon-btn');
-            cancelButton.innerHTML = ICONS.cancel;
-            cancelButton.setAttribute('aria-label', 'Hủy bỏ');
-            cancelButton.onclick = () => displayHabits(habitsListElement); // Cancel reverts by re-displaying
-
-            controlsContainer.appendChild(saveButton);
-            controlsContainer.appendChild(cancelButton);
-
-            habitElement.classList.add('editing'); // Add editing class for visual feedback
-            editInput.focus();
-            editInput.select(); // Select text for easy replacement
-        }
-
-        // *** NEW: Save Edited Habit Name ***
-        function saveHabitEdit(habitId, newName, habitsListElement) {
-            const trimmedName = newName.trim();
-            if (!trimmedName) {
-                alert("Tên thói quen không được để trống!");
-                return;
-            }
-
-            let habits = getHabits();
-            // Check if the new name already exists (excluding the current habit being edited)
-            const duplicateExists = habits.some(h =>
-                h.id !== habitId && h.name.toLowerCase() === trimmedName.toLowerCase()
-            );
-
-            if (duplicateExists) {
-                alert(`Tên thói quen "${trimmedName}" đã tồn tại! Vui lòng chọn tên khác.`);
-                return;
-            }
-
-            const habitIndex = habits.findIndex(habit => habit.id === habitId);
-            if (habitIndex > -1) {
-                habits[habitIndex].name = trimmedName;
-                // No need to update modifiedAt for just a name change, unless desired
-                saveHabits(habits);
-                displayHabits(habitsListElement); // Refresh list
-                console.log(`Saved edit for habit ID: ${habitId}, new name: ${trimmedName}`);
-            } else {
-                console.error("Could not find habit to save edit:", habitId);
-                displayHabits(habitsListElement); // Refresh anyway
-            }
-        }
-
+        function toggleHabitEdit(habitId, habitsListElement) { /* ... (no changes) ... */ displayHabits(habitsListElement); const el=habitsListElement.querySelector(`[data-habit-id='${habitId}']`); if(!el)return; const h=getHabits(); const ha=h.find(i=>i.id===habitId); if(!ha)return; const hic=el.querySelector('.habit-info'); const cc=el.querySelector('.flex.items-center'); if(!hic||!cc)return; hic.innerHTML=''; const ei=document.createElement('input'); ei.type='text'; ei.value=ha.name; ei.classList.add('habit-edit-input'); ei.required=true; hic.appendChild(ei); cc.innerHTML=''; const sb=document.createElement('button'); sb.classList.add('action-button-icon','save-icon-btn'); sb.innerHTML=ICONS.save; sb.setAttribute('aria-label','Lưu tên thói quen'); sb.onclick=()=>saveHabitEdit(habitId,ei.value,habitsListElement); const cb=document.createElement('button'); cb.classList.add('action-button-icon','cancel-icon-btn'); cb.innerHTML=ICONS.cancel; cb.setAttribute('aria-label','Hủy bỏ'); cb.onclick=()=>displayHabits(habitsListElement); cc.appendChild(sb); cc.appendChild(cb); el.classList.add('editing'); ei.focus(); ei.select(); }
+        function saveHabitEdit(habitId, newName, habitsListElement) { /* ... (no changes) ... */ const tn=newName.trim(); if(!tn){alert("Tên thói quen không được để trống!");return;} let h=getHabits(); const de=h.some(ha=>ha.id!==habitId&&ha.name.toLowerCase()===tn.toLowerCase()); if(de){alert(`Tên thói quen "${tn}" đã tồn tại! Vui lòng chọn tên khác.`);return;} const i=h.findIndex(ha=>ha.id===habitId); if(i>-1){h[i].name=tn; saveHabits(h); displayHabits(habitsListElement); console.log(`Saved edit for habit ID: ${habitId}, new name: ${tn}`);} else {console.error("Could not find habit to save edit:",habitId); displayHabits(habitsListElement);} }
 
         // --- Initialization and Event Listeners ---
         navLinks.forEach(link => { /* ... (no changes) ... */ link.addEventListener('click',(e)=>{e.preventDefault(); const sm=e.target.dataset.module; if(sm&&sm!==currentModule){currentModule=sm; renderAppContent();}}); });
         document.addEventListener('DOMContentLoaded', renderAppContent);
-        console.log("Personal App v0.2 with Habit Edit Added!");
+        console.log("Personal App v0.3 with Habit History Bugfix!");
 
     </script>
 

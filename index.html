@@ -1,79 +1,79 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" data-version="PHIEN_BAN_2">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlexiNote - Ghi chú Firebase</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Start Notes</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Lora:ital,wght@0,400;0,700;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Noto+Sans:wght@400;700&family=Open+Sans:wght@400;700&family=Roboto:wght@400;700&family=Source+Code+Pro:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDa_zZMV5-4Jm17eRnscHiWbbsj7lHG84c",
+      authDomain: "ghichu-0707.firebaseapp.com",
+      projectId: "ghichu-0707",
+      storageBucket: "ghichu-0707.firebasestorage.app",
+      messagingSenderId: "1078227973532",
+      appId: "1:1078227973532:web:29c9cd9db906297d58c459"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Export auth and db for use in other modules (script.js)
+    export { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut };
+  </script>
 </head>
 <body>
-    <h1>FlexiNote Firebase</h1>
 
-    <div id="auth-container">
-        <div id="signin-form-container" class="form-container">
-            <h3>Đăng Nhập</h3>
-            <form id="signin-form">
-                <label for="signin-email">Email:</label>
-                <input type="email" id="signin-email" required>
-
-                <label for="signin-password">Mật khẩu:</label>
-                <input type="password" id="signin-password" required>
-
-                <button type="submit">Đăng Nhập</button>
-            </form>
-            <p>Chưa có tài khoản? <span id="show-signup" class="toggle-link">Đăng ký ngay</span></p>
-        </div>
-
-        <div id="signup-form-container" class="form-container">
-            <h3>Đăng Ký</h3>
-            <form id="signup-form">
-                <label for="signup-email">Email:</label>
-                <input type="email" id="signup-email" required>
-
-                <label for="signup-password">Mật khẩu (ít nhất 6 ký tự):</label>
-                <input type="password" id="signup-password" required>
-
-                <button type="submit">Đăng Ký</button>
-            </form>
-             <p>Đã có tài khoản? <span id="show-signin" class="toggle-link">Đăng nhập</span></p>
-        </div>
-
-        <div id="auth-error"></div>
+  <header class="app-header">
+    <h1>FlexiNote 4 Everthing</h1>
+    <div class="header-actions">
+      <div id="auth-area" class="auth-area">
+        <button id="show-signup-form-btn">Đăng ký</button>
+        <button id="show-login-form-btn">Đăng nhập</button>
+        <form id="signup-form" class="hidden">
+          <input type="email" id="signup-email" placeholder="Email">
+          <input type="password" id="signup-password" placeholder="Mật khẩu">
+          <button type="button" id="signup-btn">Đăng ký</button>
+          <button type="button" id="cancel-signup-btn">Hủy</button>
+        </form>
+        <form id="login-form" class="hidden">
+          <input type="email" id="login-email" placeholder="Email">
+          <input type="password" id="login-password" placeholder="Mật khẩu">
+          <button type="button" id="login-btn">Đăng nhập</button>
+          <button type="button" id="cancel-login-btn">Hủy</button>
+        </form>
+        <button id="logout-btn" class="hidden">Đăng xuất</button>
+        <span id="user-display" class="hidden"></span>
+      </div>
+      <button id="manage-notebooks-btn" title="Quản lý các sổ tay">Quản lý Sổ tay</button>
+      <button id="manage-templates-btn" title="Quản lý các mẫu ghi chú">Quản lý Mẫu</button>
+      <button id="view-archive-btn" title="Xem các ghi chú đã lưu trữ">Xem Lưu trữ</button>
+      <button id="view-trash-btn" title="Xem các ghi chú đã xóa">Thùng rác</button>
+      <button id="empty-trash-btn" class="hidden" title="Xóa vĩnh viễn tất cả ghi chú trong thùng rác">Dọn sạch Thùng rác</button>
+      <button id="export-notes-btn" title="Xuất tất cả ghi chú, mẫu và sổ tay ra file JSON">Xuất Notes</button>
+      <button id="import-notes-btn" title="Nhập ghi chú, mẫu và sổ tay từ file JSON (Sẽ thay thế toàn bộ dữ liệu hiện tại)">Nhập Notes</button>
+      <input type="file" id="import-file-input" accept=".json" class="hidden">
+      <button id="settings-btn" title="Mở cài đặt giao diện">Cài đặt</button>
+      <button id="theme-toggle-btn" title="Chuyển đổi Chế độ Sáng/Tối"></button>
     </div>
+    <div id="archive-status-indicator" class="archive-status hidden">Đang xem các ghi chú đã lưu trữ.</div>
+    <div id="trash-status-indicator" class="trash-status hidden">Đang xem Thùng rác.</div>
+  </header>
 
-    <div id="user-info">
-        <p>Xin chào, <strong id="user-email-display"></strong>!</p>
-        <button id="signout-button">Đăng Xuất</button>
-    </div>
+  ...
 
-    <div id="view-toggle-container">
-         <button id="show-active-notes-button" class="view-toggle-button active">Ghi chú Hoạt động</button>
-         <button id="show-trash-button" class="view-toggle-button">Thùng rác</button>
-    </div>
-
-
-    <div id="notes-container">
-        <h2 id="notes-area-title">Ghi chú của bạn</h2>
-
-        <div id="add-note-form-container" class="form-container">
-            <h3>Thêm ghi chú mới</h3>
-            <form id="add-note-form">
-                <label for="note-title">Tiêu đề (tùy chọn):</label>
-                <input type="text" id="note-title">
-
-                <label for="note-content">Nội dung:</label>
-                <textarea id="note-content" rows="4" required></textarea>
-
-                <button type="submit">Thêm Ghi Chú</button>
-            </form>
-        </div>
-
-        <div id="notes-list">
-            <p>Đang tải ghi chú...</p>
-            </div>
-        </div>
-
-
-    <script type="module" src="app.js"></script>
+  <script src="script.js" defer></script>
 </body>
 </html>

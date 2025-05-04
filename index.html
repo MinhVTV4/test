@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ứng dụng Phát triển Cá nhân v1.1</title>
+    <title>Ứng dụng Phát triển Cá nhân v1.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -87,13 +87,15 @@
         .calendar-day.completed { background-color: #a7f3d0; color: #047857; font-weight: 600; }
 
         /* --- Skills Specific --- */
+        /* UPDATED: Use white background and border, add margin */
         .skill-item { background-color: white; padding: 1rem; border-radius: 0.375rem; border: 1px solid #e5e7eb; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; }
         .skill-name { font-weight: 500; flex-grow: 1; margin-right: 1rem; }
-        .skill-level { font-size: 0.8rem; color: #4b5563; background-color: #f1f5f9; padding: 0.1rem 0.5rem; border-radius: 0.25rem; white-space: nowrap; }
-        .skill-level-Beginner { background-color: #ccfbf1; color: #115e59; } /* Teal */
-        .skill-level-Intermediate { background-color: #cffafe; color: #0e7490; } /* Cyan */
-        .skill-level-Advanced { background-color: #e0e7ff; color: #4338ca; } /* Indigo */
-        .skill-level-Expert { background-color: #f3e8ff; color: #6b21a8; } /* Purple */
+        .skill-level { font-size: 0.8rem; /* Adjusted size */ color: #4b5563; background-color: #f1f5f9; padding: 0.15rem 0.6rem; /* Adjusted padding */ border-radius: 0.25rem; white-space: nowrap; }
+        /* Keep level colors */
+        .skill-level-Beginner { background-color: #ccfbf1; color: #115e59; }
+        .skill-level-Intermediate { background-color: #cffafe; color: #0e7490; }
+        .skill-level-Advanced { background-color: #e0e7ff; color: #4338ca; }
+        .skill-level-Expert { background-color: #f3e8ff; color: #6b21a8; }
 
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -162,6 +164,59 @@
         function buildNotesUI() { /* ... (Code from previous version) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Ghi Chú Nhanh</h2><button id="show-note-form-btn" class="add-new-button">Tạo ghi chú mới</button><div id="add-note-container" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 hidden"><div class="mb-4"><textarea id="note-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="4" placeholder="Nhập ghi chú..."></textarea></div><div class="flex justify-end"><button id="add-note-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm Ghi Chú</button><button id="cancel-add-note-btn" type="button" class="form-cancel-button">Hủy</button></div></div><div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3"><input type="search" id="search-input" placeholder="Tìm kiếm ghi chú..." class="w-full sm:w-auto p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><div class="flex items-center space-x-2"><label for="note-sort-select" class="text-sm font-medium text-gray-700 whitespace-nowrap">Sắp xếp:</label><select id="note-sort-select" class="sort-select"><option value="newest" ${noteSortPreference==='newest'?'selected':''}>Mới nhất</option><option value="oldest" ${noteSortPreference==='oldest'?'selected':''}>Cũ nhất</option><option value="name_asc" ${noteSortPreference==='name_asc'?'selected':''}>Tên (A-Z)</option><option value="name_desc" ${noteSortPreference==='name_desc'?'selected':''}>Tên (Z-A)</option></select></div></div><h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Ghi chú</h3><div id="notes-list" class="mt-6 space-y-0"> </div>`; const snfb=document.getElementById('show-note-form-btn'); const anc=document.getElementById('add-note-container'); const ni=document.getElementById('note-input'); const anb=document.getElementById('add-note-btn'); const canb=document.getElementById('cancel-add-note-btn'); const si=document.getElementById('search-input'); const nss=document.getElementById('note-sort-select'); const nl=document.getElementById('notes-list'); snfb.addEventListener('click',()=>{anc.classList.remove('hidden'); snfb.classList.add('hidden'); ni.focus();}); canb.addEventListener('click',()=>{anc.classList.add('hidden'); snfb.classList.remove('hidden'); ni.value='';}); anb.addEventListener('click',()=>addNote(ni,si,anc,snfb)); ni.addEventListener('keydown',(e)=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();addNote(ni,si,anc,snfb);}}); si.addEventListener('input',(e)=>displayNotes(nl,si,nss.value,e.target.value)); nss.addEventListener('change',(e)=>{noteSortPreference=e.target.value; localStorage.setItem('noteSortPref',noteSortPreference); displayNotes(nl,si,noteSortPreference,si.value);}); displayNotes(nl,si,noteSortPreference); }
         function buildGoalsUI() { /* ... (Code from previous version) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Theo dõi Mục tiêu</h2><button id="show-goal-form-btn" class="add-new-button" style="background-color: #22c55e;">Tạo mục tiêu mới</button><form id="add-goal-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3 hidden"><div><label for="goal-input" class="block text-sm font-medium text-gray-700 mb-1">Tên mục tiêu:</label><input type="text" id="goal-input" placeholder="Ví dụ: Học JavaScript nâng cao" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div><label for="goal-desc-input" class="block text-sm font-medium text-gray-700 mb-1">Mô tả (tùy chọn):</label><textarea id="goal-desc-input" placeholder="Mô tả chi tiết các bước hoặc lý do..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea></div><div><label for="goal-due-date-input" class="block text-sm font-medium text-gray-700 mb-1">Hạn chót (tùy chọn):</label><input type="date" id="goal-due-date-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div class="flex justify-end"><button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm Mục tiêu</button><button id="cancel-add-goal-btn" type="button" class="form-cancel-button">Hủy</button></div></form><div class="flex justify-end mb-4"><div class="flex items-center space-x-2"><label for="goal-sort-select" class="text-sm font-medium text-gray-700 whitespace-nowrap">Sắp xếp:</label><select id="goal-sort-select" class="sort-select"><option value="default" ${goalSortPreference==='default'?'selected':''}>Mặc định</option><option value="due_date_asc" ${goalSortPreference==='due_date_asc'?'selected':''}>Hạn gần nhất</option><option value="due_date_desc" ${goalSortPreference==='due_date_desc'?'selected':''}>Hạn xa nhất</option><option value="name_asc" ${goalSortPreference==='name_asc'?'selected':''}>Tên (A-Z)</option><option value="name_desc" ${goalSortPreference==='name_desc'?'selected':''}>Tên (Z-A)</option><option value="newest" ${goalSortPreference==='newest'?'selected':''}>Ngày tạo mới nhất</option><option value="oldest" ${goalSortPreference==='oldest'?'selected':''}>Ngày tạo cũ nhất</option></select></div></div><h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Mục tiêu</h3><div id="goals-list" class="space-y-0"></div>`; const sgfb=document.getElementById('show-goal-form-btn'); const agf=document.getElementById('add-goal-form'); const gi=document.getElementById('goal-input'); const gdi=document.getElementById('goal-desc-input'); const gddi=document.getElementById('goal-due-date-input'); const cagb=document.getElementById('cancel-add-goal-btn'); const gss=document.getElementById('goal-sort-select'); const gl=document.getElementById('goals-list'); sgfb.addEventListener('click',()=>{agf.classList.remove('hidden'); sgfb.classList.add('hidden'); gi.focus();}); cagb.addEventListener('click',()=>{agf.classList.add('hidden'); sgfb.classList.remove('hidden'); gi.value=''; gdi.value=''; gddi.value='';}); agf.addEventListener('submit',(e)=>{e.preventDefault();addGoal(gi,gdi,gddi,gl,agf,sgfb);}); gss.addEventListener('change',(e)=>{goalSortPreference=e.target.value; localStorage.setItem('goalSortPref',goalSortPreference); displayGoals(gl,goalSortPreference);}); displayGoals(gl,goalSortPreference); }
         function buildHabitsUI() { /* ... (Code from previous version) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} const s=calculateHabitStats(); appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Theo dõi Thói quen</h2><div id="habit-stats-area" class="habit-stats">${s.totalHabits>0?`Hoàn thành hôm nay: <strong>${s.completedToday} / ${s.totalHabits}</strong> (${s.todayCompletionRate}%)`:'Thêm thói quen để bắt đầu theo dõi!'}${s.totalHabits>0?`<br>Tỷ lệ hoàn thành (7 ngày qua): <strong>${s.last7DaysCompletionRate}%</strong>`:''}</div><button id="show-habit-form-btn" class="add-new-button" style="background-color: #a855f7;">Tạo thói quen mới</button><form id="add-habit-form" class="mb-6 flex items-center space-x-2 hidden"><input type="text" id="habit-input" placeholder="Nhập thói quen mới..." required class="flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm</button><button id="cancel-add-habit-btn" type="button" class="form-cancel-button !ml-2 !py-2 !px-4">Hủy</button></form><h3 class="text-lg font-semibold mb-3 text-gray-700">Thói quen Hôm nay (${getTodayDateString()})</h3><div id="habits-list" class="space-y-0"></div>`; const shfb=document.getElementById('show-habit-form-btn'); const ahf=document.getElementById('add-habit-form'); const hi=document.getElementById('habit-input'); const cahb=document.getElementById('cancel-add-habit-btn'); const hl=document.getElementById('habits-list'); shfb.addEventListener('click',()=>{ahf.classList.remove('hidden'); shfb.classList.add('hidden'); hi.focus();}); cahb.addEventListener('click',()=>{ahf.classList.add('hidden'); shfb.classList.remove('hidden'); hi.value='';}); ahf.addEventListener('submit',(e)=>{e.preventDefault();addHabit(hi,hl,ahf,shfb);}); displayHabits(hl); }
+
+        // *** NEW: buildSkillsUI Function ***
+        function buildSkillsUI() {
+            if (!appContent.classList.contains('app-module-container')) {
+                 appContent.className = 'app-module-container';
+            }
+            appContent.innerHTML = `
+                <h2 class="text-xl font-semibold mb-4">Quản lý Kỹ năng</h2>
+                <button id="show-skill-form-btn" class="add-new-button" style="background-color: #f59e0b;">Thêm kỹ năng mới</button> {/* Amber button */}
+                <form id="add-skill-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3 hidden">
+                     <div>
+                         <label for="skill-input" class="block text-sm font-medium text-gray-700 mb-1">Tên kỹ năng:</label>
+                         <input type="text" id="skill-input" placeholder="Ví dụ: Lập trình Python" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                     </div>
+                     <div>
+                         <label for="skill-level-select" class="block text-sm font-medium text-gray-700 mb-1">Mức độ (tùy chọn):</label>
+                         <select id="skill-level-select" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                            <option value="">-- Chọn mức độ --</option>
+                            <option value="Beginner">Người mới bắt đầu</option>
+                            <option value="Intermediate">Trung cấp</option>
+                            <option value="Advanced">Nâng cao</option>
+                            <option value="Expert">Chuyên gia</option>
+                         </select>
+                     </div>
+                    <div class="flex justify-end">
+                        <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">
+                            Thêm Kỹ năng
+                        </button>
+                        <button id="cancel-add-skill-btn" type="button" class="form-cancel-button">Hủy</button>
+                    </div>
+                </form>
+                <h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Kỹ năng</h3>
+                <div id="skills-list" class="space-y-0">
+                    </div>
+            `;
+
+            // Get references
+            const showSkillFormBtn = document.getElementById('show-skill-form-btn');
+            const addSkillForm = document.getElementById('add-skill-form');
+            const skillInput = document.getElementById('skill-input');
+            const skillLevelSelect = document.getElementById('skill-level-select');
+            const cancelAddSkillBtn = document.getElementById('cancel-add-skill-btn');
+            const skillsList = document.getElementById('skills-list');
+
+            // Event listeners
+            showSkillFormBtn.addEventListener('click', () => { addSkillForm.classList.remove('hidden'); showSkillFormBtn.classList.add('hidden'); skillInput.focus(); });
+            cancelAddSkillBtn.addEventListener('click', () => { addSkillForm.classList.add('hidden'); showSkillFormBtn.classList.remove('hidden'); skillInput.value = ''; skillLevelSelect.value = ''; });
+            addSkillForm.addEventListener('submit', (e) => { e.preventDefault(); addSkill(skillInput, skillLevelSelect, skillsList, addSkillForm, showSkillFormBtn); });
+
+            // Initial display
+            displaySkills(skillsList);
+        }
+
 
         // --- Core Application Logic ---
         function renderAppContent() {
@@ -232,9 +287,10 @@
         // --- Initialization and Event Listeners ---
         navLinks.forEach(link => { /* ... (Code from previous version) ... */ link.addEventListener('click',(e)=>{e.preventDefault(); const sm=e.target.dataset.module; if(sm&&sm!==currentModule){currentModule=sm; renderAppContent();}}); });
         document.addEventListener('DOMContentLoaded', renderAppContent);
-        console.log("Personal App v1.0 with Calendar History!");
+        console.log("Personal App v1.1 with UI Refinements!"); // Updated console log
 
     </script>
 
 </body>
 </html>
+

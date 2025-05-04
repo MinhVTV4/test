@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ứng dụng Phát triển Cá nhân v0.7</title>
+    <title>Ứng dụng Phát triển Cá nhân v0.8</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -19,27 +19,23 @@
         .edit-icon-btn { color: #2563eb; } .delete-icon-btn { color: #dc2626; } .complete-icon-btn { color: #16a34a; } .undo-icon-btn { color: #ca8a04; } .save-icon-btn { color: #16a34a; } .cancel-icon-btn { color: #4b5563; }
         .pin-icon-btn { color: #6366f1; } .pin-icon-btn.pinned { color: #4f46e5; background-color: #e0e7ff; }
         .history-icon-btn { color: #6b7280; }
-        .form-cancel-button { /* Style for cancel buttons in forms */
-            background-color: #e5e7eb; /* bg-gray-200 */
-            color: #4b5563; /* text-gray-600 */
-            font-weight: 500; /* medium */
-            padding: 0.5rem 1rem; /* py-2 px-4 */
+        .form-cancel-button { background-color: #e5e7eb; color: #4b5563; font-weight: 500; padding: 0.5rem 1rem; border-radius: 0.375rem; transition: background-color 0.15s ease-in-out; margin-left: 0.5rem; }
+        .form-cancel-button:hover { background-color: #d1d5db; }
+        .add-new-button { background-color: #3b82f6; color: white; font-weight: 600; padding: 0.6rem 1.2rem; border-radius: 0.375rem; transition: background-color 0.15s ease-in-out; margin-bottom: 1rem; display: inline-block; }
+        .add-new-button:hover { background-color: #2563eb; }
+        .sort-select { /* Style for sort dropdown */
+            padding: 0.5rem 2rem 0.5rem 0.75rem; /* Add padding for arrow */
+            border: 1px solid #d1d5db; /* border-gray-300 */
             border-radius: 0.375rem; /* rounded-md */
-            transition: background-color 0.15s ease-in-out;
-            margin-left: 0.5rem; /* ml-2 */
+            background-color: white;
+            font-size: 0.875rem; /* text-sm */
+            color: #374151; /* text-gray-700 */
+            appearance: none; /* Remove default arrow */
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
         }
-        .form-cancel-button:hover { background-color: #d1d5db; /* bg-gray-300 */ }
-        .add-new-button { /* Style for the "Add New..." buttons */
-             background-color: #3b82f6; /* bg-blue-500 */
-             color: white;
-             font-weight: 600; /* semibold */
-             padding: 0.6rem 1.2rem;
-             border-radius: 0.375rem;
-             transition: background-color 0.15s ease-in-out;
-             margin-bottom: 1rem; /* mb-4 */
-             display: inline-block; /* Allow margin bottom */
-        }
-         .add-new-button:hover { background-color: #2563eb; /* bg-blue-600 */ }
 
 
         .nav-link { padding: 0.5rem 1rem; border-radius: 0.375rem; transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out; cursor: pointer; font-weight: 500; border: 1px solid transparent; }
@@ -127,19 +123,83 @@
         const appContent = document.getElementById('app-content');
         const mainNav = document.getElementById('main-nav');
         const navLinks = mainNav.querySelectorAll('.nav-link');
+        // Store sort preferences
+        let noteSortPreference = localStorage.getItem('noteSortPref') || 'newest';
+        // Add similar variables for goals and habits later if needed
 
         // --- SVG Icons ---
         const ICONS = { /* ... (Icons remain the same) ... */ edit: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>`, delete: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>`, check: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>`, undo: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" /></svg>`, save: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75 l6 6 9-13.5" /></svg>`, cancel: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>`, pin: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0 1 20.25 6v12A2.25 2.25 0 0 1 18 20.25H6A2.25 2.25 0 0 1 3.75 18V6A2.25 2.25 0 0 1 6 3.75h1.5m9 0h-9" /></svg>`, pin_filled: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M16.5 3.75a.75.75 0 0 1 .75.75v11.19l-4.72-2.36a.75.75 0 0 0-.56 0L7.5 15.69V4.5a.75.75 0 0 1 .75-.75h7.5Z" clip-rule="evenodd" /><path d="M18 3.75a2.25 2.25 0 0 1 2.25 2.25v12a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6A2.25 2.25 0 0 1 6 3.75h12Z" /></svg>`, history: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>`, fire: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M8.75 1.75a.75.75 0 0 0-1.5 0v1.313c-.37-.1-.76-.163-1.17-.198C4.895 2.798 4 3.65 4 4.857c0 .41.13 1.03.393 1.776.24.69.662 1.42 1.28 2.065.617.645 1.333 1.176 2.146 1.571a.75.75 0 0 0 .44-.073c.813-.395 1.53- .926 2.147-1.57.618-.646 1.04-1.376 1.28-2.066C11.87 5.888 12 5.267 12 4.857c0-1.206-.895-2.059-2.08-2.186-.41-.035-.8-.1-1.17-.198V1.75Z" /><path d="M4.708 11.584a.75.75 0 0 1 .875.016C6.333 12.06 7.167 12.5 8 12.5s1.667-.44 2.417-.9a.75.75 0 0 1 .875-.016 14.41 14.41 0 0 1 1.145.61c.217.12.4.27.548.454a.75.75 0 0 1-.918 1.183 12.905 12.905 0 0 0-2.54-.714c-.427-.089-.86-.133-1.296-.133s-.87.044-1.297.133a12.904 12.904 0 0 0-2.54.714.75.75 0 0 1-.918-1.183c.148-.184.33-.334.548-.454a14.411 14.411 0 0 1 1.145-.61Z" /></svg>` };
 
         // --- Module Building Functions ---
-        function buildNotesUI() { /* ... (no changes) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Ghi Chú Nhanh</h2><button id="show-note-form-btn" class="add-new-button">Tạo ghi chú mới</button><div id="add-note-container" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 hidden"><div class="mb-4"><textarea id="note-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="4" placeholder="Nhập ghi chú..."></textarea></div><div class="flex justify-end"><button id="add-note-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm Ghi Chú</button><button id="cancel-add-note-btn" type="button" class="form-cancel-button">Hủy</button></div></div><div class="mb-4"><input type="search" id="search-input" placeholder="Tìm kiếm ghi chú..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Ghi chú</h3><div id="notes-list" class="mt-6 space-y-3"> </div>`; const snfb=document.getElementById('show-note-form-btn'); const anc=document.getElementById('add-note-container'); const ni=document.getElementById('note-input'); const anb=document.getElementById('add-note-btn'); const canb=document.getElementById('cancel-add-note-btn'); const si=document.getElementById('search-input'); const nl=document.getElementById('notes-list'); snfb.addEventListener('click',()=>{anc.classList.remove('hidden'); snfb.classList.add('hidden'); ni.focus();}); canb.addEventListener('click',()=>{anc.classList.add('hidden'); snfb.classList.remove('hidden'); ni.value='';}); anb.addEventListener('click',()=>addNote(ni,si,anc,snfb)); ni.addEventListener('keydown',(e)=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();addNote(ni,si,anc,snfb);}}); si.addEventListener('input',(e)=>displayNotes(nl,si,e.target.value)); displayNotes(nl,si); }
+
+        // *** UPDATED: buildNotesUI Function ***
+        function buildNotesUI() {
+            if (!appContent.classList.contains('app-module-container')) {
+                 appContent.className = 'app-module-container';
+            }
+            appContent.innerHTML = `
+                <h2 class="text-xl font-semibold mb-4">Ghi Chú Nhanh</h2>
+                <button id="show-note-form-btn" class="add-new-button">Tạo ghi chú mới</button>
+                <div id="add-note-container" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 hidden">
+                    <div class="mb-4"><textarea id="note-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="4" placeholder="Nhập ghi chú..."></textarea></div>
+                    <div class="flex justify-end">
+                         <button id="add-note-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm Ghi Chú</button>
+                         <button id="cancel-add-note-btn" type="button" class="form-cancel-button">Hủy</button>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
+                    <input type="search" id="search-input" placeholder="Tìm kiếm ghi chú..." class="w-full sm:w-auto p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <div class="flex items-center space-x-2">
+                         <label for="note-sort-select" class="text-sm font-medium text-gray-700 whitespace-nowrap">Sắp xếp:</label>
+                         <select id="note-sort-select" class="sort-select">
+                             <option value="newest" ${noteSortPreference === 'newest' ? 'selected' : ''}>Mới nhất</option>
+                             <option value="oldest" ${noteSortPreference === 'oldest' ? 'selected' : ''}>Cũ nhất</option>
+                             <option value="name_asc" ${noteSortPreference === 'name_asc' ? 'selected' : ''}>Tên (A-Z)</option>
+                             <option value="name_desc" ${noteSortPreference === 'name_desc' ? 'selected' : ''}>Tên (Z-A)</option>
+                         </select>
+                    </div>
+                </div>
+
+                <h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Ghi chú</h3>
+                <div id="notes-list" class="mt-6 space-y-3"> </div>
+            `;
+
+            // Get references
+            const showNoteFormBtn = document.getElementById('show-note-form-btn');
+            const addNoteContainer = document.getElementById('add-note-container');
+            const noteInput = document.getElementById('note-input');
+            const addNoteBtn = document.getElementById('add-note-btn');
+            const cancelAddNoteBtn = document.getElementById('cancel-add-note-btn');
+            const searchInput = document.getElementById('search-input');
+            const noteSortSelect = document.getElementById('note-sort-select'); // Get sort select
+            const notesList = document.getElementById('notes-list');
+
+            // Event listeners
+            showNoteFormBtn.addEventListener('click', () => { addNoteContainer.classList.remove('hidden'); showNoteFormBtn.classList.add('hidden'); noteInput.focus(); });
+            cancelAddNoteBtn.addEventListener('click', () => { addNoteContainer.classList.add('hidden'); showNoteFormBtn.classList.remove('hidden'); noteInput.value = ''; });
+            addNoteBtn.addEventListener('click', () => addNote(noteInput, searchInput, addNoteContainer, showNoteFormBtn));
+            noteInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addNote(noteInput, searchInput, addNoteContainer, showNoteFormBtn); } });
+            searchInput.addEventListener('input', (e) => displayNotes(notesList, searchInput, noteSortSelect.value, e.target.value)); // Pass sort value
+
+            // *** NEW: Sort Event Listener ***
+            noteSortSelect.addEventListener('change', (e) => {
+                noteSortPreference = e.target.value; // Update preference
+                localStorage.setItem('noteSortPref', noteSortPreference); // Save preference
+                displayNotes(notesList, searchInput, noteSortPreference, searchInput.value); // Re-display with new sort and current search
+            });
+
+            // Initial display with current sort preference and empty search
+            displayNotes(notesList, searchInput, noteSortPreference);
+        }
+
         function buildGoalsUI() { /* ... (no changes) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Theo dõi Mục tiêu</h2><button id="show-goal-form-btn" class="add-new-button" style="background-color: #22c55e;">Tạo mục tiêu mới</button><form id="add-goal-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3 hidden"><div><label for="goal-input" class="block text-sm font-medium text-gray-700 mb-1">Tên mục tiêu:</label><input type="text" id="goal-input" placeholder="Ví dụ: Học JavaScript nâng cao" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div><label for="goal-desc-input" class="block text-sm font-medium text-gray-700 mb-1">Mô tả (tùy chọn):</label><textarea id="goal-desc-input" placeholder="Mô tả chi tiết các bước hoặc lý do..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea></div><div><label for="goal-due-date-input" class="block text-sm font-medium text-gray-700 mb-1">Hạn chót (tùy chọn):</label><input type="date" id="goal-due-date-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div class="flex justify-end"><button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm Mục tiêu</button><button id="cancel-add-goal-btn" type="button" class="form-cancel-button">Hủy</button></div></form><h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Mục tiêu</h3><div id="goals-list" class="space-y-3"></div>`; const sgfb=document.getElementById('show-goal-form-btn'); const agf=document.getElementById('add-goal-form'); const gi=document.getElementById('goal-input'); const gdi=document.getElementById('goal-desc-input'); const gddi=document.getElementById('goal-due-date-input'); const cagb=document.getElementById('cancel-add-goal-btn'); const gl=document.getElementById('goals-list'); sgfb.addEventListener('click',()=>{agf.classList.remove('hidden'); sgfb.classList.add('hidden'); gi.focus();}); cagb.addEventListener('click',()=>{agf.classList.add('hidden'); sgfb.classList.remove('hidden'); gi.value=''; gdi.value=''; gddi.value='';}); agf.addEventListener('submit',(e)=>{e.preventDefault();addGoal(gi,gdi,gddi,gl,agf,sgfb);}); displayGoals(gl); }
         function buildHabitsUI() { /* ... (no changes) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} const s=calculateHabitStats(); appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Theo dõi Thói quen</h2><div id="habit-stats-area" class="habit-stats">${s.totalHabits>0?`Hoàn thành hôm nay: <strong>${s.completedToday} / ${s.totalHabits}</strong> (${s.todayCompletionRate}%)`:'Thêm thói quen để bắt đầu theo dõi!'}${s.totalHabits>0?`<br>Tỷ lệ hoàn thành (7 ngày qua): <strong>${s.last7DaysCompletionRate}%</strong>`:''}</div><button id="show-habit-form-btn" class="add-new-button" style="background-color: #a855f7;">Tạo thói quen mới</button><form id="add-habit-form" class="mb-6 flex items-center space-x-2 hidden"><input type="text" id="habit-input" placeholder="Nhập thói quen mới..." required class="flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm</button><button id="cancel-add-habit-btn" type="button" class="form-cancel-button !ml-2 !py-2 !px-4">Hủy</button></form><h3 class="text-lg font-semibold mb-3 text-gray-700">Thói quen Hôm nay (${getTodayDateString()})</h3><div id="habits-list" class="space-y-2"></div>`; const shfb=document.getElementById('show-habit-form-btn'); const ahf=document.getElementById('add-habit-form'); const hi=document.getElementById('habit-input'); const cahb=document.getElementById('cancel-add-habit-btn'); const hl=document.getElementById('habits-list'); shfb.addEventListener('click',()=>{ahf.classList.remove('hidden'); shfb.classList.add('hidden'); hi.focus();}); cahb.addEventListener('click',()=>{ahf.classList.add('hidden'); shfb.classList.remove('hidden'); hi.value='';}); ahf.addEventListener('submit',(e)=>{e.preventDefault();addHabit(hi,hl,ahf,shfb);}); displayHabits(hl); }
 
         // --- Core Application Logic ---
         function renderAppContent() {
             console.log(`Rendering module: ${currentModule}`);
-            let baseTitle = "Ứng dụng Phát triển Cá nhân v0.7"; // Updated version
+            let baseTitle = "Ứng dụng Phát triển Cá nhân v0.8"; // Updated version
             let moduleTitle = "";
             if (currentModule === 'notes') moduleTitle = " - Ghi Chú";
             else if (currentModule === 'goals') moduleTitle = " - Mục tiêu";
@@ -162,12 +222,52 @@
         function getNotes() { /* ... (no changes) ... */ const n=localStorage.getItem('quickNotes'); try { const p=n?JSON.parse(n):[]; return p.map(no=>({...no, isPinned: no.isPinned || false })); } catch(e){console.error("Error parsing notes:",e); return [];} }
         function saveNotes(notes) { /* ... (no changes) ... */ localStorage.setItem('quickNotes',JSON.stringify(notes)); }
         function formatTimestamp(timestamp) { /* ... (no changes) ... */ if(!timestamp)return ''; const d=new Date(timestamp); return `${d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}, ${d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'})}`; }
-        function displayNotes(listEl, searchEl, term='') { /* ... (no changes) ... */ if(!listEl||!searchEl){return;} let n=getNotes(); const s=term.toLowerCase().trim(); if(s){n=n.filter(no=>no.content.toLowerCase().includes(s));} listEl.innerHTML=''; if(n.length===0){listEl.innerHTML=`<p class="empty-state-message">${s?'Không tìm thấy ghi chú nào khớp.':'Chưa có ghi chú nào.'}</p>`; return;} n.sort((a,b)=>(b.isPinned-a.isPinned)||(b.modifiedAt||b.createdAt)-(a.modifiedAt||a.createdAt)); n.forEach(no=>{const ne=document.createElement('div'); ne.dataset.noteId=no.id; ne.classList.add('note-item','list-item-hover','flex','flex-col'); if(no.isPinned){ne.classList.add('pinned');} if(no.isPinned){const pi=document.createElement('span'); pi.classList.add('pin-indicator'); pi.innerHTML=ICONS.pin_filled; ne.appendChild(pi);} const tr=document.createElement('div'); tr.classList.add('flex','justify-between','items-start','w-full','note-top-row'); const cc=document.createElement('div'); cc.classList.add('flex-grow','mr-2','note-content-container'); const ce=document.createElement('p'); ce.classList.add('note-content','text-gray-800'); ce.textContent=no.content; cc.appendChild(ce); const bc=document.createElement('div'); bc.classList.add('flex-shrink-0','flex','items-center','note-button-container'); const pb=document.createElement('button'); pb.classList.add('action-button-icon','pin-icon-btn'); if(no.isPinned){pb.classList.add('pinned'); pb.innerHTML=ICONS.pin_filled; pb.setAttribute('aria-label','Bỏ ghim ghi chú');} else {pb.innerHTML=ICONS.pin; pb.setAttribute('aria-label','Ghim ghi chú');} pb.onclick=()=>toggleNotePin(no.id,listEl,searchEl); const eb=document.createElement('button'); eb.classList.add('action-button-icon','edit-icon-btn'); eb.innerHTML=ICONS.edit; eb.setAttribute('aria-label','Sửa ghi chú'); eb.onclick=()=>toggleEdit(no.id,listEl,searchEl); const db=document.createElement('button'); db.classList.add('action-button-icon','delete-icon-btn'); db.innerHTML=ICONS.delete; db.setAttribute('aria-label','Xóa ghi chú'); db.onclick=()=>deleteNote(no.id,listEl,searchEl); bc.appendChild(pb); bc.appendChild(eb); bc.appendChild(db); tr.appendChild(cc); tr.appendChild(bc); const ts=document.createElement('p'); ts.classList.add('note-timestamp','w-full','text-right'); const cr=formatTimestamp(no.createdAt); const md=formatTimestamp(no.modifiedAt); ts.textContent=md?`Sửa đổi: ${md}`:(cr?`Đã tạo: ${cr}`:''); ne.appendChild(tr); if(ts.textContent){ne.appendChild(ts);} listEl.appendChild(ne);}); }
-        function addNote(inputEl, searchEl, formContainer, showFormBtn) { /* ... (no changes) ... */ if(!inputEl||!searchEl||!formContainer||!showFormBtn)return; const c=inputEl.value.trim(); if(c){const n=getNotes(); const now=Date.now(); const nn={id:now,content:c,createdAt:now,modifiedAt:null,isPinned:false}; n.push(nn); saveNotes(n); inputEl.value=''; searchEl.value=''; formContainer.classList.add('hidden'); showFormBtn.classList.remove('hidden'); const cl=document.getElementById('notes-list'); if(cl){displayNotes(cl,searchEl);}}}
-        function deleteNote(id, listEl, searchEl) { /* ... (no changes) ... */ if(!window.confirm("Bạn chắc chắn xóa ghi chú này?"))return; let n=getNotes(); n=n.filter(no=>no.id!==id); saveNotes(n); displayNotes(listEl,searchEl,searchEl.value); }
-        function toggleEdit(id, listEl, searchEl) { /* ... (no changes) ... */ displayNotes(listEl,searchEl,searchEl.value); const ne=listEl.querySelector(`[data-note-id='${id}']`); if(!ne)return; const cc=ne.querySelector('.note-content-container'); const bc=ne.querySelector('.note-button-container'); if(!cc||!bc){console.error("Could not find content/button container for note edit:",id); return;} const ns=getNotes(); const no=ns.find(n=>n.id===id); if(!no)return; cc.innerHTML=''; bc.innerHTML=''; const ei=document.createElement('textarea'); ei.classList.add('w-full','p-1','border','border-gray-300','rounded-md','focus:outline-none','focus:ring-1','focus:ring-blue-500','edit-textarea','note-content'); ei.value=no.content; cc.appendChild(ei); const sb=document.createElement('button'); sb.classList.add('action-button-icon','save-icon-btn'); sb.innerHTML=ICONS.save; sb.setAttribute('aria-label','Lưu thay đổi'); sb.onclick=()=>saveEdit(id,ei.value,listEl,searchEl); const cb=document.createElement('button'); cb.classList.add('action-button-icon','cancel-icon-btn'); cb.innerHTML=ICONS.cancel; cb.setAttribute('aria-label','Hủy bỏ'); cb.onclick=()=>displayNotes(listEl,searchEl,searchEl.value); bc.appendChild(sb); bc.appendChild(cb); ne.classList.add('editing'); ei.focus(); }
-        function saveEdit(id, content, listEl, searchEl) { /* ... (no changes) ... */ const tc=content.trim(); if(!tc){displayNotes(listEl,searchEl,searchEl.value); return;} let n=getNotes(); const idx=n.findIndex(no=>no.id===id); if(idx>-1){n[idx].content=tc; n[idx].modifiedAt=Date.now(); saveNotes(n); displayNotes(listEl,searchEl,searchEl.value);} else {console.error("Cannot find note to save:",id); displayNotes(listEl,searchEl,searchEl.value);} }
-        function toggleNotePin(noteId, listEl, searchEl) { /* ... (no changes) ... */ let n=getNotes(); const i=n.findIndex(no=>no.id===noteId); if(i>-1){n[i].isPinned=!n[i].isPinned; n[i].modifiedAt=Date.now(); saveNotes(n); displayNotes(listEl,searchEl,searchEl.value); console.log(`Toggled pin note: ${noteId} to ${n[i].isPinned}`);} else {console.error("Cannot find note to pin:",noteId);} }
+
+        // *** UPDATED: displayNotes Function (Add sorting logic) ***
+        function displayNotes(listEl, searchEl, sortBy = noteSortPreference, term = '') {
+             if(!listEl||!searchEl){return;}
+             let notes = getNotes();
+             const s = term.toLowerCase().trim();
+
+             // Filter first
+             if(s){ notes = notes.filter(no=>no.content.toLowerCase().includes(s)); }
+
+             // Sort based on preference
+             notes.sort((a, b) => {
+                 // Always keep pinned notes on top regardless of other sort criteria
+                 if (a.isPinned !== b.isPinned) {
+                     return b.isPinned - a.isPinned; // Pinned (true=1) comes before not pinned (false=0)
+                 }
+                 // If both are pinned or both are not pinned, apply the selected sort order
+                 switch (sortBy) {
+                     case 'oldest':
+                         return (a.createdAt || 0) - (b.createdAt || 0); // Oldest created first
+                     case 'name_asc':
+                         // Ensure content exists before comparing, treat null/undefined as empty string
+                         return (a.content || '').localeCompare(b.content || ''); // A-Z
+                     case 'name_desc':
+                         return (b.content || '').localeCompare(a.content || ''); // Z-A
+                     case 'newest': // Default case
+                     default:
+                         // Sort by modified first (if available), then created date, descending
+                         return (b.modifiedAt || b.createdAt || 0) - (a.modifiedAt || a.createdAt || 0);
+                 }
+             });
+
+
+             listEl.innerHTML='';
+             if(notes.length===0){ listEl.innerHTML=`<p class="empty-state-message">${s?'Không tìm thấy ghi chú nào khớp.':'Chưa có ghi chú nào.'}</p>`; return; }
+
+             // Render sorted notes (forEach loop remains the same)
+             notes.forEach(note=>{const ne=document.createElement('div'); ne.dataset.noteId=note.id; ne.classList.add('note-item','list-item-hover','flex','flex-col'); if(note.isPinned){ne.classList.add('pinned');} if(note.isPinned){const pi=document.createElement('span'); pi.classList.add('pin-indicator'); pi.innerHTML=ICONS.pin_filled; ne.appendChild(pi);} const tr=document.createElement('div'); tr.classList.add('flex','justify-between','items-start','w-full','note-top-row'); const cc=document.createElement('div'); cc.classList.add('flex-grow','mr-2','note-content-container'); const ce=document.createElement('p'); ce.classList.add('note-content','text-gray-800'); ce.textContent=note.content; cc.appendChild(ce); const bc=document.createElement('div'); bc.classList.add('flex-shrink-0','flex','items-center','note-button-container'); const pb=document.createElement('button'); pb.classList.add('action-button-icon','pin-icon-btn'); if(note.isPinned){pb.classList.add('pinned'); pb.innerHTML=ICONS.pin_filled; pb.setAttribute('aria-label','Bỏ ghim ghi chú');} else {pb.innerHTML=ICONS.pin; pb.setAttribute('aria-label','Ghim ghi chú');} pb.onclick=()=>toggleNotePin(note.id,listEl,searchEl); const eb=document.createElement('button'); eb.classList.add('action-button-icon','edit-icon-btn'); eb.innerHTML=ICONS.edit; eb.setAttribute('aria-label','Sửa ghi chú'); eb.onclick=()=>toggleEdit(note.id,listEl,searchEl); const db=document.createElement('button'); db.classList.add('action-button-icon','delete-icon-btn'); db.innerHTML=ICONS.delete; db.setAttribute('aria-label','Xóa ghi chú'); db.onclick=()=>deleteNote(note.id,listEl,searchEl); bc.appendChild(pb); bc.appendChild(eb); bc.appendChild(db); tr.appendChild(cc); tr.appendChild(bc); const ts=document.createElement('p'); ts.classList.add('note-timestamp','w-full','text-right'); const cr=formatTimestamp(note.createdAt); const md=formatTimestamp(note.modifiedAt); ts.textContent=md?`Sửa đổi: ${md}`:(cr?`Đã tạo: ${cr}`:''); ne.appendChild(tr); if(ts.textContent){ne.appendChild(ts);} listEl.appendChild(ne);});
+        }
+
+        // Update calls to displayNotes to pass the current sort preference
+        function addNote(inputEl, searchEl, formContainer, showFormBtn) { if(!inputEl||!searchEl||!formContainer||!showFormBtn)return; const c=inputEl.value.trim(); if(c){const n=getNotes(); const now=Date.now(); const nn={id:now,content:c,createdAt:now,modifiedAt:null,isPinned:false}; n.push(nn); saveNotes(n); inputEl.value=''; searchEl.value=''; formContainer.classList.add('hidden'); showFormBtn.classList.remove('hidden'); const cl=document.getElementById('notes-list'); if(cl){displayNotes(cl,searchEl, noteSortPreference);}} } // Pass sort pref
+        function deleteNote(id, listEl, searchEl) { if(!window.confirm("Bạn chắc chắn xóa ghi chú này?"))return; let n=getNotes(); n=n.filter(no=>no.id!==id); saveNotes(n); displayNotes(listEl,searchEl, noteSortPreference, searchEl.value); } // Pass sort pref
+        function toggleEdit(id, listEl, searchEl) { displayNotes(listEl,searchEl, noteSortPreference, searchEl.value); const ne=listEl.querySelector(`[data-note-id='${id}']`); if(!ne)return; const cc=ne.querySelector('.note-content-container'); const bc=ne.querySelector('.note-button-container'); if(!cc||!bc){console.error("Could not find content/button container for note edit:",id); return;} const ns=getNotes(); const no=ns.find(n=>n.id===id); if(!no)return; cc.innerHTML=''; bc.innerHTML=''; const ei=document.createElement('textarea'); ei.classList.add('w-full','p-1','border','border-gray-300','rounded-md','focus:outline-none','focus:ring-1','focus:ring-blue-500','edit-textarea','note-content'); ei.value=no.content; cc.appendChild(ei); const sb=document.createElement('button'); sb.classList.add('action-button-icon','save-icon-btn'); sb.innerHTML=ICONS.save; sb.setAttribute('aria-label','Lưu thay đổi'); sb.onclick=()=>saveEdit(id,ei.value,listEl,searchEl); const cb=document.createElement('button'); cb.classList.add('action-button-icon','cancel-icon-btn'); cb.innerHTML=ICONS.cancel; cb.setAttribute('aria-label','Hủy bỏ'); cb.onclick=()=>displayNotes(listEl,searchEl, noteSortPreference, searchEl.value); bc.appendChild(sb); bc.appendChild(cb); ne.classList.add('editing'); ei.focus(); } // Pass sort pref on cancel
+        function saveEdit(id, content, listEl, searchEl) { const tc=content.trim(); if(!tc){displayNotes(listEl,searchEl, noteSortPreference, searchEl.value); return;} let n=getNotes(); const idx=n.findIndex(no=>no.id===id); if(idx>-1){n[idx].content=tc; n[idx].modifiedAt=Date.now(); saveNotes(n); displayNotes(listEl,searchEl, noteSortPreference, searchEl.value);} else {console.error("Cannot find note to save:",id); displayNotes(listEl,searchEl, noteSortPreference, searchEl.value);} } // Pass sort pref
+        function toggleNotePin(noteId, listEl, searchEl) { let n=getNotes(); const i=n.findIndex(no=>no.id===noteId); if(i>-1){n[i].isPinned=!n[i].isPinned; n[i].modifiedAt=Date.now(); saveNotes(n); displayNotes(listEl,searchEl, noteSortPreference, searchEl.value); console.log(`Toggled pin note: ${noteId} to ${n[i].isPinned}`);} else {console.error("Cannot find note to pin:",noteId);} } // Pass sort pref
 
         // --- Goal Management Functions ---
         const GOALS_STORAGE_KEY = 'personalGoals';
@@ -192,40 +292,9 @@
         function calculateCurrentStreak(completedDates) { /* ... (no changes) ... */ if(!Array.isArray(completedDates)||completedDates.length===0){return 0;} const sd=completedDates.map(ds=>new Date(ds)).sort((a,b)=>b-a); let s=0; const t=new Date(); t.setHours(0,0,0,0); const y=new Date(t); y.setDate(t.getDate()-1); if(sd[0].getTime()===t.getTime()||sd[0].getTime()===y.getTime()){s=1; let ced=new Date(sd[0]); for(let i=1;i<sd.length;i++){ced.setDate(ced.getDate()-1); if(sd[i].getTime()===ced.getTime()){s++;} else {break;}}} return s; }
         function calculateHabitStats() { /* ... (no changes) ... */ const h=getHabits(); const ts=getTodayDateString(); const th=h.length; let ct=0; let tcl7d=0; let tpcl7d=0; h.forEach(ha=>{if(ha.completedDates.includes(ts)){ct++;}}); for(let i=0;i<7;i++){const d=new Date(); d.setDate(d.getDate()-i); const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; let dc=0; h.forEach(ha=>{if(ha.createdAt<=d.getTime()){tpcl7d++; if(ha.completedDates.includes(ds)){dc++; tcl7d++;}}});} const tcr=th>0?Math.round((ct/th)*100):0; const l7dcr=tpcl7d>0?Math.round((tcl7d/tpcl7d)*100):0; return {totalHabits:th, completedToday:ct, todayCompletionRate:tcr, last7DaysCompletionRate:l7dcr}; }
         function displayHabits(habitsListElement) { /* ... (no changes) ... */ if(!habitsListElement){console.error("Habits list element needed");return;} const h=getHabits(); const ts=getTodayDateString(); habitsListElement.innerHTML=''; if(h.length===0){habitsListElement.innerHTML='<p class="empty-state-message">Chưa có thói quen nào được tạo.</p>';return;} h.sort((a,b)=>a.name.localeCompare(b.name)); h.forEach(ha=>{const he=document.createElement('div'); he.dataset.habitId=ha.id; he.classList.add('habit-item','list-item-hover'); const hi=document.createElement('div'); hi.classList.add('habit-info'); const ne=document.createElement('span'); ne.classList.add('habit-name'); ne.textContent=ha.name; hi.appendChild(ne); const cs=calculateCurrentStreak(ha.completedDates); if(cs>0){const se=document.createElement('span'); se.classList.add('habit-streak'); se.innerHTML=`${ICONS.fire} ${cs}`; se.title=`Chuỗi ${cs} ngày liên tiếp!`; hi.appendChild(se);} const cc=document.createElement('div'); cc.classList.add('flex','items-center'); const ict=ha.completedDates.includes(ts); const ci=`habit-check-${ha.id}`; const cl=document.createElement('label'); cl.htmlFor=ci; cl.classList.add('habit-checkbox-label'); if(ict){cl.classList.add('checked'); cl.innerHTML=ICONS.check;} const cb=document.createElement('input'); cb.type='checkbox'; cb.id=ci; cb.checked=ict; cb.classList.add('habit-checkbox'); cb.onchange=()=>toggleHabitCompletion(ha.id,habitsListElement); const eb=document.createElement('button'); eb.classList.add('action-button-icon','edit-icon-btn'); eb.innerHTML=ICONS.edit; eb.setAttribute('aria-label','Sửa tên thói quen'); eb.onclick=()=>toggleHabitEdit(ha.id,habitsListElement); const hb=document.createElement('button'); hb.classList.add('action-button-icon','history-icon-btn'); hb.innerHTML=ICONS.history; hb.setAttribute('aria-label','Xem lịch sử'); hb.onclick=()=>showHabitHistory(ha.id); const db=document.createElement('button'); db.classList.add('action-button-icon','delete-icon-btn'); db.innerHTML=ICONS.delete; db.setAttribute('aria-label','Xóa thói quen'); db.onclick=()=>deleteHabit(ha.id,habitsListElement); cc.appendChild(cl); cc.appendChild(cb); cc.appendChild(eb); cc.appendChild(hb); cc.appendChild(db); he.appendChild(hi); he.appendChild(cc); habitsListElement.appendChild(he);}); }
-
-        // *** UPDATED: addHabit Function ***
-        function addHabit(habitInputElement, habitsListElement, formElement, showFormBtn) {
-             if (!habitInputElement || !habitsListElement || !formElement || !showFormBtn) return;
-             const hn = habitInputElement.value.trim();
-             if(hn){
-                 const h = getHabits();
-                 if(h.some(ha => ha.name.toLowerCase() === hn.toLowerCase())){
-                     alert(`Thói quen "${hn}" đã tồn tại!`);
-                     return;
-                 }
-                 const n = Date.now();
-                 const nh = {id:n, name:hn, createdAt:n, completedDates:[]};
-                 h.push(nh);
-                 saveHabits(h);
-                 // Clear input, hide form, show button
-                 habitInputElement.value = '';
-                 formElement.classList.add('hidden');
-                 showFormBtn.classList.remove('hidden');
-                 displayHabits(habitsListElement); // Refresh list
-                 // Update stats
-                 const statsArea = document.getElementById('habit-stats-area');
-                 if(statsArea) {
-                     const stats = calculateHabitStats();
-                     statsArea.innerHTML = `${stats.totalHabits > 0 ? `Hoàn thành hôm nay: <strong>${stats.completedToday} / ${stats.totalHabits}</strong> (${stats.todayCompletionRate}%)` : 'Thêm thói quen để bắt đầu theo dõi!'} ${stats.totalHabits > 0 ? `<br>Tỷ lệ hoàn thành (7 ngày qua): <strong>${stats.last7DaysCompletionRate}%</strong>` : ''}`;
-                 }
-                 console.log("Added habit:", nh);
-             } else {
-                 alert("Tên thói quen không được để trống!");
-             }
-        }
-
-        function deleteHabit(habitId, habitsListElement) { /* ... (no changes except updating stats) ... */ if(!window.confirm("Bạn có chắc muốn xóa thói quen này? Việc này cũng sẽ xóa lịch sử hoàn thành của nó."))return; let h=getHabits(); h=h.filter(ha=>ha.id!==habitId); saveHabits(h); displayHabits(habitsListElement); const statsArea = document.getElementById('habit-stats-area'); if(statsArea) { const stats = calculateHabitStats(); statsArea.innerHTML = `${stats.totalHabits > 0 ? `Hoàn thành hôm nay: <strong>${stats.completedToday} / ${stats.totalHabits}</strong> (${stats.todayCompletionRate}%)` : 'Thêm thói quen để bắt đầu theo dõi!'} ${stats.totalHabits > 0 ? `<br>Tỷ lệ hoàn thành (7 ngày qua): <strong>${stats.last7DaysCompletionRate}%</strong>` : ''}`; } console.log("Deleted habit ID:",habitId); }
-        function toggleHabitCompletion(habitId, habitsListElement) { /* ... (no changes except updating stats) ... */ let h=getHabits(); const i=h.findIndex(ha=>ha.id===habitId); const t=getTodayDateString(); if(i>-1){const cd=h[i].completedDates; const di=cd.indexOf(t); if(di>-1){cd.splice(di,1); console.log(`Unmarked habit ${habitId} for ${t}`);} else {cd.push(t); console.log(`Marked habit ${habitId} for ${t}`);} saveHabits(h); displayHabits(habitsListElement); const statsArea = document.getElementById('habit-stats-area'); if(statsArea) { const stats = calculateHabitStats(); statsArea.innerHTML = `${stats.totalHabits > 0 ? `Hoàn thành hôm nay: <strong>${stats.completedToday} / ${stats.totalHabits}</strong> (${stats.todayCompletionRate}%)` : 'Thêm thói quen để bắt đầu theo dõi!'} ${stats.totalHabits > 0 ? `<br>Tỷ lệ hoàn thành (7 ngày qua): <strong>${stats.last7DaysCompletionRate}%</strong>` : ''}`; }} else {console.error("Cannot find habit to toggle:",habitId);} }
+        function addHabit(habitInputElement, habitsListElement, formElement, showFormBtn) { /* ... (no changes) ... */ if(!habitInputElement||!habitsListElement||!formElement||!showFormBtn)return; const hn=habitInputElement.value.trim(); if(hn){const h=getHabits(); if(h.some(ha=>ha.name.toLowerCase()===hn.toLowerCase())){alert(`Thói quen "${hn}" đã tồn tại!`); return;} const n=Date.now(); const nh={id:n, name:hn, createdAt:n, completedDates:[]}; h.push(nh); saveHabits(h); habitInputElement.value=''; formElement.classList.add('hidden'); showFormBtn.classList.remove('hidden'); displayHabits(habitsListElement); const sa=document.getElementById('habit-stats-area'); if(sa){const s=calculateHabitStats(); sa.innerHTML=`${s.totalHabits>0?`Hoàn thành hôm nay: <strong>${s.completedToday}/${s.totalHabits}</strong> (${s.todayCompletionRate}%)`:'Thêm thói quen để bắt đầu theo dõi!'}${s.totalHabits>0?`<br>Tỷ lệ hoàn thành (7 ngày qua): <strong>${s.last7DaysCompletionRate}%</strong>`:''}`;} console.log("Added habit:",nh);} else {alert("Tên thói quen không được để trống!");} }
+        function deleteHabit(habitId, habitsListElement) { /* ... (no changes) ... */ if(!window.confirm("Bạn có chắc muốn xóa thói quen này? Việc này cũng sẽ xóa lịch sử hoàn thành của nó."))return; let h=getHabits(); h=h.filter(ha=>ha.id!==habitId); saveHabits(h); displayHabits(habitsListElement); const sa=document.getElementById('habit-stats-area'); if(sa){const s=calculateHabitStats(); sa.innerHTML=`${s.totalHabits>0?`Hoàn thành hôm nay: <strong>${s.completedToday}/${s.totalHabits}</strong> (${s.todayCompletionRate}%)`:'Thêm thói quen để bắt đầu theo dõi!'}${s.totalHabits>0?`<br>Tỷ lệ hoàn thành (7 ngày qua): <strong>${s.last7DaysCompletionRate}%</strong>`:''}`;} console.log("Deleted habit ID:",habitId); }
+        function toggleHabitCompletion(habitId, habitsListElement) { /* ... (no changes) ... */ let h=getHabits(); const i=h.findIndex(ha=>ha.id===habitId); const t=getTodayDateString(); if(i>-1){const cd=h[i].completedDates; const di=cd.indexOf(t); if(di>-1){cd.splice(di,1); console.log(`Unmarked habit ${habitId} for ${t}`);} else {cd.push(t); console.log(`Marked habit ${habitId} for ${t}`);} saveHabits(h); displayHabits(habitsListElement); const sa=document.getElementById('habit-stats-area'); if(sa){const s=calculateHabitStats(); sa.innerHTML=`${s.totalHabits>0?`Hoàn thành hôm nay: <strong>${s.completedToday}/${s.totalHabits}</strong> (${s.todayCompletionRate}%)`:'Thêm thói quen để bắt đầu theo dõi!'}${s.totalHabits>0?`<br>Tỷ lệ hoàn thành (7 ngày qua): <strong>${s.last7DaysCompletionRate}%</strong>`:''}`;} } else {console.error("Cannot find habit to toggle:",habitId);} }
         function showHabitHistory(habitId) { /* ... (no changes) ... */ const h=getHabits(); const ha=h.find(i=>i.id===habitId); if(ha){console.log(`Lịch sử hoàn thành cho "${ha.name}" (ID: ${habitId}):`); if(ha.completedDates.length>0){const sd=[...ha.completedDates].sort(); console.log(sd); alert(`Lịch sử hoàn thành cho "${ha.name}":\n${sd.join('\n')}`);} else {console.log("Chưa hoàn thành ngày nào."); alert(`Chưa hoàn thành ngày nào cho "${ha.name}".`);}} else {console.error("Không tìm thấy thói quen để xem lịch sử:",habitId);} }
         function toggleHabitEdit(habitId, habitsListElement) { /* ... (no changes) ... */ displayHabits(habitsListElement); const el=habitsListElement.querySelector(`[data-habit-id='${habitId}']`); if(!el)return; const h=getHabits(); const ha=h.find(i=>i.id===habitId); if(!ha)return; const hic=el.querySelector('.habit-info'); const cc=el.querySelector('.flex.items-center'); if(!hic||!cc)return; hic.innerHTML=''; const ei=document.createElement('input'); ei.type='text'; ei.value=ha.name; ei.classList.add('habit-edit-input'); ei.required=true; hic.appendChild(ei); cc.innerHTML=''; const sb=document.createElement('button'); sb.classList.add('action-button-icon','save-icon-btn'); sb.innerHTML=ICONS.save; sb.setAttribute('aria-label','Lưu tên thói quen'); sb.onclick=()=>saveHabitEdit(habitId,ei.value,habitsListElement); const cb=document.createElement('button'); cb.classList.add('action-button-icon','cancel-icon-btn'); cb.innerHTML=ICONS.cancel; cb.setAttribute('aria-label','Hủy bỏ'); cb.onclick=()=>displayHabits(habitsListElement); cc.appendChild(sb); cc.appendChild(cb); el.classList.add('editing'); ei.focus(); ei.select(); }
         function saveHabitEdit(habitId, newName, habitsListElement) { /* ... (no changes) ... */ const tn=newName.trim(); if(!tn){alert("Tên thói quen không được để trống!");return;} let h=getHabits(); const de=h.some(ha=>ha.id!==habitId&&ha.name.toLowerCase()===tn.toLowerCase()); if(de){alert(`Tên thói quen "${tn}" đã tồn tại! Vui lòng chọn tên khác.`);return;} const i=h.findIndex(ha=>ha.id===habitId); if(i>-1){h[i].name=tn; saveHabits(h); displayHabits(habitsListElement); console.log(`Saved edit for habit ID: ${habitId}, new name: ${tn}`);} else {console.error("Could not find habit to save edit:",habitId); displayHabits(habitsListElement);} }
@@ -233,7 +302,7 @@
         // --- Initialization and Event Listeners ---
         navLinks.forEach(link => { /* ... (no changes) ... */ link.addEventListener('click',(e)=>{e.preventDefault(); const sm=e.target.dataset.module; if(sm&&sm!==currentModule){currentModule=sm; renderAppContent();}}); });
         document.addEventListener('DOMContentLoaded', renderAppContent);
-        console.log("Personal App v0.7 with Form Hiding!"); // Updated console log
+        console.log("Personal App v0.8 with Note Sorting!");
 
     </script>
 

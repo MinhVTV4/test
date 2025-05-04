@@ -1,73 +1,50 @@
 // =====================================================================
 //  Firebase Service References (Lấy từ window)
 // =====================================================================
-// Các biến này sẽ được khởi tạo trong index.html
 const auth = window.firebaseAuth;
-const db = window.firebaseDb;
-
-// Import các hàm Firebase cần thiết (sẽ dùng ở các bước sau)
-// Chúng ta sẽ import trực tiếp khi cần dùng trong các hàm async
-// Ví dụ: const { collection, addDoc, ... } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+const db = window.firebaseDb; // Firestore instance
 
 // =====================================================================
 //  Constants & State Variables
 // =====================================================================
-// Bỏ các key lưu trữ localStorage cũ
 const THEME_NAME_KEY = 'startNotesThemeName';
 const ACCENT_COLOR_KEY = 'startNotesAccentColor';
 const FONT_FAMILY_KEY = 'startNotesFontFamily';
 const FONT_SIZE_SCALE_KEY = 'startNotesFontSizeScale';
 const LAST_CUSTOM_THEME_KEY = 'startNotesLastCustomTheme';
 const SUGGESTION_BOX_ID = 'tag-suggestion-box';
-const MOVE_NOTE_MENU_ID = 'move-note-menu'; // ID for the move menu
+const MOVE_NOTE_MENU_ID = 'move-note-menu';
 const DEBOUNCE_DELAY = 1500;
 
-let notes = []; // Dữ liệu sẽ được load từ Firestore
-let templates = []; // Dữ liệu sẽ được load từ Firestore
-let notebooks = []; // Dữ liệu sẽ được load từ Firestore
-let currentUser = null; // Lưu thông tin người dùng đang đăng nhập
-let currentUid = null; // Lưu UID của người dùng đang đăng nhập
-let notesListener = null; // Firestore listener cho notes
-let templatesListener = null; // Firestore listener cho templates
-let notebooksListener = null; // Firestore listener cho notebooks
+let notes = [];
+let templates = [];
+let notebooks = []; // State array for notebooks
+let currentUser = null;
+let currentUid = null;
+let notesListener = null;
+let templatesListener = null;
+let notebooksListener = null; // Listener for notebooks collection
 
 let isViewingArchived = false;
 let isViewingTrash = false;
 let currentNotebookId = 'all';
 let sortableInstance = null;
 let activeTagInputElement = null;
-let activeMoveMenu = null; // Track the currently open move menu
+let activeMoveMenu = null;
 
 const DEFAULT_NOTEBOOK_ID = 'all';
 
-const NOTE_COLORS = [
-    { name: 'Default', value: null, hex: 'transparent' },
-    { name: 'Yellow', value: 'note-color-yellow', hex: '#fff9c4' },
-    { name: 'Blue', value: 'note-color-blue', hex: '#bbdefb' },
-    { name: 'Green', value: 'note-color-green', hex: '#c8e6c9' },
-    { name: 'Red', value: 'note-color-red', hex: '#ffcdd2' },
-    { name: 'Purple', value: 'note-color-purple', hex: '#e1bee7' },
-    { name: 'Grey', value: 'note-color-grey', hex: '#e0e0e0' },
-];
-
-const VALID_THEMES = [
-    'light', 'dark', 'sepia',
-    'solarized-light', 'solarized-dark',
-    'nord', 'gruvbox-dark', 'gruvbox-light', 'dracula', 'monochrome'
-];
+const NOTE_COLORS = [ { name: 'Default', value: null, hex: 'transparent' }, { name: 'Yellow', value: 'note-color-yellow', hex: '#fff9c4' }, { name: 'Blue', value: 'note-color-blue', hex: '#bbdefb' }, { name: 'Green', value: 'note-color-green', hex: '#c8e6c9' }, { name: 'Red', value: 'note-color-red', hex: '#ffcdd2' }, { name: 'Purple', value: 'note-color-purple', hex: '#e1bee7' }, { name: 'Grey', value: 'note-color-grey', hex: '#e0e0e0' }, ];
+const VALID_THEMES = [ 'light', 'dark', 'sepia', 'solarized-light', 'solarized-dark', 'nord', 'gruvbox-dark', 'gruvbox-light', 'dracula', 'monochrome' ];
 const DEFAULT_THEME = 'light';
 const DEFAULT_FONT_FAMILY = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 const DEFAULT_FONT_SIZE_SCALE = 1;
 const DEFAULT_ACCENT_COLOR = 'default';
-const DARK_THEME_NAMES = [
-    'dark', 'solarized-dark',
-    'nord', 'gruvbox-dark', 'dracula'
-];
+const DARK_THEME_NAMES = [ 'dark', 'solarized-dark', 'nord', 'gruvbox-dark', 'dracula' ];
 
 // =====================================================================
-//  DOM References
+//  DOM References (Giữ nguyên)
 // =====================================================================
-// Thêm các tham chiếu cho UI Auth mới
 const authContainer = document.getElementById('auth-container');
 const authForm = document.getElementById('auth-form');
 const authEmailInput = document.getElementById('auth-email');
@@ -75,11 +52,9 @@ const authPasswordInput = document.getElementById('auth-password');
 const loginBtn = document.getElementById('login-btn');
 const registerBtn = document.getElementById('register-btn');
 const authErrorElement = document.getElementById('auth-error');
-const authButton = document.getElementById('auth-button'); // Nút Đăng nhập/Xuất chính
+const authButton = document.getElementById('auth-button');
 const userStatusElement = document.getElementById('user-status');
 const userEmailSpan = document.getElementById('user-email');
-
-// Các tham chiếu DOM cũ giữ nguyên
 const quickThemeToggleBtn = document.getElementById('theme-toggle-btn');
 const settingsBtn = document.getElementById('settings-btn');
 const searchInput = document.getElementById('search-input');
@@ -138,131 +113,227 @@ const fontSizeSlider = document.getElementById('font-size-slider');
 const fontSizeValueSpan = document.getElementById('font-size-value');
 const resetFontSizeBtn = document.getElementById('reset-font-size-btn');
 
-
 // =====================================================================
 //  Utility Functions (Giữ nguyên)
 // =====================================================================
 const parseTags = (tagString) => { if (!tagString) return []; return tagString.split(',').map(tag => tag.trim().toLowerCase()).filter(tag => tag !== ''); };
 const debounce = (func, delay) => { let timeoutId; return function(...args) { clearTimeout(timeoutId); timeoutId = setTimeout(() => { func.apply(this, args); }, delay); }; };
 const escapeRegExp = (string) => { return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
-const formatTimestamp = (timestamp) => {
-    if (!timestamp) return '';
-    let date;
-    if (typeof timestamp === 'object' && timestamp.seconds) {
-        date = new Date(timestamp.seconds * 1000);
-    } else if (typeof timestamp === 'number') {
-        date = new Date(timestamp);
-    } else {
-        return '';
-    }
-    return date.toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
-}
+const formatTimestamp = (timestamp) => { if (!timestamp) return ''; let date; if (typeof timestamp === 'object' && timestamp.seconds) { date = new Date(timestamp.seconds * 1000); } else if (typeof timestamp === 'number') { date = new Date(timestamp); } else { return ''; } return date.toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' }); }
 const escapeHTML = (str) => { if (!str) return ''; const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }; return str.replace(/[&<>"']/g, m => map[m]); }
 
 // =====================================================================
 //  Theme & Appearance Management (Giữ nguyên)
 // =====================================================================
-const getStoredPreference = (key, defaultValue) => {
-    return localStorage.getItem(key) ?? defaultValue;
-};
-const applyAllAppearanceSettings = () => {
-    const savedTheme = getStoredPreference(THEME_NAME_KEY, DEFAULT_THEME);
-    applyTheme(VALID_THEMES.includes(savedTheme) ? savedTheme : DEFAULT_THEME);
-    const savedAccentColor = getStoredPreference(ACCENT_COLOR_KEY, DEFAULT_ACCENT_COLOR);
-    applyAccentColor(savedAccentColor);
-    const savedFontFamily = getStoredPreference(FONT_FAMILY_KEY, DEFAULT_FONT_FAMILY);
-    applyFontFamily(savedFontFamily);
-    const savedFontSizeScale = parseFloat(getStoredPreference(FONT_SIZE_SCALE_KEY, DEFAULT_FONT_SIZE_SCALE.toString()));
-    applyFontSize(isNaN(savedFontSizeScale) ? DEFAULT_FONT_SIZE_SCALE : savedFontSizeScale);
-};
-const applyTheme = (themeName) => {
-    if (!VALID_THEMES.includes(themeName)) { console.warn(`Invalid theme name "${themeName}". Falling back to default.`); themeName = DEFAULT_THEME; }
-    VALID_THEMES.forEach(theme => document.body.classList.remove(`theme-${theme}`));
-    document.body.classList.remove('dark-mode', 'light-mode');
-    if (themeName !== 'light') { document.body.classList.add(`theme-${themeName}`); }
-    const isDark = DARK_THEME_NAMES.includes(themeName);
-    document.body.classList.add(isDark ? 'dark-mode' : 'light-mode');
-    if (quickThemeToggleBtn) {
-        if (isDark) { quickThemeToggleBtn.innerHTML = '☀️&nbsp;Sáng'; quickThemeToggleBtn.title = 'Chuyển sang chế độ Sáng'; }
-        else { quickThemeToggleBtn.innerHTML = '🌙&nbsp;Tối'; quickThemeToggleBtn.title = 'Chuyển sang chế độ Tối'; }
-    }
-    updateThemeSelectionUI(themeName);
-    const currentAccent = getStoredPreference(ACCENT_COLOR_KEY, DEFAULT_ACCENT_COLOR);
-    applyAccentColor(currentAccent);
-};
-const updateThemeSelectionUI = (selectedTheme) => {
-    if (!themeOptionsContainer) return;
-    themeOptionsContainer.querySelectorAll('.theme-option-btn').forEach(btn => {
-        const isActive = btn.dataset.theme === selectedTheme;
-        btn.classList.toggle('active', isActive);
-        btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
-    });
-};
-const applyAccentColor = (colorValue) => {
-    const lightDefaultAccent = '#007bff';
-    const darkDefaultAccent = '#0d6efd';
-    const currentTheme = getStoredPreference(THEME_NAME_KEY, DEFAULT_THEME);
-    const isDarkThemeActive = DARK_THEME_NAMES.includes(currentTheme);
-    const actualDefaultColor = isDarkThemeActive ? darkDefaultAccent : lightDefaultAccent;
-    const actualColor = (colorValue === DEFAULT_ACCENT_COLOR || !colorValue || !colorValue.startsWith('#')) ? actualDefaultColor : colorValue;
-    document.documentElement.style.setProperty('--primary-color', actualColor);
-    updateAccentColorSelectionUI(colorValue);
-};
-const updateAccentColorSelectionUI = (selectedColorValue) => {
-    if (!accentColorOptionsContainer) return;
-    accentColorOptionsContainer.querySelectorAll('.accent-swatch').forEach(swatch => {
-        const isSelected = swatch.dataset.color === selectedColorValue;
-        swatch.classList.toggle('selected', isSelected);
-        swatch.setAttribute('aria-checked', isSelected ? 'true' : 'false');
-        if(swatch.dataset.color === 'default'){
-            const lightDefaultAccent = '#007bff';
-            const darkDefaultAccent = '#0d6efd';
-            const currentTheme = getStoredPreference(THEME_NAME_KEY, DEFAULT_THEME);
-            const isDarkThemeActive = DARK_THEME_NAMES.includes(currentTheme);
-            const defaultColorForSwatch = isDarkThemeActive ? darkDefaultAccent : lightDefaultAccent;
-            swatch.style.backgroundColor = defaultColorForSwatch;
-            swatch.style.borderColor = isDarkThemeActive ? '#555' : '#ccc';
-            swatch.style.color = isDarkThemeActive ? '#fff' : '#333';
-            swatch.innerHTML = '';
-        }
-    });
-};
-const applyFontFamily = (fontFamilyString) => {
-    document.documentElement.style.setProperty('--content-font-family', fontFamilyString);
-    updateFontFamilySelectionUI(fontFamilyString);
-};
-const updateFontFamilySelectionUI = (selectedFontFamily) => {
-    if (fontFamilySelect) { fontFamilySelect.value = selectedFontFamily; }
-};
-const applyFontSize = (scale) => {
-    const clampedScale = Math.max(0.8, Math.min(1.5, scale));
-    document.documentElement.style.setProperty('--font-size-scale', clampedScale);
-    updateFontSizeUI(clampedScale);
-};
-const updateFontSizeUI = (scale) => {
-    if (fontSizeSlider) { fontSizeSlider.value = scale; }
-    if (fontSizeValueSpan) { fontSizeValueSpan.textContent = `${Math.round(scale * 100)}%`; }
-};
-const quickToggleTheme = () => {
-    const currentTheme = getStoredPreference(THEME_NAME_KEY, DEFAULT_THEME);
-    const lastCustomTheme = getStoredPreference(LAST_CUSTOM_THEME_KEY, null);
-    let targetTheme;
-    const isCurrentDark = DARK_THEME_NAMES.includes(currentTheme);
-    if (isCurrentDark) {
-        if (lastCustomTheme && !DARK_THEME_NAMES.includes(lastCustomTheme)) { targetTheme = lastCustomTheme; }
-        else { targetTheme = 'light'; }
-    } else { targetTheme = 'dark'; }
-    applyTheme(targetTheme);
-    localStorage.setItem(THEME_NAME_KEY, targetTheme);
-};
+const getStoredPreference = (key, defaultValue) => { return localStorage.getItem(key) ?? defaultValue; };
+const applyAllAppearanceSettings = () => { const savedTheme = getStoredPreference(THEME_NAME_KEY, DEFAULT_THEME); applyTheme(VALID_THEMES.includes(savedTheme) ? savedTheme : DEFAULT_THEME); const savedAccentColor = getStoredPreference(ACCENT_COLOR_KEY, DEFAULT_ACCENT_COLOR); applyAccentColor(savedAccentColor); const savedFontFamily = getStoredPreference(FONT_FAMILY_KEY, DEFAULT_FONT_FAMILY); applyFontFamily(savedFontFamily); const savedFontSizeScale = parseFloat(getStoredPreference(FONT_SIZE_SCALE_KEY, DEFAULT_FONT_SIZE_SCALE.toString())); applyFontSize(isNaN(savedFontSizeScale) ? DEFAULT_FONT_SIZE_SCALE : savedFontSizeScale); };
+const applyTheme = (themeName) => { if (!VALID_THEMES.includes(themeName)) { console.warn(`Invalid theme name "${themeName}". Falling back to default.`); themeName = DEFAULT_THEME; } VALID_THEMES.forEach(theme => document.body.classList.remove(`theme-${theme}`)); document.body.classList.remove('dark-mode', 'light-mode'); if (themeName !== 'light') { document.body.classList.add(`theme-${themeName}`); } const isDark = DARK_THEME_NAMES.includes(themeName); document.body.classList.add(isDark ? 'dark-mode' : 'light-mode'); if (quickThemeToggleBtn) { if (isDark) { quickThemeToggleBtn.innerHTML = '☀️&nbsp;Sáng'; quickThemeToggleBtn.title = 'Chuyển sang chế độ Sáng'; } else { quickThemeToggleBtn.innerHTML = '🌙&nbsp;Tối'; quickThemeToggleBtn.title = 'Chuyển sang chế độ Tối'; } } updateThemeSelectionUI(themeName); const currentAccent = getStoredPreference(ACCENT_COLOR_KEY, DEFAULT_ACCENT_COLOR); applyAccentColor(currentAccent); };
+const updateThemeSelectionUI = (selectedTheme) => { if (!themeOptionsContainer) return; themeOptionsContainer.querySelectorAll('.theme-option-btn').forEach(btn => { const isActive = btn.dataset.theme === selectedTheme; btn.classList.toggle('active', isActive); btn.setAttribute('aria-checked', isActive ? 'true' : 'false'); }); };
+const applyAccentColor = (colorValue) => { const lightDefaultAccent = '#007bff'; const darkDefaultAccent = '#0d6efd'; const currentTheme = getStoredPreference(THEME_NAME_KEY, DEFAULT_THEME); const isDarkThemeActive = DARK_THEME_NAMES.includes(currentTheme); const actualDefaultColor = isDarkThemeActive ? darkDefaultAccent : lightDefaultAccent; const actualColor = (colorValue === DEFAULT_ACCENT_COLOR || !colorValue || !colorValue.startsWith('#')) ? actualDefaultColor : colorValue; document.documentElement.style.setProperty('--primary-color', actualColor); updateAccentColorSelectionUI(colorValue); };
+const updateAccentColorSelectionUI = (selectedColorValue) => { if (!accentColorOptionsContainer) return; accentColorOptionsContainer.querySelectorAll('.accent-swatch').forEach(swatch => { const isSelected = swatch.dataset.color === selectedColorValue; swatch.classList.toggle('selected', isSelected); swatch.setAttribute('aria-checked', isSelected ? 'true' : 'false'); if(swatch.dataset.color === 'default'){ const lightDefaultAccent = '#007bff'; const darkDefaultAccent = '#0d6efd'; const currentTheme = getStoredPreference(THEME_NAME_KEY, DEFAULT_THEME); const isDarkThemeActive = DARK_THEME_NAMES.includes(currentTheme); const defaultColorForSwatch = isDarkThemeActive ? darkDefaultAccent : lightDefaultAccent; swatch.style.backgroundColor = defaultColorForSwatch; swatch.style.borderColor = isDarkThemeActive ? '#555' : '#ccc'; swatch.style.color = isDarkThemeActive ? '#fff' : '#333'; swatch.innerHTML = ''; } }); };
+const applyFontFamily = (fontFamilyString) => { document.documentElement.style.setProperty('--content-font-family', fontFamilyString); updateFontFamilySelectionUI(fontFamilyString); };
+const updateFontFamilySelectionUI = (selectedFontFamily) => { if (fontFamilySelect) { fontFamilySelect.value = selectedFontFamily; } };
+const applyFontSize = (scale) => { const clampedScale = Math.max(0.8, Math.min(1.5, scale)); document.documentElement.style.setProperty('--font-size-scale', clampedScale); updateFontSizeUI(clampedScale); };
+const updateFontSizeUI = (scale) => { if (fontSizeSlider) { fontSizeSlider.value = scale; } if (fontSizeValueSpan) { fontSizeValueSpan.textContent = `${Math.round(scale * 100)}%`; } };
+const quickToggleTheme = () => { const currentTheme = getStoredPreference(THEME_NAME_KEY, DEFAULT_THEME); const lastCustomTheme = getStoredPreference(LAST_CUSTOM_THEME_KEY, null); let targetTheme; const isCurrentDark = DARK_THEME_NAMES.includes(currentTheme); if (isCurrentDark) { if (lastCustomTheme && !DARK_THEME_NAMES.includes(lastCustomTheme)) { targetTheme = lastCustomTheme; } else { targetTheme = 'light'; } } else { targetTheme = 'dark'; } applyTheme(targetTheme); localStorage.setItem(THEME_NAME_KEY, targetTheme); };
 
 // =====================================================================
-//  Notebook Data Management (TODO: Firestore)
+//  Firestore Data Management - Notebooks
 // =====================================================================
-const saveNotebooks = async () => { /* TODO */ console.warn("saveNotebooks needs Firestore implementation"); };
-const loadNotebooks = async () => { /* TODO */ console.warn("loadNotebooks needs Firestore implementation"); notebooks = []; };
-const addOrUpdateNotebook = async () => { /* TODO */ console.warn("addOrUpdateNotebook needs Firestore implementation"); };
-const deleteNotebook = async (id) => { /* TODO */ console.warn("deleteNotebook needs Firestore implementation"); };
+
+/**
+ * Loads notebooks from Firestore and listens for real-time updates.
+ */
+const loadNotebooks = async () => {
+    if (!currentUser || !db) return;
+    console.log("Attempting to load notebooks for user:", currentUid);
+
+    // Hủy listener cũ nếu có
+    if (notebooksListener) {
+        console.log("Unsubscribing previous notebooks listener.");
+        notebooksListener();
+        notebooksListener = null;
+    }
+
+    try {
+        const { collection, query, orderBy, onSnapshot } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+        const notebooksColRef = collection(db, 'users', currentUid, 'notebooks');
+        // Optional: Order notebooks by name
+        const q = query(notebooksColRef, orderBy('name', 'asc'));
+
+        notebooksListener = onSnapshot(q, (querySnapshot) => {
+            console.log("Notebooks snapshot received:", querySnapshot.size, "docs");
+            const newNotebooks = [];
+            querySnapshot.forEach((doc) => {
+                newNotebooks.push({
+                    id: doc.id, // Firestore document ID (string)
+                    ...doc.data() // { name: "..." }
+                });
+            });
+            notebooks = newNotebooks; // Update global state
+            console.log("Notebooks state updated:", notebooks);
+            renderNotebookList(); // Update notebook management modal list
+            renderNotebookTabs(); // Update notebook tabs
+            // Re-populate move note menu if it's open (or handle elsewhere)
+            // Re-populate template dropdown if needed
+        }, (error) => {
+            console.error("Error listening to notebooks:", error);
+            alert("Lỗi khi tải danh sách sổ tay.");
+            // Reset state and UI on error
+            notebooks = [];
+            renderNotebookList();
+            renderNotebookTabs();
+        });
+        console.log("Notebooks listener attached.");
+
+    } catch (error) {
+        console.error("Error importing Firestore functions or setting up listener:", error);
+        alert("Lỗi khi thiết lập kết nối đến dữ liệu sổ tay.");
+    }
+};
+
+/**
+ * Adds a new notebook or updates an existing one in Firestore.
+ */
+const addOrUpdateNotebook = async () => {
+    if (!currentUser || !db) {
+        alert("Vui lòng đăng nhập để quản lý sổ tay.");
+        return;
+    }
+
+    const name = notebookEditName.value.trim();
+    const notebookId = notebookEditId.value; // ID is a string from Firestore or empty
+
+    if (!name) {
+        alert("Vui lòng nhập Tên Sổ tay!");
+        notebookEditName.focus();
+        return;
+    }
+
+    saveNotebookBtn.disabled = true;
+    saveNotebookBtn.textContent = 'Đang lưu...';
+
+    try {
+        const { collection, addDoc, doc, setDoc, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+        const notebooksColRef = collection(db, 'users', currentUid, 'notebooks');
+
+        // Check for duplicate name (case-insensitive) before saving
+        const lowerCaseName = name.toLowerCase();
+        const q = query(notebooksColRef, where('nameLower', '==', lowerCaseName)); // Use a lowercase field for case-insensitive query
+        const querySnapshot = await getDocs(q);
+
+        let isDuplicate = false;
+        querySnapshot.forEach((doc) => {
+            if (doc.id !== notebookId) { // Check if the duplicate is not the notebook being edited
+                isDuplicate = true;
+            }
+        });
+
+        if (isDuplicate) {
+             alert(`Sổ tay với tên "${name}" đã tồn tại. Vui lòng chọn tên khác.`);
+             notebookEditName.focus();
+             saveNotebookBtn.disabled = false;
+             saveNotebookBtn.textContent = 'Lưu Sổ tay';
+             return;
+        }
+
+        if (notebookId) {
+            // Update existing notebook
+            console.log("Updating notebook:", notebookId);
+            const notebookDocRef = doc(notebooksColRef, notebookId);
+            await setDoc(notebookDocRef, { name: name, nameLower: lowerCaseName }, { merge: true }); // Use setDoc with merge or updateDoc
+            console.log("Notebook updated successfully.");
+        } else {
+            // Add new notebook
+            console.log("Adding new notebook");
+            await addDoc(notebooksColRef, { name: name, nameLower: lowerCaseName }); // Add lowercase name for querying
+            console.log("Notebook added successfully.");
+        }
+        hideNotebookEditPanel(); // Hide panel on success (UI updates via snapshot)
+
+    } catch (error) {
+        console.error("Error saving notebook:", error);
+        alert("Lỗi khi lưu sổ tay. Vui lòng thử lại.");
+    } finally {
+        saveNotebookBtn.disabled = false;
+        saveNotebookBtn.textContent = 'Lưu Sổ tay';
+    }
+};
+
+/**
+ * Deletes a notebook from Firestore and updates associated notes.
+ */
+const deleteNotebook = async (notebookId) => {
+    if (!currentUser || !db || !notebookId) return;
+
+    const notebookToDelete = notebooks.find(nb => nb.id === notebookId);
+    if (!notebookToDelete) {
+        console.error("Notebook to delete not found in state:", notebookId);
+        return;
+    }
+
+    const notebookName = notebookToDelete.name;
+    // TODO: Query Firestore to get the actual count of notes in this notebook for the confirmation message
+    // let notesInNotebookCount = 0; // Placeholder
+    // const notesQuery = query(collection(db, 'users', currentUid, 'notes'), where('notebookId', '==', notebookId), where('deleted', '==', false), where('archived', '==', false));
+    // const notesSnapshot = await getDocs(notesQuery);
+    // notesInNotebookCount = notesSnapshot.size;
+
+    let confirmMessage = `Bạn chắc chắn muốn xóa sổ tay "${escapeHTML(notebookName)}"?`;
+    // if (notesInNotebookCount > 0) {
+    //     confirmMessage += `\n\nCẢNH BÁO: Có ${notesInNotebookCount} ghi chú trong sổ tay này. Việc xóa sổ tay sẽ chuyển các ghi chú này về "Tất cả Ghi chú" (không thuộc sổ tay nào).`;
+    // }
+
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+
+    console.log("Deleting notebook:", notebookId);
+    // Disable delete buttons temporarily?
+
+    try {
+        const { doc, deleteDoc, collection, query, where, writeBatch, getDocs } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+
+        const batch = writeBatch(db);
+
+        // 1. Find notes associated with this notebook
+        const notesColRef = collection(db, 'users', currentUid, 'notes');
+        const notesQuery = query(notesColRef, where('notebookId', '==', notebookId));
+        const notesSnapshot = await getDocs(notesQuery);
+
+        // 2. Add update operations to the batch for each associated note
+        notesSnapshot.forEach((noteDoc) => {
+            console.log("Updating note:", noteDoc.id, "to remove notebookId");
+            const noteDocRef = doc(notesColRef, noteDoc.id);
+            batch.update(noteDocRef, { notebookId: null }); // Set notebookId to null
+        });
+
+        // 3. Add delete operation for the notebook itself
+        const notebookDocRef = doc(db, 'users', currentUid, 'notebooks', notebookId);
+        batch.delete(notebookDocRef);
+
+        // 4. Commit the batch
+        await batch.commit();
+        console.log("Notebook deleted and associated notes updated successfully.");
+
+        // UI will update via snapshot listener
+        // If the current view was the deleted notebook, switch to 'all'
+        if (currentNotebookId === notebookId) {
+            currentNotebookId = DEFAULT_NOTEBOOK_ID;
+            displayNotes(searchInput.value); // Re-render notes for 'all' view
+        }
+         // Hide edit panel if it was showing the deleted notebook
+         if (!notebookEditPanel.classList.contains('hidden') && notebookEditId.value === notebookId) {
+            hideNotebookEditPanel();
+        }
+
+    } catch (error) {
+        console.error("Error deleting notebook or updating notes:", error);
+        alert("Lỗi khi xóa sổ tay. Vui lòng thử lại.");
+    } finally {
+        // Re-enable delete buttons?
+    }
+};
 
 // =====================================================================
 //  Note Data Management (TODO: Firestore)
@@ -293,7 +364,7 @@ const handleNoteArchive = async (noteId) => { /* TODO */ console.warn("handleNot
 const handleNoteUnarchive = async (noteId) => { /* TODO */ console.warn("handleNoteUnarchive needs Firestore implementation"); };
 const updateNoteData = async (noteId, newData) => { /* TODO */ console.warn("updateNoteData needs Firestore implementation"); return false; };
 const debouncedAutoSave = debounce(async (noteElement, noteId) => { /* TODO */ console.warn("debouncedAutoSave needs Firestore implementation"); }, DEBOUNCE_DELAY);
-const handleNoteEdit = (noteElement, noteId) => { /* Logic giữ nguyên, gọi debouncedAutoSave mới */ console.warn("handleNoteEdit might need adjustments for Firestore data fetching"); if (!currentUser) { alert("Vui lòng đăng nhập để sửa ghi chú."); return; } if (isViewingArchived || isViewingTrash) return; const currentlyEditing = notesContainer.querySelector('.note .edit-input'); if (currentlyEditing && currentlyEditing.closest('.note') !== noteElement) { alert("Vui lòng Lưu hoặc Hủy thay đổi ở ghi chú đang sửa trước khi sửa ghi chú khác."); currentlyEditing.closest('.note').querySelector('textarea.edit-input')?.focus(); return; } hideTagSuggestions(); if (sortableInstance) sortableInstance.option('disabled', true); showAddPanelBtn.classList.add('hidden'); const noteData = notes.find(note => note.id === noteId); if (!noteData) { console.error("Không tìm thấy dữ liệu cho note ID:", noteId); return; } const actionsElementOriginal = noteElement.querySelector('.note-actions'); let originalActionsHTML = ''; if (actionsElementOriginal) { originalActionsHTML = Array.from(actionsElementOriginal.children).filter(btn => !btn.classList.contains('save-edit-btn')).map(btn => btn.outerHTML).join(''); } const editTitleInput = document.createElement('input'); editTitleInput.type = 'text'; editTitleInput.classList.add('edit-title-input'); editTitleInput.placeholder = 'Tiêu đề...'; editTitleInput.value = noteData.title || ''; const editInput = document.createElement('textarea'); editInput.classList.add('edit-input'); editInput.value = noteData.text; editInput.rows = 5; const editTagsInput = document.createElement('input'); editTagsInput.type = 'text'; editTagsInput.classList.add('edit-tags-input'); editTagsInput.placeholder = 'Tags (cách nhau bằng dấu phẩy)...'; editTagsInput.value = (noteData.tags || []).join(', '); editTagsInput.autocomplete = 'off'; const colorSelectorContainer = document.createElement('div'); colorSelectorContainer.classList.add('color-selector-container'); colorSelectorContainer.setAttribute('role', 'radiogroup'); colorSelectorContainer.setAttribute('aria-label', 'Chọn màu ghi chú'); noteElement.dataset.selectedColor = noteData.color || ''; NOTE_COLORS.forEach(color => { const swatchBtn = document.createElement('button'); swatchBtn.type = 'button'; swatchBtn.classList.add('color-swatch-btn'); swatchBtn.dataset.colorValue = color.value || ''; swatchBtn.title = color.name; swatchBtn.setAttribute('role', 'radio'); const isCurrentColor = (noteData.color === color.value) || (!noteData.color && !color.value); swatchBtn.setAttribute('aria-checked', isCurrentColor ? 'true' : 'false'); if (isCurrentColor) swatchBtn.classList.add('selected'); if (color.value) { swatchBtn.style.backgroundColor = color.hex; } else { swatchBtn.classList.add('default-color-swatch'); swatchBtn.innerHTML = '&#x2715;'; swatchBtn.setAttribute('aria-label', 'Màu mặc định'); } swatchBtn.addEventListener('click', () => { const selectedValue = swatchBtn.dataset.colorValue; noteElement.dataset.selectedColor = selectedValue; colorSelectorContainer.querySelectorAll('.color-swatch-btn').forEach(btn => { const isSelected = btn === swatchBtn; btn.classList.toggle('selected', isSelected); btn.setAttribute('aria-checked', isSelected ? 'true' : 'false'); }); applyNoteColor(noteElement, { ...noteData, color: selectedValue }); debouncedAutoSave(noteElement, noteId); }); colorSelectorContainer.appendChild(swatchBtn); }); const saveBtn = document.createElement('button'); saveBtn.classList.add('save-edit-btn', 'modal-button', 'primary'); saveBtn.textContent = 'Lưu'; saveBtn.title = 'Lưu thay đổi (Ctrl+S)'; const bookmarkIcon = noteElement.querySelector('.pinned-bookmark-icon'); noteElement.innerHTML = ''; if (bookmarkIcon) { noteElement.appendChild(bookmarkIcon); bookmarkIcon.style.display = 'inline-block'; } noteElement.appendChild(editTitleInput); noteElement.appendChild(editInput); noteElement.appendChild(editTagsInput); noteElement.appendChild(colorSelectorContainer); const editActionsContainer = document.createElement('div'); editActionsContainer.classList.add('note-actions'); editActionsContainer.innerHTML = originalActionsHTML; editActionsContainer.appendChild(saveBtn); noteElement.appendChild(editActionsContainer); const triggerAutoSave = () => debouncedAutoSave(noteElement, noteId); editTitleInput.addEventListener('input', triggerAutoSave); editInput.addEventListener('input', triggerAutoSave); editTagsInput.addEventListener('input', (event) => { handleTagInput(event); triggerAutoSave(); }); editTagsInput.addEventListener('blur', handleTagInputBlur, true); editTagsInput.addEventListener('keydown', handleTagInputKeydown); editTitleInput.focus(); editTitleInput.setSelectionRange(editTitleInput.value.length, editTitleInput.value.length); };
+const handleNoteEdit = (noteElement, noteId) => { /* Logic giữ nguyên */ console.warn("handleNoteEdit might need adjustments for Firestore data fetching"); if (!currentUser) { alert("Vui lòng đăng nhập để sửa ghi chú."); return; } if (isViewingArchived || isViewingTrash) return; const currentlyEditing = notesContainer.querySelector('.note .edit-input'); if (currentlyEditing && currentlyEditing.closest('.note') !== noteElement) { alert("Vui lòng Lưu hoặc Hủy thay đổi ở ghi chú đang sửa trước khi sửa ghi chú khác."); currentlyEditing.closest('.note').querySelector('textarea.edit-input')?.focus(); return; } hideTagSuggestions(); if (sortableInstance) sortableInstance.option('disabled', true); showAddPanelBtn.classList.add('hidden'); const noteData = notes.find(note => note.id === noteId); if (!noteData) { console.error("Không tìm thấy dữ liệu cho note ID:", noteId); return; } const actionsElementOriginal = noteElement.querySelector('.note-actions'); let originalActionsHTML = ''; if (actionsElementOriginal) { originalActionsHTML = Array.from(actionsElementOriginal.children).filter(btn => !btn.classList.contains('save-edit-btn')).map(btn => btn.outerHTML).join(''); } const editTitleInput = document.createElement('input'); editTitleInput.type = 'text'; editTitleInput.classList.add('edit-title-input'); editTitleInput.placeholder = 'Tiêu đề...'; editTitleInput.value = noteData.title || ''; const editInput = document.createElement('textarea'); editInput.classList.add('edit-input'); editInput.value = noteData.text; editInput.rows = 5; const editTagsInput = document.createElement('input'); editTagsInput.type = 'text'; editTagsInput.classList.add('edit-tags-input'); editTagsInput.placeholder = 'Tags (cách nhau bằng dấu phẩy)...'; editTagsInput.value = (noteData.tags || []).join(', '); editTagsInput.autocomplete = 'off'; const colorSelectorContainer = document.createElement('div'); colorSelectorContainer.classList.add('color-selector-container'); colorSelectorContainer.setAttribute('role', 'radiogroup'); colorSelectorContainer.setAttribute('aria-label', 'Chọn màu ghi chú'); noteElement.dataset.selectedColor = noteData.color || ''; NOTE_COLORS.forEach(color => { const swatchBtn = document.createElement('button'); swatchBtn.type = 'button'; swatchBtn.classList.add('color-swatch-btn'); swatchBtn.dataset.colorValue = color.value || ''; swatchBtn.title = color.name; swatchBtn.setAttribute('role', 'radio'); const isCurrentColor = (noteData.color === color.value) || (!noteData.color && !color.value); swatchBtn.setAttribute('aria-checked', isCurrentColor ? 'true' : 'false'); if (isCurrentColor) swatchBtn.classList.add('selected'); if (color.value) { swatchBtn.style.backgroundColor = color.hex; } else { swatchBtn.classList.add('default-color-swatch'); swatchBtn.innerHTML = '&#x2715;'; swatchBtn.setAttribute('aria-label', 'Màu mặc định'); } swatchBtn.addEventListener('click', () => { const selectedValue = swatchBtn.dataset.colorValue; noteElement.dataset.selectedColor = selectedValue; colorSelectorContainer.querySelectorAll('.color-swatch-btn').forEach(btn => { const isSelected = btn === swatchBtn; btn.classList.toggle('selected', isSelected); btn.setAttribute('aria-checked', isSelected ? 'true' : 'false'); }); applyNoteColor(noteElement, { ...noteData, color: selectedValue }); debouncedAutoSave(noteElement, noteId); }); colorSelectorContainer.appendChild(swatchBtn); }); const saveBtn = document.createElement('button'); saveBtn.classList.add('save-edit-btn', 'modal-button', 'primary'); saveBtn.textContent = 'Lưu'; saveBtn.title = 'Lưu thay đổi (Ctrl+S)'; const bookmarkIcon = noteElement.querySelector('.pinned-bookmark-icon'); noteElement.innerHTML = ''; if (bookmarkIcon) { noteElement.appendChild(bookmarkIcon); bookmarkIcon.style.display = 'inline-block'; } noteElement.appendChild(editTitleInput); noteElement.appendChild(editInput); noteElement.appendChild(editTagsInput); noteElement.appendChild(colorSelectorContainer); const editActionsContainer = document.createElement('div'); editActionsContainer.classList.add('note-actions'); editActionsContainer.innerHTML = originalActionsHTML; editActionsContainer.appendChild(saveBtn); noteElement.appendChild(editActionsContainer); const triggerAutoSave = () => debouncedAutoSave(noteElement, noteId); editTitleInput.addEventListener('input', triggerAutoSave); editInput.addEventListener('input', triggerAutoSave); editTagsInput.addEventListener('input', (event) => { handleTagInput(event); triggerAutoSave(); }); editTagsInput.addEventListener('blur', handleTagInputBlur, true); editTagsInput.addEventListener('keydown', handleTagInputKeydown); editTitleInput.focus(); editTitleInput.setSelectionRange(editTitleInput.value.length, editTitleInput.value.length); };
 const handleNoteSaveEdit = async (noteElement, noteId) => { /* TODO */ console.warn("handleNoteSaveEdit needs Firestore implementation"); const editTitleInput = noteElement.querySelector('input.edit-title-input'); const editInput = noteElement.querySelector('textarea.edit-input'); const editTagsInput = noteElement.querySelector('input.edit-tags-input'); if (!editTitleInput || !editInput || !editTagsInput) { console.error("Lỗi lưu: Không tìm thấy các thành phần sửa ghi chú."); displayNotes(searchInput.value); return; } const newData = { title: editTitleInput.value, text: editInput.value, tags: parseTags(editTagsInput.value), color: noteElement.dataset.selectedColor ?? null }; const success = await updateNoteData(noteId, newData); if (success) { displayNotes(searchInput.value); if (sortableInstance) sortableInstance.option('disabled', false); if (addNotePanel.classList.contains('hidden') && currentUser) { showAddPanelBtn.classList.remove('hidden'); } } else { alert("Lưu ghi chú thất bại. Vui lòng thử lại."); displayNotes(searchInput.value); } hideTagSuggestions(); delete noteElement.dataset.selectedColor; };
 const showFullNoteModal = (title, noteText) => { /* Logic giữ nguyên */ const existingModal = document.querySelector('.note-modal'); if (existingModal) { existingModal.remove(); } const modal = document.createElement('div'); modal.classList.add('note-modal', 'modal', 'hidden'); modal.setAttribute('role', 'dialog'); modal.setAttribute('aria-modal', 'true'); modal.setAttribute('aria-labelledby', 'note-modal-title'); const modalContent = document.createElement('div'); modalContent.classList.add('modal-content'); const modalHeader = document.createElement('div'); modalHeader.classList.add('modal-header'); const modalTitle = document.createElement('h2'); modalTitle.id = 'note-modal-title'; modalTitle.textContent = title || 'Ghi chú'; const closeModalBtn = document.createElement('button'); closeModalBtn.classList.add('close-modal-btn'); closeModalBtn.innerHTML = '&times;'; closeModalBtn.title = 'Đóng (Esc)'; closeModalBtn.setAttribute('aria-label', 'Đóng cửa sổ xem ghi chú'); modalHeader.appendChild(modalTitle); modalHeader.appendChild(closeModalBtn); const modalBody = document.createElement('div'); modalBody.classList.add('modal-body'); modalBody.textContent = noteText || ''; modalContent.appendChild(modalHeader); modalContent.appendChild(modalBody); modal.appendChild(modalContent); document.body.appendChild(modal); requestAnimationFrame(() => { modal.classList.add('visible'); modal.classList.remove('hidden'); }); closeModalBtn.focus(); const closeFunc = () => { modal.classList.remove('visible'); modal.addEventListener('transitionend', () => { modal.remove(); document.removeEventListener('keydown', handleThisModalKeyDown); }, { once: true }); }; const handleThisModalKeyDown = (event) => { if (!modal.classList.contains('visible')) { document.removeEventListener('keydown', handleThisModalKeyDown); return; } if (event.key === 'Escape') { closeFunc(); } if (event.key === 'Tab') { const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'); if (focusableElements.length === 0) return; const firstElement = focusableElements[0]; const lastElement = focusableElements[focusableElements.length - 1]; if (event.shiftKey) { if (document.activeElement === firstElement) { lastElement.focus(); event.preventDefault(); } } else { if (document.activeElement === lastElement) { firstElement.focus(); event.preventDefault(); } } } }; closeModalBtn.addEventListener('click', closeFunc); modal.addEventListener('click', (event) => { if (event.target === modal) closeFunc(); }); document.addEventListener('keydown', handleThisModalKeyDown); };
 
@@ -314,24 +385,7 @@ function createNoteActionsElement(note) { /* Logic giữ nguyên */ const action
 // =====================================================================
 //  Core Note Rendering Function (Giữ nguyên)
 // =====================================================================
-const renderNoteElement = (note) => {
-    const noteElement = document.createElement('div');
-    noteElement.classList.add('note');
-    noteElement.dataset.id = note.id;
-    applyNoteColor(noteElement, note);
-    applyPinnedStatus(noteElement, note, isViewingArchived, isViewingTrash);
-    const titleEl = createNoteTitleElement(note, searchInput.value);
-    if(titleEl) noteElement.appendChild(titleEl);
-    const contentEl = createNoteContentElement(note, searchInput.value, noteElement);
-    if(contentEl) noteElement.appendChild(contentEl);
-    const tagsEl = createNoteTagsElement(note);
-    if(tagsEl) noteElement.appendChild(tagsEl);
-    const timestampEl = createNoteTimestampElement(note);
-    if(timestampEl) noteElement.appendChild(timestampEl);
-    const actionsEl = createNoteActionsElement(note);
-    if(actionsEl) noteElement.appendChild(actionsEl);
-    return noteElement;
-};
+const renderNoteElement = (note) => { const noteElement = document.createElement('div'); noteElement.classList.add('note'); noteElement.dataset.id = note.id; applyNoteColor(noteElement, note); applyPinnedStatus(noteElement, note, isViewingArchived, isViewingTrash); const titleEl = createNoteTitleElement(note, searchInput.value); if(titleEl) noteElement.appendChild(titleEl); const contentEl = createNoteContentElement(note, searchInput.value, noteElement); if(contentEl) noteElement.appendChild(contentEl); const tagsEl = createNoteTagsElement(note); if(tagsEl) noteElement.appendChild(tagsEl); const timestampEl = createNoteTimestampElement(note); if(timestampEl) noteElement.appendChild(timestampEl); const actionsEl = createNoteActionsElement(note); if(actionsEl) noteElement.appendChild(actionsEl); return noteElement; };
 
 // =====================================================================
 //  Drag & Drop (TODO: Firestore)
@@ -360,16 +414,46 @@ const populateTemplateDropdown = () => { /* Logic giữ nguyên */ const current
 const applyTemplate = () => { /* Logic giữ nguyên */ const selectedId = templateSelect.value; if (selectedId) { const template = templates.find(t => t.id === selectedId); if (template) { newNoteTitle.value = template.title; newNoteText.value = template.text; newNoteTags.value = (template.tags || []).join(', '); newNoteText.focus(); } } };
 
 // =====================================================================
-//  Notebook UI Handlers (TODO: Firestore)
+//  Notebook UI Handlers (Updated for Firestore)
 // =====================================================================
-const renderNotebookList = () => { /* TODO */ console.warn("renderNotebookList needs implementation using 'notebooks' state array"); notebookListContainer.innerHTML = ''; if (notebooks.length === 0) { notebookListContainer.innerHTML = `<p class="empty-state">Chưa có sổ tay nào.</p>`; return; } notebooks.sort((a, b) => a.name.localeCompare(b.name)).forEach(notebook => { const item = document.createElement('div'); item.classList.add('notebook-list-item'); item.dataset.id = notebook.id; item.innerHTML = ` <span>${escapeHTML(notebook.name)}</span> <div class="notebook-item-actions"> <button class="edit-notebook-btn modal-button secondary small-button" data-id="${notebook.id}" title="Sửa sổ tay ${escapeHTML(notebook.name)}">Sửa</button> <button class="delete-notebook-btn modal-button danger small-button" data-id="${notebook.id}" title="Xóa sổ tay ${escapeHTML(notebook.name)}">Xóa</button> </div> `; item.querySelector('.edit-notebook-btn').addEventListener('click', () => showNotebookEditPanel(notebook.id)); item.querySelector('.delete-notebook-btn').addEventListener('click', () => deleteNotebook(notebook.id)); notebookListContainer.appendChild(item); }); };
+const renderNotebookList = () => {
+    // Render list in modal from the global 'notebooks' state array
+    notebookListContainer.innerHTML = '';
+    if (notebooks.length === 0) {
+        notebookListContainer.innerHTML = `<p class="empty-state">Chưa có sổ tay nào.</p>`;
+        return;
+    }
+    // Sort locally before rendering
+    notebooks.sort((a, b) => a.name.localeCompare(b.name)).forEach(notebook => {
+        const item = document.createElement('div');
+        item.classList.add('notebook-list-item');
+        item.dataset.id = notebook.id; // Use Firestore ID
+        item.innerHTML = `
+            <span>${escapeHTML(notebook.name)}</span>
+            <div class="notebook-item-actions">
+                <button class="edit-notebook-btn modal-button secondary small-button" data-id="${notebook.id}" title="Sửa sổ tay ${escapeHTML(notebook.name)}">Sửa</button>
+                <button class="delete-notebook-btn modal-button danger small-button" data-id="${notebook.id}" title="Xóa sổ tay ${escapeHTML(notebook.name)}">Xóa</button>
+            </div>
+        `;
+        // Attach listeners directly here
+        item.querySelector('.edit-notebook-btn').addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent modal closing if clicked inside
+            showNotebookEditPanel(notebook.id);
+        });
+        item.querySelector('.delete-notebook-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteNotebook(notebook.id); // Call Firestore delete function
+        });
+        notebookListContainer.appendChild(item);
+    });
+};
 const showNotebookEditPanel = (notebookId = null) => { /* Logic giữ nguyên */ notebookListSection.classList.add('hidden'); notebookEditPanel.classList.remove('hidden'); if (notebookId !== null) { const notebook = notebooks.find(nb => nb.id === notebookId); if (notebook) { notebookEditTitle.textContent = "Sửa Sổ tay"; notebookEditId.value = notebook.id; notebookEditName.value = notebook.name; } else { console.error("Không tìm thấy sổ tay để sửa ID:", notebookId); hideNotebookEditPanel(); return; } } else { notebookEditTitle.textContent = "Tạo Sổ tay Mới"; notebookEditId.value = ''; notebookEditName.value = ''; } notebookEditName.focus(); };
 const hideNotebookEditPanel = () => { /* Logic giữ nguyên */ notebookEditPanel.classList.add('hidden'); notebookListSection.classList.remove('hidden'); notebookEditId.value = ''; notebookEditName.value = ''; };
 const showNotebookModal = () => { /* Logic giữ nguyên */ if (!currentUser) { alert("Vui lòng đăng nhập để quản lý sổ tay."); return; } renderNotebookList(); hideNotebookEditPanel(); notebookModal.classList.add('visible'); notebookModal.classList.remove('hidden'); showAddNotebookPanelBtn.focus(); };
 const hideNotebookModal = () => { /* Logic giữ nguyên */ notebookModal.classList.remove('visible'); notebookModal.addEventListener('transitionend', (e) => { if (e.target === notebookModal) notebookModal.classList.add('hidden'); }, { once: true }); };
 
 // =====================================================================
-//  Notebook Tab Rendering (Giữ nguyên)
+//  Notebook Tab Rendering (Updated for Firestore state)
 // =====================================================================
 const renderNotebookTabs = () => {
     if (!notebookTabsContainer) return;
@@ -383,10 +467,11 @@ const renderNotebookTabs = () => {
         allNotesTab.classList.add('active');
     }
     notebookTabsContainer.appendChild(allNotesTab);
+    // Sort notebooks locally before rendering tabs
     notebooks.sort((a, b) => a.name.localeCompare(b.name)).forEach(notebook => {
         const tab = document.createElement('button');
         tab.classList.add('tab-button');
-        tab.dataset.notebookId = notebook.id;
+        tab.dataset.notebookId = notebook.id; // Use Firestore ID
         tab.textContent = escapeHTML(notebook.name);
         if (currentNotebookId === notebook.id && !isViewingArchived && !isViewingTrash) {
             tab.classList.add('active');
@@ -405,6 +490,10 @@ const renderNotebookTabs = () => {
              showNotebookEditPanel();
         });
     }
+    // Ensure the add button is always last
+    if(notebookTabsContainer.contains(finalAddButton)) {
+         notebookTabsContainer.removeChild(finalAddButton);
+    }
     notebookTabsContainer.appendChild(finalAddButton);
 };
 
@@ -419,100 +508,13 @@ const importNotes = async (file) => { /* TODO */ console.warn("importNotes needs
 // =====================================================================
 //  Note Filtering and Sorting Logic (Giữ nguyên)
 // =====================================================================
-const getFilteredNotes = (allNotes, filter) => {
-    let viewFilteredNotes = allNotes.filter(note => {
-        if (isViewingTrash) { return note.deleted; }
-        else if (isViewingArchived) { return note.archived && !note.deleted; }
-        else { return !note.deleted && !note.archived && (currentNotebookId === 'all' || note.notebookId === currentNotebookId); }
-    });
-    if (filter) {
-        const lowerCaseFilter = filter.toLowerCase().trim();
-        const isTagSearch = lowerCaseFilter.startsWith('#');
-        const tagSearchTerm = isTagSearch ? lowerCaseFilter.substring(1) : null;
-        viewFilteredNotes = viewFilteredNotes.filter(note => {
-            if (isTagSearch) { if (!tagSearchTerm) return true; return note.tags && note.tags.some(tag => tag.toLowerCase() === tagSearchTerm); }
-            else { const noteTitleLower = (note.title || '').toLowerCase(); const noteTextLower = (note.text || '').toLowerCase(); const titleMatch = noteTitleLower.includes(lowerCaseFilter); const textMatch = noteTextLower.includes(lowerCaseFilter); const tagMatch = note.tags && note.tags.some(tag => tag.toLowerCase().includes(lowerCaseFilter)); return titleMatch || textMatch || tagMatch; }
-        });
-    }
-    return viewFilteredNotes;
-};
-const sortNotes = (filteredNotes) => {
-    if (isViewingTrash) { return filteredNotes.sort((a, b) => (b.deletedTimestamp?.seconds || 0) - (a.deletedTimestamp?.seconds || 0)); }
-    else if (isViewingArchived) { return filteredNotes.sort((a, b) => (b.lastModified?.seconds || 0) - (a.lastModified?.seconds || 0)); }
-    else { return filteredNotes.sort((a, b) => { if (currentNotebookId === 'all' && a.pinned !== b.pinned) { return b.pinned - a.pinned; } const timeA = a.lastModified?.seconds ?? (a.createdAt?.seconds ?? 0); const timeB = b.lastModified?.seconds ?? (b.createdAt?.seconds ?? 0); return timeB - timeA; }); }
-};
+const getFilteredNotes = (allNotes, filter) => { let viewFilteredNotes = allNotes.filter(note => { if (isViewingTrash) { return note.deleted; } else if (isViewingArchived) { return note.archived && !note.deleted; } else { return !note.deleted && !note.archived && (currentNotebookId === 'all' || note.notebookId === currentNotebookId); } }); if (filter) { const lowerCaseFilter = filter.toLowerCase().trim(); const isTagSearch = lowerCaseFilter.startsWith('#'); const tagSearchTerm = isTagSearch ? lowerCaseFilter.substring(1) : null; viewFilteredNotes = viewFilteredNotes.filter(note => { if (isTagSearch) { if (!tagSearchTerm) return true; return note.tags && note.tags.some(tag => tag.toLowerCase() === tagSearchTerm); } else { const noteTitleLower = (note.title || '').toLowerCase(); const noteTextLower = (note.text || '').toLowerCase(); const titleMatch = noteTitleLower.includes(lowerCaseFilter); const textMatch = noteTextLower.includes(lowerCaseFilter); const tagMatch = note.tags && note.tags.some(tag => tag.toLowerCase().includes(lowerCaseFilter)); return titleMatch || textMatch || tagMatch; } }); } return viewFilteredNotes; };
+const sortNotes = (filteredNotes) => { if (isViewingTrash) { return filteredNotes.sort((a, b) => (b.deletedTimestamp?.seconds || 0) - (a.deletedTimestamp?.seconds || 0)); } else if (isViewingArchived) { return filteredNotes.sort((a, b) => (b.lastModified?.seconds || 0) - (a.lastModified?.seconds || 0)); } else { return filteredNotes.sort((a, b) => { if (currentNotebookId === 'all' && a.pinned !== b.pinned) { return b.pinned - a.pinned; } const timeA = a.lastModified?.seconds ?? (a.createdAt?.seconds ?? 0); const timeB = b.lastModified?.seconds ?? (b.createdAt?.seconds ?? 0); return timeB - timeA; }); } };
 
 // =====================================================================
 //  Core Display Function (Giữ nguyên)
 // =====================================================================
-const displayNotes = (filter = '') => {
-    if (!currentUser) {
-        notesContainer.innerHTML = '<p class="empty-state">Vui lòng đăng nhập để xem ghi chú.</p>';
-        if (sortableInstance) { sortableInstance.destroy(); sortableInstance = null; }
-        showAddPanelBtn.classList.add('hidden');
-        notebookTabsContainer.innerHTML = '';
-        manageNotebooksBtn.classList.add('hidden');
-        manageTemplatesBtn.classList.add('hidden');
-        viewArchiveBtn.classList.add('hidden');
-        viewTrashBtn.classList.add('hidden');
-        exportNotesBtn.classList.add('hidden');
-        importNotesBtn.classList.add('hidden');
-        searchInput.classList.add('hidden');
-        archiveStatusIndicator.classList.add('hidden');
-        trashStatusIndicator.classList.add('hidden');
-        emptyTrashBtn.classList.add('hidden');
-        return;
-    }
-     manageNotebooksBtn.classList.remove('hidden');
-     manageTemplatesBtn.classList.remove('hidden');
-     viewArchiveBtn.classList.remove('hidden');
-     viewTrashBtn.classList.remove('hidden');
-     exportNotesBtn.classList.remove('hidden');
-     importNotesBtn.classList.remove('hidden');
-     searchInput.classList.remove('hidden');
-     if (!addNotePanel.classList.contains('hidden') || !notesContainer.querySelector('.note .edit-input')) {
-        showAddPanelBtn.classList.remove('hidden');
-     }
-    hideTagSuggestions();
-    const scrollY = window.scrollY;
-    notesContainer.innerHTML = '';
-    const filteredNotes = getFilteredNotes(notes, filter.toLowerCase().trim());
-    const notesToDisplay = sortNotes(filteredNotes);
-    viewArchiveBtn.classList.remove('viewing-archive');
-    viewTrashBtn.classList.remove('viewing-trash');
-    viewArchiveBtn.textContent = 'Xem Lưu trữ';
-    viewTrashBtn.textContent = 'Xem Thùng rác';
-    archiveStatusIndicator.classList.add('hidden');
-    trashStatusIndicator.classList.add('hidden');
-    emptyTrashBtn.classList.add('hidden');
-    if (isViewingTrash) {
-        trashStatusIndicator.classList.remove('hidden');
-        viewTrashBtn.textContent = 'Xem Ghi chú';
-        viewTrashBtn.classList.add('viewing-trash');
-        if(notesToDisplay.length > 0) { emptyTrashBtn.classList.remove('hidden'); }
-        renderNotebookTabs();
-    } else if (isViewingArchived) {
-        archiveStatusIndicator.classList.remove('hidden');
-        viewArchiveBtn.textContent = 'Xem Ghi chú';
-        viewArchiveBtn.classList.add('viewing-archive');
-        renderNotebookTabs();
-    } else {
-        renderNotebookTabs();
-    }
-    if (notesToDisplay.length === 0) {
-        let emptyMessage = '';
-        if (isViewingTrash) { emptyMessage = filter ? 'Không tìm thấy ghi chú rác nào khớp.' : 'Thùng rác trống.'; }
-        else if (isViewingArchived) { emptyMessage = filter ? 'Không tìm thấy ghi chú lưu trữ nào khớp.' : 'Lưu trữ trống.'; }
-        else if (currentNotebookId === 'all') { emptyMessage = filter ? 'Không tìm thấy ghi chú nào khớp.' : 'Chưa có ghi chú nào. Nhấn "+" để thêm.'; }
-        else { const currentNotebook = notebooks.find(nb => nb.id === currentNotebookId); const notebookName = currentNotebook ? escapeHTML(currentNotebook.name) : 'sổ tay này'; emptyMessage = filter ? `Không tìm thấy ghi chú nào khớp trong ${notebookName}.` : `Sổ tay "${notebookName}" trống. Nhấn "+" để thêm.`; }
-        notesContainer.innerHTML = `<p class="empty-state">${emptyMessage}</p>`;
-        if (sortableInstance) { sortableInstance.destroy(); sortableInstance = null; }
-    } else {
-        notesToDisplay.forEach(note => { const noteElement = renderNoteElement(note); notesContainer.appendChild(noteElement); });
-        initSortable();
-    }
-    window.scrollTo({ top: scrollY, behavior: 'instant' });
-};
+const displayNotes = (filter = '') => { if (!currentUser) { notesContainer.innerHTML = '<p class="empty-state">Vui lòng đăng nhập để xem ghi chú.</p>'; if (sortableInstance) { sortableInstance.destroy(); sortableInstance = null; } showAddPanelBtn.classList.add('hidden'); notebookTabsContainer.innerHTML = ''; manageNotebooksBtn.classList.add('hidden'); manageTemplatesBtn.classList.add('hidden'); viewArchiveBtn.classList.add('hidden'); viewTrashBtn.classList.add('hidden'); exportNotesBtn.classList.add('hidden'); importNotesBtn.classList.add('hidden'); searchInput.classList.add('hidden'); archiveStatusIndicator.classList.add('hidden'); trashStatusIndicator.classList.add('hidden'); emptyTrashBtn.classList.add('hidden'); return; } manageNotebooksBtn.classList.remove('hidden'); manageTemplatesBtn.classList.remove('hidden'); viewArchiveBtn.classList.remove('hidden'); viewTrashBtn.classList.remove('hidden'); exportNotesBtn.classList.remove('hidden'); importNotesBtn.classList.remove('hidden'); searchInput.classList.remove('hidden'); if (!addNotePanel.classList.contains('hidden') || !notesContainer.querySelector('.note .edit-input')) { showAddPanelBtn.classList.remove('hidden'); } hideTagSuggestions(); const scrollY = window.scrollY; notesContainer.innerHTML = ''; const filteredNotes = getFilteredNotes(notes, filter.toLowerCase().trim()); const notesToDisplay = sortNotes(filteredNotes); viewArchiveBtn.classList.remove('viewing-archive'); viewTrashBtn.classList.remove('viewing-trash'); viewArchiveBtn.textContent = 'Xem Lưu trữ'; viewTrashBtn.textContent = 'Xem Thùng rác'; archiveStatusIndicator.classList.add('hidden'); trashStatusIndicator.classList.add('hidden'); emptyTrashBtn.classList.add('hidden'); if (isViewingTrash) { trashStatusIndicator.classList.remove('hidden'); viewTrashBtn.textContent = 'Xem Ghi chú'; viewTrashBtn.classList.add('viewing-trash'); if(notesToDisplay.length > 0) { emptyTrashBtn.classList.remove('hidden'); } renderNotebookTabs(); } else if (isViewingArchived) { archiveStatusIndicator.classList.remove('hidden'); viewArchiveBtn.textContent = 'Xem Ghi chú'; viewArchiveBtn.classList.add('viewing-archive'); renderNotebookTabs(); } else { renderNotebookTabs(); } if (notesToDisplay.length === 0) { let emptyMessage = ''; if (isViewingTrash) { emptyMessage = filter ? 'Không tìm thấy ghi chú rác nào khớp.' : 'Thùng rác trống.'; } else if (isViewingArchived) { emptyMessage = filter ? 'Không tìm thấy ghi chú lưu trữ nào khớp.' : 'Lưu trữ trống.'; } else if (currentNotebookId === 'all') { emptyMessage = filter ? 'Không tìm thấy ghi chú nào khớp.' : 'Chưa có ghi chú nào. Nhấn "+" để thêm.'; } else { const currentNotebook = notebooks.find(nb => nb.id === currentNotebookId); const notebookName = currentNotebook ? escapeHTML(currentNotebook.name) : 'sổ tay này'; emptyMessage = filter ? `Không tìm thấy ghi chú nào khớp trong ${notebookName}.` : `Sổ tay "${notebookName}" trống. Nhấn "+" để thêm.`; } notesContainer.innerHTML = `<p class="empty-state">${emptyMessage}</p>`; if (sortableInstance) { sortableInstance.destroy(); sortableInstance = null; } } else { notesToDisplay.forEach(note => { const noteElement = renderNoteElement(note); notesContainer.appendChild(noteElement); }); initSortable(); } window.scrollTo({ top: scrollY, behavior: 'instant' }); };
 
 // =====================================================================
 //  Modal Handling Functions (Giữ nguyên)
@@ -527,202 +529,110 @@ const handleMoveNote = async (noteId, targetNotebookId) => { /* TODO */ console.
 const showMoveNoteMenu = (noteId, moveBtnElement) => { /* Logic giữ nguyên */ closeMoveNoteMenu(); const note = notes.find(n => n.id === noteId); if (!note || !currentUser) return; const menu = document.createElement('div'); menu.id = MOVE_NOTE_MENU_ID; menu.classList.add('move-note-menu'); const noNotebookBtn = document.createElement('button'); noNotebookBtn.textContent = '-- Không thuộc sổ tay nào --'; noNotebookBtn.dataset.targetNotebookId = 'none'; if (note.notebookId === null) { noNotebookBtn.classList.add('current-notebook'); noNotebookBtn.disabled = true; } noNotebookBtn.addEventListener('click', () => handleMoveNote(noteId, 'none')); menu.appendChild(noNotebookBtn); if (notebooks.length > 0) { menu.appendChild(document.createElement('hr')); } notebooks.sort((a, b) => a.name.localeCompare(b.name)).forEach(notebook => { const notebookBtn = document.createElement('button'); notebookBtn.textContent = escapeHTML(notebook.name); notebookBtn.dataset.targetNotebookId = notebook.id; if (note.notebookId === notebook.id) { notebookBtn.classList.add('current-notebook'); notebookBtn.disabled = true; } notebookBtn.addEventListener('click', () => handleMoveNote(noteId, notebook.id)); menu.appendChild(notebookBtn); }); document.body.appendChild(menu); activeMoveMenu = menu; const btnRect = moveBtnElement.getBoundingClientRect(); menu.style.position = 'absolute'; requestAnimationFrame(() => { const finalMenuHeight = menu.offsetHeight; const spaceAbove = btnRect.top; const spaceBelow = window.innerHeight - btnRect.bottom; if (spaceBelow >= finalMenuHeight + 10 || spaceBelow >= spaceAbove) { menu.style.top = `${btnRect.bottom + window.scrollY + 5}px`; } else { menu.style.top = `${btnRect.top + window.scrollY - finalMenuHeight - 5}px`; } menu.style.left = `${btnRect.left + window.scrollX}px`; if (btnRect.left + menu.offsetWidth > window.innerWidth - 10) { menu.style.left = `${window.innerWidth - menu.offsetWidth - 10 + window.scrollX}px`; } }); setTimeout(() => { document.addEventListener('click', handleOutsideMoveMenuClick, true); }, 0); };
 
 // =====================================================================
-//  Authentication Logic & UI Handlers
+//  Authentication Logic & UI Handlers (Giữ nguyên)
 // =====================================================================
-const displayAuthError = (message) => {
-    authErrorElement.textContent = message;
-    authErrorElement.classList.remove('hidden');
-};
+const displayAuthError = (message) => { authErrorElement.textContent = message; authErrorElement.classList.remove('hidden'); };
+const clearAuthError = () => { authErrorElement.textContent = ''; authErrorElement.classList.add('hidden'); };
+const showAuthForm = () => { hideAddPanel(); hideSettingsModal(); hideTemplateModal(); hideNotebookModal(); authContainer.classList.remove('hidden'); authButton.classList.add('hidden'); authEmailInput.focus(); clearAuthError(); };
+const hideAuthForm = () => { authContainer.classList.add('hidden'); if (currentUser) { authButton.classList.remove('hidden'); } else { authButton.textContent = 'Đăng nhập'; authButton.classList.remove('logout'); authButton.classList.remove('hidden'); } authEmailInput.value = ''; authPasswordInput.value = ''; clearAuthError(); };
+const handleLogin = async () => { if (!auth) return; const email = authEmailInput.value.trim(); const password = authPasswordInput.value.trim(); clearAuthError(); if (!email || !password) { displayAuthError("Vui lòng nhập email và mật khẩu."); return; } loginBtn.disabled = true; registerBtn.disabled = true; loginBtn.textContent = 'Đang đăng nhập...'; try { const { signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js'); await signInWithEmailAndPassword(auth, email, password); console.log("Login successful"); } catch (error) { console.error("Login Error:", error); let message = "Đăng nhập thất bại. Vui lòng thử lại."; if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') { message = "Email hoặc mật khẩu không đúng."; } else if (error.code === 'auth/invalid-email') { message = "Địa chỉ email không hợp lệ."; } displayAuthError(message); } finally { loginBtn.disabled = false; registerBtn.disabled = false; loginBtn.textContent = 'Đăng nhập'; } };
+const handleRegister = async () => { if (!auth) return; const email = authEmailInput.value.trim(); const password = authPasswordInput.value.trim(); clearAuthError(); if (!email || !password) { displayAuthError("Vui lòng nhập email và mật khẩu."); return; } if (password.length < 6) { displayAuthError("Mật khẩu phải có ít nhất 6 ký tự."); return; } loginBtn.disabled = true; registerBtn.disabled = true; registerBtn.textContent = 'Đang đăng ký...'; try { const { createUserWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js'); await createUserWithEmailAndPassword(auth, email, password); console.log("Registration successful"); } catch (error) { console.error("Registration Error:", error); let message = "Đăng ký thất bại. Vui lòng thử lại."; if (error.code === 'auth/email-already-in-use') { message = "Địa chỉ email này đã được sử dụng."; } else if (error.code === 'auth/invalid-email') { message = "Địa chỉ email không hợp lệ."; } else if (error.code === 'auth/weak-password') { message = "Mật khẩu quá yếu."; } displayAuthError(message); } finally { loginBtn.disabled = false; registerBtn.disabled = false; registerBtn.textContent = 'Đăng ký'; } };
+const handleLogout = async () => { if (!auth) return; authButton.disabled = true; authButton.textContent = 'Đang đăng xuất...'; try { const { signOut } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js'); await signOut(auth); console.log("Logout successful"); } catch (error) { console.error("Logout Error:", error); alert("Đăng xuất thất bại. Vui lòng thử lại."); } finally { authButton.disabled = false; } };
+const setupAuthListeners = () => { if (authButton) { authButton.addEventListener('click', () => { if (currentUser) { handleLogout(); } else { showAuthForm(); } }); } if (loginBtn) { loginBtn.addEventListener('click', handleLogin); } if (registerBtn) { registerBtn.addEventListener('click', handleRegister); } };
 
-const clearAuthError = () => {
-    authErrorElement.textContent = '';
-    authErrorElement.classList.add('hidden');
-};
-
-const showAuthForm = () => {
-    hideAddPanel(); // Ẩn panel thêm note nếu đang mở
-    // Có thể ẩn các modal khác nếu cần
-    hideSettingsModal();
-    hideTemplateModal();
-    hideNotebookModal();
-    authContainer.classList.remove('hidden');
-    authButton.classList.add('hidden'); // Ẩn nút auth chính
-    authEmailInput.focus();
-    clearAuthError(); // Xóa lỗi cũ
-};
-
-const hideAuthForm = () => {
-    authContainer.classList.add('hidden');
-    if (currentUser) { // Chỉ hiện lại nút auth chính nếu đã đăng nhập (nút Đăng xuất)
-        authButton.classList.remove('hidden');
-    } else { // Nếu chưa đăng nhập, nút auth chính vẫn là Đăng nhập và nên hiện
-        authButton.textContent = 'Đăng nhập';
-        authButton.classList.remove('logout'); // Bỏ class logout nếu có
-        authButton.classList.remove('hidden');
+// =====================================================================
+//  Firestore Listener Management
+// =====================================================================
+/**
+ * Unsubscribes from all active Firestore listeners.
+ */
+const unsubscribeListeners = () => {
+    if (notebooksListener) {
+        console.log("Unsubscribing notebooks listener.");
+        notebooksListener();
+        notebooksListener = null;
     }
-    // Xóa input và lỗi
-    authEmailInput.value = '';
-    authPasswordInput.value = '';
-    clearAuthError();
-};
-
-const handleLogin = async () => {
-    if (!auth) return;
-    const email = authEmailInput.value.trim();
-    const password = authPasswordInput.value.trim();
-    clearAuthError();
-
-    if (!email || !password) {
-        displayAuthError("Vui lòng nhập email và mật khẩu.");
-        return;
+    if (templatesListener) {
+        console.log("Unsubscribing templates listener.");
+        templatesListener();
+        templatesListener = null;
     }
-
-    loginBtn.disabled = true; // Vô hiệu hóa nút khi đang xử lý
-    registerBtn.disabled = true;
-    loginBtn.textContent = 'Đang đăng nhập...';
-
-    try {
-        const { signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js');
-        await signInWithEmailAndPassword(auth, email, password);
-        // Thành công, onAuthStateChanged sẽ xử lý việc ẩn form và load data
-        console.log("Login successful");
-    } catch (error) {
-        console.error("Login Error:", error);
-        let message = "Đăng nhập thất bại. Vui lòng thử lại.";
-        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-            message = "Email hoặc mật khẩu không đúng.";
-        } else if (error.code === 'auth/invalid-email') {
-            message = "Địa chỉ email không hợp lệ.";
-        }
-        displayAuthError(message);
-    } finally {
-        loginBtn.disabled = false; // Bật lại nút
-        registerBtn.disabled = false;
-        loginBtn.textContent = 'Đăng nhập';
+    if (notesListener) {
+        console.log("Unsubscribing notes listener.");
+        notesListener();
+        notesListener = null;
     }
 };
 
-const handleRegister = async () => {
-    if (!auth) return;
-    const email = authEmailInput.value.trim();
-    const password = authPasswordInput.value.trim();
-    clearAuthError();
-
-    if (!email || !password) {
-        displayAuthError("Vui lòng nhập email và mật khẩu.");
-        return;
-    }
-    if (password.length < 6) {
-        displayAuthError("Mật khẩu phải có ít nhất 6 ký tự.");
-        return;
-    }
-
-    loginBtn.disabled = true;
-    registerBtn.disabled = true; // Vô hiệu hóa nút khi đang xử lý
-    registerBtn.textContent = 'Đang đăng ký...';
-
-    try {
-        const { createUserWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js');
-        await createUserWithEmailAndPassword(auth, email, password);
-        // Thành công, onAuthStateChanged sẽ xử lý việc ẩn form và load data
-        console.log("Registration successful");
-    } catch (error) {
-        console.error("Registration Error:", error);
-        let message = "Đăng ký thất bại. Vui lòng thử lại.";
-        if (error.code === 'auth/email-already-in-use') {
-            message = "Địa chỉ email này đã được sử dụng.";
-        } else if (error.code === 'auth/invalid-email') {
-            message = "Địa chỉ email không hợp lệ.";
-        } else if (error.code === 'auth/weak-password') {
-            message = "Mật khẩu quá yếu.";
-        }
-        displayAuthError(message);
-    } finally {
-        loginBtn.disabled = false;
-        registerBtn.disabled = false; // Bật lại nút
-        registerBtn.textContent = 'Đăng ký';
-    }
+/**
+ * Loads all user data from Firestore (called on login).
+ */
+const loadUserDataFromFirestore = () => {
+    if (!currentUser) return;
+    console.log("Loading user data from Firestore...");
+    unsubscribeListeners(); // Ensure no old listeners are running
+    loadNotebooks();
+    // loadTemplates(); // TODO: Implement in next step
+    // loadNotes(); // TODO: Implement in next step
 };
 
-const handleLogout = async () => {
-    if (!auth) return;
-    authButton.disabled = true; // Vô hiệu hóa nút logout
-    authButton.textContent = 'Đang đăng xuất...';
-    try {
-        const { signOut } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js');
-        await signOut(auth);
-        // Thành công, onAuthStateChanged sẽ xử lý việc reset UI và state
-        console.log("Logout successful");
-    } catch (error) {
-        console.error("Logout Error:", error);
-        alert("Đăng xuất thất bại. Vui lòng thử lại.");
-    } finally {
-         authButton.disabled = false; // Bật lại nút (onAuthStateChanged sẽ cập nhật text)
-    }
-};
-
-const setupAuthListeners = () => {
-    if (authButton) {
-        authButton.addEventListener('click', () => {
-            if (currentUser) {
-                handleLogout();
-            } else {
-                showAuthForm();
-            }
-        });
-    }
-    if (loginBtn) {
-        loginBtn.addEventListener('click', handleLogin);
-    }
-    if (registerBtn) {
-        registerBtn.addEventListener('click', handleRegister);
-    }
-    // Thêm listener cho Enter trong form auth (đã có trong setupGlobalKeydownListeners)
-};
-
+// =====================================================================
+//  Authentication State Change Handler (Updated)
+// =====================================================================
 const handleAuthStateChanged = (user) => {
     if (user) {
         // User is signed in
         console.log("Auth State Changed: Signed In -", user.uid);
+        if (currentUser?.uid === user.uid) {
+             console.log("Auth state unchanged (already signed in as this user).");
+             return; // Avoid redundant setup if already logged in
+        }
         currentUser = user;
         currentUid = user.uid;
         userEmailSpan.textContent = user.email;
         userStatusElement.classList.remove('hidden');
         authButton.textContent = 'Đăng xuất';
-        authButton.classList.add('logout'); // Thêm class để đổi màu nút
+        authButton.classList.add('logout');
         authButton.classList.remove('hidden');
-        hideAuthForm(); // Ẩn form đăng nhập/đăng ký
+        hideAuthForm();
 
-        // TODO: Load data for the signed-in user from Firestore
-        // loadUserDataFromFirestore();
+        // Load user data
+        loadUserDataFromFirestore(); // Call the function to load all data
+
         notesContainer.innerHTML = '<p class="empty-state">Đang tải dữ liệu...</p>';
-        displayNotes(); // Gọi để hiện các nút quản lý...
-        searchInput.classList.remove('hidden'); // Hiện thanh tìm kiếm
+        // displayNotes will be called implicitly by listeners updating state
+        searchInput.classList.remove('hidden');
 
     } else {
         // User is signed out
         console.log("Auth State Changed: Signed Out");
+        if (!currentUser) {
+            console.log("Auth state unchanged (already signed out).");
+            return; // Avoid redundant cleanup
+        }
+        unsubscribeListeners(); // Unsubscribe from listeners
+
         currentUser = null;
         currentUid = null;
         notes = [];
         templates = [];
-        notebooks = [];
+        notebooks = []; // Reset state
         userStatusElement.classList.add('hidden');
         authButton.textContent = 'Đăng nhập';
-        authButton.classList.remove('logout'); // Bỏ class logout
+        authButton.classList.remove('logout');
         authButton.classList.remove('hidden');
-        hideAuthForm(); // Đảm bảo form auth ẩn khi logout
+        hideAuthForm();
 
-        // TODO: Unsubscribe from Firestore listeners if they exist
-        // unsubscribeListeners();
-
-        displayNotes(); // Hiển thị trạng thái yêu cầu đăng nhập
-        searchInput.classList.add('hidden'); // Ẩn thanh tìm kiếm
+        displayNotes(); // Show "Please login" message
+        searchInput.classList.add('hidden');
+        renderNotebookTabs(); // Clear notebook tabs
+        renderNotebookList(); // Clear notebook list in modal
+        populateTemplateDropdown(); // Clear template dropdown
     }
 };
 
 // =====================================================================
-//  Event Listener Setup Functions
+//  Event Listener Setup Functions (Giữ nguyên)
 // =====================================================================
 const setupEventListeners = () => {
     setupThemeAndAppearanceListeners();
@@ -731,39 +641,33 @@ const setupEventListeners = () => {
     setupSearchListener();
     setupNoteActionListeners();
     setupTemplateModalListeners();
-    setupNotebookListeners();
+    setupNotebookListeners(); // Listeners for modal buttons
     setupTagInputListeners();
     setupGlobalListeners();
-    setupAuthListeners(); // Gọi setup cho Auth
+    setupAuthListeners();
 };
-
-// =====================================================================
-//  Initial Load Function (Không dùng nữa)
-// =====================================================================
-// const loadNotesAndInit_OLD = () => { ... };
 
 // =====================================================================
 //  Start the application
 // =====================================================================
 const initializeAppWithAuth = async () => {
     applyAllAppearanceSettings();
-    setupEventListeners(); // Setup listener trước khi lắng nghe auth state
+    setupEventListeners();
 
     if (!auth) {
         console.error("Firebase Auth is not initialized!");
         notesContainer.innerHTML = '<p class="empty-state error">Lỗi khởi tạo hệ thống xác thực.</p>';
-        authButton.classList.add('hidden'); // Ẩn nút auth nếu lỗi
+        authButton.classList.add('hidden');
         return;
     }
 
     try {
         const { onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js');
-        // Lắng nghe thay đổi trạng thái đăng nhập
-        onAuthStateChanged(auth, handleAuthStateChanged); // Gọi hàm xử lý riêng
+        onAuthStateChanged(auth, handleAuthStateChanged);
     } catch (error) {
         console.error("Error setting up Auth listener:", error);
         notesContainer.innerHTML = '<p class="empty-state error">Lỗi theo dõi trạng thái đăng nhập.</p>';
-        authButton.classList.add('hidden'); // Ẩn nút auth nếu lỗi
+        authButton.classList.add('hidden');
     }
 };
 

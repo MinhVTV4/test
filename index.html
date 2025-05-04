@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ứng dụng Phát triển Cá nhân</title>
+    <title>Ứng dụng Phát triển Cá nhân v0.2</title> {/* --- UPDATED TITLE --- */}
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -18,7 +18,7 @@
         .action-button-icon:hover { background-color: rgba(0, 0, 0, 0.05); }
         .edit-icon-btn { color: #2563eb; } .delete-icon-btn { color: #dc2626; } .complete-icon-btn { color: #16a34a; } .undo-icon-btn { color: #ca8a04; } .save-icon-btn { color: #16a34a; } .cancel-icon-btn { color: #4b5563; }
         .pin-icon-btn { color: #6366f1; } .pin-icon-btn.pinned { color: #4f46e5; background-color: #e0e7ff; }
-        .history-icon-btn { color: #6b7280; /* gray-500 */ } /* History button color */
+        .history-icon-btn { color: #6b7280; }
 
         .nav-link { padding: 0.5rem 1rem; border-radius: 0.375rem; transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out; cursor: pointer; font-weight: 500; border: 1px solid transparent; }
         .nav-link:hover { background-color: rgba(255, 255, 255, 0.1); color: #e0f2fe; }
@@ -55,25 +55,20 @@
 
         /* --- Habits Specific --- */
         .habit-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-radius: 0.375rem; background-color: #f3f4f6; margin-bottom: 0.5rem; border: 1px solid #e5e7eb; }
-        .habit-info { display: flex; align-items: baseline; flex-grow: 1; margin-right: 1rem; } /* Container for name and streak */
+        .habit-item.editing { background-color: #f5f3ff; border-color: #c4b5fd; } /* Light purple for editing habit */
+        .habit-info { display: flex; align-items: baseline; flex-grow: 1; margin-right: 1rem; }
         .habit-name { font-weight: 500; }
-        .habit-streak { /* Style for streak counter */
-            font-size: 0.75rem; /* text-xs */
-            font-weight: 600; /* semibold */
-            color: #fb923c; /* text-orange-500 */
-            background-color: #fff7ed; /* bg-orange-50 */
-            padding: 0.1rem 0.4rem;
-            border-radius: 9999px; /* rounded-full */
-            margin-left: 0.5rem; /* ml-2 */
-            display: inline-flex; /* Ensure it fits inline */
-            align-items: center;
+        .habit-edit-input { /* Style for the edit input */
+            flex-grow: 1;
+            padding: 0.25rem 0.5rem;
+            border: 1px solid #a78bfa; /* purple-400 */
+            border-radius: 0.25rem;
+            margin-right: 1rem;
+            font-size: 0.875rem;
+            outline: none;
         }
-         .habit-streak svg { /* Style for fire icon */
-             width: 10px;
-             height: 10px;
-             margin-right: 0.15rem;
-             color: #f97316; /* text-orange-600 */
-         }
+        .habit-streak { font-size: 0.75rem; font-weight: 600; color: #fb923c; background-color: #fff7ed; padding: 0.1rem 0.4rem; border-radius: 9999px; margin-left: 0.5rem; display: inline-flex; align-items: center; }
+        .habit-streak svg { width: 10px; height: 10px; margin-right: 0.15rem; color: #f97316; }
         .habit-checkbox-label { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 2px solid #d1d5db; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out; margin-right: 0.75rem; }
         .habit-checkbox-label:hover { border-color: #9ca3af; }
         .habit-checkbox-label.checked { background-color: #10b981; border-color: #059669; }
@@ -117,15 +112,34 @@
         const navLinks = mainNav.querySelectorAll('.nav-link');
 
         // --- SVG Icons ---
-        const ICONS = { /* ... (Icons remain the same, add history icon) ... */ edit: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>`, delete: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>`, check: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>`, undo: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" /></svg>`, save: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75 l6 6 9-13.5" /></svg>`, cancel: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>`, pin: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0 1 20.25 6v12A2.25 2.25 0 0 1 18 20.25H6A2.25 2.25 0 0 1 3.75 18V6A2.25 2.25 0 0 1 6 3.75h1.5m9 0h-9" /></svg>`, pin_filled: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M16.5 3.75a.75.75 0 0 1 .75.75v11.19l-4.72-2.36a.75.75 0 0 0-.56 0L7.5 15.69V4.5a.75.75 0 0 1 .75-.75h7.5Z" clip-rule="evenodd" /><path d="M18 3.75a2.25 2.25 0 0 1 2.25 2.25v12a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6A2.25 2.25 0 0 1 6 3.75h12Z" /></svg>`, history: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>`, fire: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M8.75 1.75a.75.75 0 0 0-1.5 0v1.313c-.37-.1-.76-.163-1.17-.198C4.895 2.798 4 3.65 4 4.857c0 .41.13 1.03.393 1.776.24.69.662 1.42 1.28 2.065.617.645 1.333 1.176 2.146 1.571a.75.75 0 0 0 .44-.073c.813-.395 1.53- .926 2.147-1.57.618-.646 1.04-1.376 1.28-2.066C11.87 5.888 12 5.267 12 4.857c0-1.206-.895-2.059-2.08-2.186-.41-.035-.8-.1-1.17-.198V1.75Z" /><path d="M4.708 11.584a.75.75 0 0 1 .875.016C6.333 12.06 7.167 12.5 8 12.5s1.667-.44 2.417-.9a.75.75 0 0 1 .875-.016 14.41 14.41 0 0 1 1.145.61c.217.12.4.27.548.454a.75.75 0 0 1-.918 1.183 12.905 12.905 0 0 0-2.54-.714c-.427-.089-.86-.133-1.296-.133s-.87.044-1.297.133a12.904 12.904 0 0 0-2.54.714.75.75 0 0 1-.918-1.183c.148-.184.33-.334.548-.454a14.411 14.411 0 0 1 1.145-.61Z" /></svg>` };
+        const ICONS = { /* ... (Icons remain the same) ... */ edit: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>`, delete: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>`, check: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>`, undo: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" /></svg>`, save: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75 l6 6 9-13.5" /></svg>`, cancel: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>`, pin: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0 1 20.25 6v12A2.25 2.25 0 0 1 18 20.25H6A2.25 2.25 0 0 1 3.75 18V6A2.25 2.25 0 0 1 6 3.75h1.5m9 0h-9" /></svg>`, pin_filled: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M16.5 3.75a.75.75 0 0 1 .75.75v11.19l-4.72-2.36a.75.75 0 0 0-.56 0L7.5 15.69V4.5a.75.75 0 0 1 .75-.75h7.5Z" clip-rule="evenodd" /><path d="M18 3.75a2.25 2.25 0 0 1 2.25 2.25v12a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6A2.25 2.25 0 0 1 6 3.75h12Z" /></svg>`, history: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>`, fire: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M8.75 1.75a.75.75 0 0 0-1.5 0v1.313c-.37-.1-.76-.163-1.17-.198C4.895 2.798 4 3.65 4 4.857c0 .41.13 1.03.393 1.776.24.69.662 1.42 1.28 2.065.617.645 1.333 1.176 2.146 1.571a.75.75 0 0 0 .44-.073c.813-.395 1.53- .926 2.147-1.57.618-.646 1.04-1.376 1.28-2.066C11.87 5.888 12 5.267 12 4.857c0-1.206-.895-2.059-2.08-2.186-.41-.035-.8-.1-1.17-.198V1.75Z" /><path d="M4.708 11.584a.75.75 0 0 1 .875.016C6.333 12.06 7.167 12.5 8 12.5s1.667-.44 2.417-.9a.75.75 0 0 1 .875-.016 14.41 14.41 0 0 1 1.145.61c.217.12.4.27.548.454a.75.75 0 0 1-.918 1.183 12.905 12.905 0 0 0-2.54-.714c-.427-.089-.86-.133-1.296-.133s-.87.044-1.297.133a12.904 12.904 0 0 0-2.54.714.75.75 0 0 1-.918-1.183c.148-.184.33-.334.548-.454a14.411 14.411 0 0 1 1.145-.61Z" /></svg>` };
 
         // --- Module Building Functions ---
         function buildNotesUI() { /* ... (no changes) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Ghi Chú Nhanh</h2><div class="mb-4"><textarea id="note-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="4" placeholder="Nhập ghi chú..."></textarea></div><button id="add-note-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out mb-6">Thêm Ghi Chú</button><div class="mb-4"><input type="search" id="search-input" placeholder="Tìm kiếm ghi chú..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div id="notes-list" class="mt-6 space-y-3"></div>`; const ni=document.getElementById('note-input'); const ab=document.getElementById('add-note-btn'); const si=document.getElementById('search-input'); const nl=document.getElementById('notes-list'); ab.addEventListener('click',()=>addNote(ni,si)); ni.addEventListener('keydown',(e)=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();addNote(ni,si);}}); si.addEventListener('input',(e)=>displayNotes(nl,si,e.target.value)); displayNotes(nl,si); }
         function buildGoalsUI() { /* ... (no changes) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Theo dõi Mục tiêu</h2><form id="add-goal-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3"><div><label for="goal-input" class="block text-sm font-medium text-gray-700 mb-1">Tên mục tiêu:</label><input type="text" id="goal-input" placeholder="Ví dụ: Học JavaScript nâng cao" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div><label for="goal-desc-input" class="block text-sm font-medium text-gray-700 mb-1">Mô tả (tùy chọn):</label><textarea id="goal-desc-input" placeholder="Mô tả chi tiết các bước hoặc lý do..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea></div><div><label for="goal-due-date-input" class="block text-sm font-medium text-gray-700 mb-1">Hạn chót (tùy chọn):</label><input type="date" id="goal-due-date-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out w-full sm:w-auto">Thêm Mục tiêu</button></form><h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Mục tiêu</h3><div id="goals-list" class="space-y-3"></div>`; const agf=document.getElementById('add-goal-form'); const gi=document.getElementById('goal-input'); const gdi=document.getElementById('goal-desc-input'); const gddi=document.getElementById('goal-due-date-input'); const gl=document.getElementById('goals-list'); agf.addEventListener('submit',(e)=>{e.preventDefault();addGoal(gi,gdi,gddi,gl);}); displayGoals(gl); }
-        function buildHabitsUI() { /* ... (no changes in structure) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Theo dõi Thói quen</h2><form id="add-habit-form" class="mb-6 flex items-center space-x-2"><input type="text" id="habit-input" placeholder="Nhập thói quen mới (ví dụ: Đọc sách 30 phút)" required class="flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm Thói quen</button></form><h3 class="text-lg font-semibold mb-3 text-gray-700">Thói quen Hôm nay (${getTodayDateString()})</h3><div id="habits-list" class="space-y-2"></div>`; const ahf=document.getElementById('add-habit-form'); const hi=document.getElementById('habit-input'); const hl=document.getElementById('habits-list'); ahf.addEventListener('submit',(e)=>{e.preventDefault();addHabit(hi,hl);}); displayHabits(hl); }
+        function buildHabitsUI() { /* ... (no changes) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Theo dõi Thói quen</h2><form id="add-habit-form" class="mb-6 flex items-center space-x-2"><input type="text" id="habit-input" placeholder="Nhập thói quen mới (ví dụ: Đọc sách 30 phút)" required class="flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm Thói quen</button></form><h3 class="text-lg font-semibold mb-3 text-gray-700">Thói quen Hôm nay (${getTodayDateString()})</h3><div id="habits-list" class="space-y-2"></div>`; const ahf=document.getElementById('add-habit-form'); const hi=document.getElementById('habit-input'); const hl=document.getElementById('habits-list'); ahf.addEventListener('submit',(e)=>{e.preventDefault();addHabit(hi,hl);}); displayHabits(hl); }
 
         // --- Core Application Logic ---
-        function renderAppContent() { /* ... (no changes) ... */ console.log(`Rendering module: ${currentModule}`); let t="Ứng dụng Cá nhân"; if(currentModule==='notes')t+=" - Ghi Chú"; else if(currentModule==='goals')t+=" - Mục tiêu"; else if(currentModule==='habits')t+=" - Thói quen"; document.title=t; navLinks.forEach(l=>{l.classList.toggle('active',l.dataset.module===currentModule);}); appContent.innerHTML=`<p class="empty-state-message">Đang tải ${currentModule}...</p>`; setTimeout(()=>{switch(currentModule){case 'notes':buildNotesUI();break;case 'goals':buildGoalsUI();break;case 'habits':buildHabitsUI();break;default:appContent.innerHTML='<p class="empty-state-message">Module không xác định.</p>';}},0); }
+        function renderAppContent() {
+            console.log(`Rendering module: ${currentModule}`);
+            let baseTitle = "Ứng dụng Phát triển Cá nhân v0.2"; // Updated version
+            let moduleTitle = "";
+            if (currentModule === 'notes') moduleTitle = " - Ghi Chú";
+            else if (currentModule === 'goals') moduleTitle = " - Mục tiêu";
+            else if (currentModule === 'habits') moduleTitle = " - Thói quen";
+            document.title = baseTitle + moduleTitle;
+
+            navLinks.forEach(link => { link.classList.toggle('active', link.dataset.module === currentModule); });
+            appContent.innerHTML=`<p class="empty-state-message">Đang tải ${currentModule}...</p>`;
+            setTimeout(()=>{
+                switch (currentModule) {
+                    case 'notes': buildNotesUI(); break;
+                    case 'goals': buildGoalsUI(); break;
+                    case 'habits': buildHabitsUI(); break;
+                    default: appContent.innerHTML='<p class="empty-state-message">Module không xác định.</p>';
+                }
+            }, 0);
+        }
 
         // --- Note Management Functions ---
         function getNotes() { /* ... (no changes) ... */ const n=localStorage.getItem('quickNotes'); try { const p=n?JSON.parse(n):[]; return p.map(no=>({...no, isPinned: no.isPinned || false })); } catch(e){console.error("Error parsing notes:",e); return [];} }
@@ -158,35 +172,7 @@
         function getTodayDateString() { /* ... (no changes) ... */ const t=new Date(); const y=t.getFullYear(); const m=String(t.getMonth()+1).padStart(2,'0'); const d=String(t.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; }
         function getHabits() { /* ... (no changes) ... */ const h=localStorage.getItem(HABITS_STORAGE_KEY); try { const p=h?JSON.parse(h):[]; return p.map(ha=>({...ha, completedDates:Array.isArray(ha.completedDates)?ha.completedDates:[]})); } catch(e){console.error("Error parsing habits:",e); return [];} }
         function saveHabits(habits) { /* ... (no changes) ... */ localStorage.setItem(HABITS_STORAGE_KEY,JSON.stringify(habits)); }
-
-        // *** NEW: Calculate Habit Streak ***
-        function calculateCurrentStreak(completedDates) {
-            if (!Array.isArray(completedDates) || completedDates.length === 0) {
-                return 0;
-            }
-            // Sort dates descending to easily check consecutive days
-            const sortedDates = completedDates.map(dateStr => new Date(dateStr)).sort((a, b) => b - a);
-
-            let streak = 0;
-            const today = new Date(); today.setHours(0, 0, 0, 0);
-            const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
-
-            // Check if the most recent completed date is today or yesterday
-            if (sortedDates[0].getTime() === today.getTime() || sortedDates[0].getTime() === yesterday.getTime()) {
-                streak = 1; // Start with 1 if today/yesterday is completed
-                let currentExpectedDate = new Date(sortedDates[0]);
-
-                for (let i = 1; i < sortedDates.length; i++) {
-                    currentExpectedDate.setDate(currentExpectedDate.getDate() - 1); // Expect the previous day
-                    if (sortedDates[i].getTime() === currentExpectedDate.getTime()) {
-                        streak++; // Increment streak if the next date is consecutive
-                    } else {
-                        break; // Streak broken
-                    }
-                }
-            }
-            return streak;
-        }
+        function calculateCurrentStreak(completedDates) { /* ... (no changes) ... */ if(!Array.isArray(completedDates)||completedDates.length===0){return 0;} const sd=completedDates.map(ds=>new Date(ds)).sort((a,b)=>b-a); let s=0; const t=new Date(); t.setHours(0,0,0,0); const y=new Date(t); y.setDate(t.getDate()-1); if(sd[0].getTime()===t.getTime()||sd[0].getTime()===y.getTime()){s=1; let ced=new Date(sd[0]); for(let i=1;i<sd.length;i++){ced.setDate(ced.getDate()-1); if(sd[i].getTime()===ced.getTime()){s++;} else {break;}}} return s; }
 
         // *** UPDATED: displayHabits Function ***
         function displayHabits(habitsListElement) {
@@ -203,23 +189,24 @@
                 const habitElement = document.createElement('div');
                 habitElement.dataset.habitId = habit.id;
                 habitElement.classList.add('habit-item', 'list-item-hover');
+                // Add editing class if applicable (will be handled by toggleHabitEdit)
+                // if (habit.isEditing) habitElement.classList.add('editing');
 
-                // Container for name and streak
+                // Container for name/input and streak
                 const habitInfo = document.createElement('div');
-                habitInfo.classList.add('habit-info');
+                habitInfo.classList.add('habit-info'); // Use existing class
 
                 const nameElement = document.createElement('span');
                 nameElement.classList.add('habit-name');
                 nameElement.textContent = habit.name;
                 habitInfo.appendChild(nameElement);
 
-                // Calculate and display streak
                 const currentStreak = calculateCurrentStreak(habit.completedDates);
                 if (currentStreak > 0) {
                     const streakElement = document.createElement('span');
                     streakElement.classList.add('habit-streak');
-                    streakElement.innerHTML = `${ICONS.fire} ${currentStreak}`; // Add fire icon
-                    streakElement.title = `Chuỗi ${currentStreak} ngày liên tiếp!`; // Tooltip
+                    streakElement.innerHTML = `${ICONS.fire} ${currentStreak}`;
+                    streakElement.title = `Chuỗi ${currentStreak} ngày liên tiếp!`;
                     habitInfo.appendChild(streakElement);
                 }
 
@@ -230,25 +217,28 @@
                 // Checkbox
                 const isCompletedToday = habit.completedDates.includes(todayStr);
                 const checkboxId = `habit-check-${habit.id}`;
-                const checkboxLabel = document.createElement('label'); checkboxLabel.htmlFor = checkboxId; checkboxLabel.classList.add('habit-checkbox-label'); if(isCompletedToday){checkboxLabel.classList.add('checked'); checkboxLabel.innerHTML=ICONS.check;}
+                const checkboxLabel = document.createElement('label'); checkboxLabel.htmlFor=checkboxId; checkboxLabel.classList.add('habit-checkbox-label'); if(isCompletedToday){checkboxLabel.classList.add('checked'); checkboxLabel.innerHTML=ICONS.check;}
                 const checkbox = document.createElement('input'); checkbox.type='checkbox'; checkbox.id=checkboxId; checkbox.checked=isCompletedToday; checkbox.classList.add('habit-checkbox'); checkbox.onchange=()=>toggleHabitCompletion(habit.id,habitsListElement);
 
-                // History Button
-                const historyButton = document.createElement('button');
-                historyButton.classList.add('action-button-icon', 'history-icon-btn');
-                historyButton.innerHTML = ICONS.history;
-                historyButton.setAttribute('aria-label', 'Xem lịch sử');
-                historyButton.onclick = () => showHabitHistory(habit.id);
+                // Edit Button
+                const editButton = document.createElement('button');
+                editButton.classList.add('action-button-icon', 'edit-icon-btn');
+                editButton.innerHTML = ICONS.edit;
+                editButton.setAttribute('aria-label', 'Sửa tên thói quen');
+                editButton.onclick = () => toggleHabitEdit(habit.id, habitsListElement); // Call toggle edit
 
+                // History Button
+                const historyButton = document.createElement('button'); historyButton.classList.add('action-button-icon','history-icon-btn'); historyButton.innerHTML=ICONS.history; historyButton.setAttribute('aria-label','Xem lịch sử'); historyButton.onclick=()=>showHabitHistory(ha.id);
                 // Delete Button
                 const deleteButton = document.createElement('button'); deleteButton.classList.add('action-button-icon','delete-icon-btn'); deleteButton.innerHTML=ICONS.delete; deleteButton.setAttribute('aria-label','Xóa thói quen'); deleteButton.onclick=()=>deleteHabit(habit.id,habitsListElement);
 
                 controlsContainer.appendChild(checkboxLabel);
                 controlsContainer.appendChild(checkbox);
-                controlsContainer.appendChild(historyButton); // Add history button
+                controlsContainer.appendChild(editButton); // Add Edit button
+                controlsContainer.appendChild(historyButton);
                 controlsContainer.appendChild(deleteButton);
 
-                habitElement.appendChild(habitInfo); // Use habitInfo container
+                habitElement.appendChild(habitInfo);
                 habitElement.appendChild(controlsContainer);
                 habitsListElement.appendChild(habitElement);
             });
@@ -257,31 +247,96 @@
         function addHabit(habitInputElement, habitsListElement) { /* ... (no changes) ... */ if(!habitInputElement||!habitsListElement)return; const hn=habitInputElement.value.trim(); if(hn){const h=getHabits(); if(h.some(ha=>ha.name.toLowerCase()===hn.toLowerCase())){alert(`Thói quen "${hn}" đã tồn tại!`); return;} const n=Date.now(); const nh={id:n, name:hn, createdAt:n, completedDates:[]}; h.push(nh); saveHabits(h); habitInputElement.value=''; displayHabits(habitsListElement); console.log("Added habit:",nh);} else {alert("Tên thói quen không được để trống!");} }
         function deleteHabit(habitId, habitsListElement) { /* ... (no changes) ... */ if(!window.confirm("Bạn có chắc muốn xóa thói quen này? Việc này cũng sẽ xóa lịch sử hoàn thành của nó."))return; let h=getHabits(); h=h.filter(ha=>ha.id!==habitId); saveHabits(h); displayHabits(habitsListElement); console.log("Deleted habit ID:",habitId); }
         function toggleHabitCompletion(habitId, habitsListElement) { /* ... (no changes) ... */ let h=getHabits(); const i=h.findIndex(ha=>ha.id===habitId); const t=getTodayDateString(); if(i>-1){const cd=h[i].completedDates; const di=cd.indexOf(t); if(di>-1){cd.splice(di,1); console.log(`Unmarked habit ${habitId} for ${t}`);} else {cd.push(t); console.log(`Marked habit ${habitId} for ${t}`);} saveHabits(h); displayHabits(habitsListElement);} else {console.error("Cannot find habit to toggle:",habitId);} }
+        function showHabitHistory(habitId) { /* ... (no changes) ... */ const h=getHabits(); const ha=h.find(i=>i.id===habitId); if(ha){console.log(`Lịch sử hoàn thành cho "${ha.name}" (ID: ${habitId}):`); if(ha.completedDates.length>0){const sd=[...ha.completedDates].sort(); console.log(sd); alert(`Lịch sử hoàn thành cho "${ha.name}":\n${sd.join('\n')}`);} else {console.log("Chưa hoàn thành ngày nào."); alert(`Chưa hoàn thành ngày nào cho "${ha.name}".`);}} else {console.error("Không tìm thấy thói quen để xem lịch sử:",habitId);} }
 
-        // *** NEW: Show Habit History (Console Log Version) ***
-        function showHabitHistory(habitId) {
+        // *** NEW: Toggle Edit State for Habit ***
+        function toggleHabitEdit(habitId, habitsListElement) {
+            displayHabits(habitsListElement); // Refresh to cancel other edits
+
+            const habitElement = habitsListElement.querySelector(`[data-habit-id='${habitId}']`);
+            if (!habitElement) return;
+
             const habits = getHabits();
             const habit = habits.find(h => h.id === habitId);
-            if (habit) {
-                console.log(`Lịch sử hoàn thành cho "${habit.name}" (ID: ${habitId}):`);
-                if (habit.completedDates.length > 0) {
-                    // Sort dates ascending for logging
-                    const sortedDates = [...habit.completedDates].sort();
-                    console.log(sortedDates);
-                    alert(`Lịch sử hoàn thành cho "${habit.name}":\n${sortedDates.join('\n')}`); // Show basic alert
-                } else {
-                    console.log("Chưa hoàn thành ngày nào.");
-                    alert(`Chưa hoàn thành ngày nào cho "${habit.name}".`);
-                }
+            if (!habit) return;
+
+            const habitInfoContainer = habitElement.querySelector('.habit-info');
+            const controlsContainer = habitElement.querySelector('.flex.items-center'); // Find controls container
+
+            if (!habitInfoContainer || !controlsContainer) return; // Safety check
+
+            // Store original controls to restore on cancel (optional, redraw is simpler)
+            // const originalControlsHTML = controlsContainer.innerHTML;
+
+            // --- Create Edit Input ---
+            habitInfoContainer.innerHTML = ''; // Clear name and streak
+            const editInput = document.createElement('input');
+            editInput.type = 'text';
+            editInput.value = habit.name;
+            editInput.classList.add('habit-edit-input'); // Apply specific style
+            editInput.required = true;
+            habitInfoContainer.appendChild(editInput); // Add input to the info container
+
+            // --- Create Save/Cancel Buttons ---
+            controlsContainer.innerHTML = ''; // Clear existing buttons
+
+            const saveButton = document.createElement('button');
+            saveButton.classList.add('action-button-icon', 'save-icon-btn');
+            saveButton.innerHTML = ICONS.save;
+            saveButton.setAttribute('aria-label', 'Lưu tên thói quen');
+            saveButton.onclick = () => saveHabitEdit(habitId, editInput.value, habitsListElement);
+
+            const cancelButton = document.createElement('button');
+            cancelButton.classList.add('action-button-icon', 'cancel-icon-btn');
+            cancelButton.innerHTML = ICONS.cancel;
+            cancelButton.setAttribute('aria-label', 'Hủy bỏ');
+            cancelButton.onclick = () => displayHabits(habitsListElement); // Cancel reverts by re-displaying
+
+            controlsContainer.appendChild(saveButton);
+            controlsContainer.appendChild(cancelButton);
+
+            habitElement.classList.add('editing'); // Add editing class for visual feedback
+            editInput.focus();
+            editInput.select(); // Select text for easy replacement
+        }
+
+        // *** NEW: Save Edited Habit Name ***
+        function saveHabitEdit(habitId, newName, habitsListElement) {
+            const trimmedName = newName.trim();
+            if (!trimmedName) {
+                alert("Tên thói quen không được để trống!");
+                return;
+            }
+
+            let habits = getHabits();
+            // Check if the new name already exists (excluding the current habit being edited)
+            const duplicateExists = habits.some(h =>
+                h.id !== habitId && h.name.toLowerCase() === trimmedName.toLowerCase()
+            );
+
+            if (duplicateExists) {
+                alert(`Tên thói quen "${trimmedName}" đã tồn tại! Vui lòng chọn tên khác.`);
+                return;
+            }
+
+            const habitIndex = habits.findIndex(habit => habit.id === habitId);
+            if (habitIndex > -1) {
+                habits[habitIndex].name = trimmedName;
+                // No need to update modifiedAt for just a name change, unless desired
+                saveHabits(habits);
+                displayHabits(habitsListElement); // Refresh list
+                console.log(`Saved edit for habit ID: ${habitId}, new name: ${trimmedName}`);
             } else {
-                console.error("Không tìm thấy thói quen để xem lịch sử:", habitId);
+                console.error("Could not find habit to save edit:", habitId);
+                displayHabits(habitsListElement); // Refresh anyway
             }
         }
+
 
         // --- Initialization and Event Listeners ---
         navLinks.forEach(link => { /* ... (no changes) ... */ link.addEventListener('click',(e)=>{e.preventDefault(); const sm=e.target.dataset.module; if(sm&&sm!==currentModule){currentModule=sm; renderAppContent();}}); });
         document.addEventListener('DOMContentLoaded', renderAppContent);
-        console.log("Personal App with Habit Streak/History Added!");
+        console.log("Personal App v0.2 with Habit Edit Added!");
 
     </script>
 

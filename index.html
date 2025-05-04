@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ứng dụng Phát triển Cá nhân - Ghi Chú</title>
+    <title>Ứng dụng Phát triển Cá nhân</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -17,17 +17,32 @@
             min-height: 60px;
         }
         .action-button {
-            font-size: 0.875rem; /* text-sm */
-            padding: 0.25rem 0.5rem; /* py-1 px-2 */
-            margin-left: 0.5rem; /* ml-2 */
-            border-radius: 0.375rem; /* rounded-md */
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+            margin-left: 0.5rem;
+            border-radius: 0.375rem;
             transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
-            font-weight: 500; /* medium */
+            font-weight: 500;
         }
         .note-timestamp {
-            font-size: 0.75rem; /* text-xs */
-            color: #6b7280; /* text-gray-500 */
-            margin-top: 0.5rem; /* mt-2 */
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
+        }
+        /* Kiểu cho liên kết điều hướng */
+        .nav-link {
+            padding: 0.5rem 1rem; /* py-2 px-4 */
+            border-radius: 0.375rem; /* rounded-md */
+            transition: background-color 0.15s ease-in-out;
+            cursor: pointer;
+            font-weight: 500; /* medium */
+        }
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1); /* Light background on hover */
+        }
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.2); /* Slightly darker background for active */
+            font-weight: 600; /* semibold */
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,28 +52,20 @@
 <body class="bg-gray-100 text-gray-800">
 
     <header class="bg-blue-600 text-white p-4 shadow-md">
-        <div class="container mx-auto">
-            <h1 class="text-2xl font-bold">Ứng dụng Cá nhân Của Tôi</h1>
-            </div>
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Ứng dụng Cá nhân</h1>
+            <nav id="main-nav">
+                <ul class="flex space-x-2">
+                    <li><a href="#" id="nav-notes" class="nav-link" data-module="notes">Ghi chú</a></li>
+                    <li><a href="#" id="nav-goals" class="nav-link" data-module="goals">Mục tiêu</a></li>
+                    </ul>
+            </nav>
+        </div>
     </header>
 
     <main class="container mx-auto p-4 mt-4">
-        <div id="app-content" class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-semibold mb-4">Ghi Chú Nhanh</h2>
-
-            <div class="mb-4">
-                <textarea id="note-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4" placeholder="Nhập ghi chú của bạn ở đây..."></textarea>
-            </div>
-            <button id="add-note-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out mb-6">
-                Thêm Ghi Chú
-            </button>
-
-            <div class="mb-4">
-                <input type="search" id="search-input" placeholder="Tìm kiếm ghi chú..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-
-            <div id="notes-list" class="mt-6 space-y-3">
-                </div>
+        <div id="app-content" class="bg-white p-6 rounded-lg shadow-md min-h-[300px]">
+            <p>Đang tải...</p>
         </div>
     </main>
 
@@ -67,81 +74,156 @@
     </footer>
 
     <script>
-        const noteInput = document.getElementById('note-input');
-        const addNoteBtn = document.getElementById('add-note-btn');
-        const notesList = document.getElementById('notes-list');
-        const searchInput = document.getElementById('search-input'); // Get search input element
+        // --- Global State and Elements ---
+        let currentModule = 'notes'; // Module mặc định khi tải trang
+        const appContent = document.getElementById('app-content');
+        const mainNav = document.getElementById('main-nav');
+        const navLinks = mainNav.querySelectorAll('.nav-link');
 
-        // --- Note Management ---
+        // --- Module Building Functions ---
+
+        // Hàm xây dựng giao diện cho Module Ghi chú
+        function buildNotesUI() {
+            appContent.innerHTML = `
+                <h2 class="text-xl font-semibold mb-4">Ghi Chú Nhanh</h2>
+                <div class="mb-4">
+                    <textarea id="note-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4" placeholder="Nhập ghi chú của bạn ở đây..."></textarea>
+                </div>
+                <button id="add-note-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out mb-6">
+                    Thêm Ghi Chú
+                </button>
+                <div class="mb-4">
+                    <input type="search" id="search-input" placeholder="Tìm kiếm ghi chú..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div id="notes-list" class="mt-6 space-y-3">
+                    </div>
+            `;
+
+            // Lấy tham chiếu đến các element *sau khi* đã tạo HTML
+            const noteInput = document.getElementById('note-input');
+            const addNoteBtn = document.getElementById('add-note-btn');
+            const searchInput = document.getElementById('search-input');
+            const notesList = document.getElementById('notes-list'); // Cần notesList cho displayNotes
+
+            // Gắn lại các event listeners cho các element mới tạo
+            addNoteBtn.addEventListener('click', () => addNote(noteInput, searchInput)); // Truyền input vào hàm
+            noteInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    addNote(noteInput, searchInput); // Truyền input vào hàm
+                }
+            });
+            searchInput.addEventListener('input', (event) => {
+                displayNotes(notesList, searchInput, event.target.value); // Truyền notesList, searchInput vào hàm
+            });
+
+            // Hiển thị ghi chú ban đầu
+            displayNotes(notesList, searchInput); // Truyền notesList, searchInput vào hàm
+        }
+
+        // Hàm xây dựng giao diện cho Module Mục tiêu (Placeholder)
+        function buildGoalsUI() {
+            appContent.innerHTML = `
+                <h2 class="text-xl font-semibold mb-4">Theo dõi Mục tiêu</h2>
+                <p class="text-gray-600">Module quản lý mục tiêu sẽ được xây dựng ở đây.</p>
+                <p class="mt-4">Bạn có thể thêm các chức năng như:</p>
+                <ul class="list-disc list-inside ml-4 text-gray-600">
+                    <li>Thêm mục tiêu mới (tên, mô tả, hạn chót)</li>
+                    <li>Phân loại mục tiêu (ngắn hạn, dài hạn)</li>
+                    <li>Theo dõi tiến độ</li>
+                    <li>Đánh dấu hoàn thành</li>
+                </ul>
+            `;
+            // Không cần gắn event listener cho placeholder này
+        }
+
+        // --- Core Application Logic ---
+
+        // Hàm render nội dung chính dựa trên module hiện tại
+        function renderAppContent() {
+            console.log(`Rendering module: ${currentModule}`);
+            // Cập nhật tiêu đề trang
+            document.title = `Ứng dụng Cá nhân - ${currentModule === 'notes' ? 'Ghi Chú' : 'Mục tiêu'}`;
+
+            // Cập nhật trạng thái active cho nav link
+            navLinks.forEach(link => {
+                if (link.dataset.module === currentModule) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Gọi hàm xây dựng UI tương ứng
+            switch (currentModule) {
+                case 'notes':
+                    buildNotesUI();
+                    break;
+                case 'goals':
+                    buildGoalsUI();
+                    break;
+                default:
+                    appContent.innerHTML = '<p>Module không xác định.</p>';
+            }
+        }
+
+        // --- Note Management Functions (Cần notesList và searchInput làm tham số) ---
 
         function getNotes() {
             const notes = localStorage.getItem('quickNotes');
-            // Parse notes, ensure createdAt/modifiedAt are Date objects if they exist
             try {
                 const parsedNotes = notes ? JSON.parse(notes) : [];
-                return parsedNotes.map(note => ({
-                    ...note,
-                    // Convert timestamp strings back to Date objects if needed (optional but good practice)
-                    // createdAt: note.createdAt ? new Date(note.createdAt) : undefined,
-                    // modifiedAt: note.modifiedAt ? new Date(note.modifiedAt) : undefined,
-                }));
+                return parsedNotes.map(note => ({ ...note }));
             } catch (e) {
                 console.error("Error parsing notes from localStorage:", e);
-                return []; // Return empty array on error
+                return [];
             }
         }
 
         function saveNotes(notes) {
-            // Ensure timestamps are stored as ISO strings for consistency
-            const notesToSave = notes.map(note => ({
-                ...note,
-                // createdAt: note.createdAt instanceof Date ? note.createdAt.toISOString() : note.createdAt,
-                // modifiedAt: note.modifiedAt instanceof Date ? note.modifiedAt.toISOString() : note.modifiedAt,
-            }));
-            localStorage.setItem('quickNotes', JSON.stringify(notesToSave));
+            localStorage.setItem('quickNotes', JSON.stringify(notes));
         }
 
-        // Function to format timestamp for display
         function formatTimestamp(timestamp) {
             if (!timestamp) return '';
             const date = new Date(timestamp);
-            // Example format: 14:30, 04/05/2025
             return `${date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}, ${date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
         }
 
-        // Modified displayNotes to accept a search term
-        function displayNotes(searchTerm = '') {
+        // Sửa đổi displayNotes để nhận notesList và searchInput làm tham số
+        function displayNotes(notesListElement, searchInputElement, searchTerm = '') {
+             if (!notesListElement || !searchInputElement) {
+                 console.error("Missing required elements for displayNotes");
+                 return;
+             }
             let notes = getNotes();
             const normalizedSearchTerm = searchTerm.toLowerCase().trim();
 
-            // Filter notes based on search term
             if (normalizedSearchTerm) {
                 notes = notes.filter(note =>
                     note.content.toLowerCase().includes(normalizedSearchTerm)
                 );
             }
 
-            notesList.innerHTML = ''; // Clear current list
+            notesListElement.innerHTML = ''; // Clear current list in the passed element
 
             if (notes.length === 0) {
-                notesList.innerHTML = `<p class="text-gray-500">${normalizedSearchTerm ? 'Không tìm thấy ghi chú nào khớp.' : 'Chưa có ghi chú nào.'}</p>`;
+                notesListElement.innerHTML = `<p class="text-gray-500">${normalizedSearchTerm ? 'Không tìm thấy ghi chú nào khớp.' : 'Chưa có ghi chú nào.'}</p>`;
                 return;
             }
 
-            // Sort by modifiedAt or createdAt (newest first)
             notes.sort((a, b) => (b.modifiedAt || b.createdAt) - (a.modifiedAt || a.createdAt));
 
             notes.forEach(note => {
                 const noteElement = document.createElement('div');
                 noteElement.dataset.noteId = note.id;
-                noteElement.classList.add('bg-yellow-100', 'p-3', 'rounded-md', 'shadow-sm', 'flex', 'flex-col'); // Use flex-col for timestamp
+                noteElement.classList.add('bg-yellow-100', 'p-3', 'rounded-md', 'shadow-sm', 'flex', 'flex-col');
 
-                // Top row: Content and Buttons
                 const topRow = document.createElement('div');
                 topRow.classList.add('flex', 'justify-between', 'items-start', 'w-full');
 
                 const contentContainer = document.createElement('div');
-                contentContainer.classList.add('flex-grow', 'mr-2'); // Content area
+                contentContainer.classList.add('flex-grow', 'mr-2');
 
                 const contentElement = document.createElement('p');
                 contentElement.classList.add('note-content', 'text-gray-700');
@@ -149,19 +231,19 @@
                 contentContainer.appendChild(contentElement);
 
                 const buttonContainer = document.createElement('div');
-                buttonContainer.classList.add('flex-shrink-0', 'flex'); // Buttons area
+                buttonContainer.classList.add('flex-shrink-0', 'flex');
 
-                // Edit Button
                 const editButton = document.createElement('button');
                 editButton.classList.add('text-blue-600', 'hover:text-blue-800', 'action-button');
                 editButton.textContent = 'Sửa';
-                editButton.onclick = () => toggleEdit(note.id);
+                // Truyền notesList và searchInput vào toggleEdit
+                editButton.onclick = () => toggleEdit(note.id, notesListElement, searchInputElement);
 
-                // Delete Button
                 const deleteButton = document.createElement('button');
                 deleteButton.classList.add('text-red-500', 'hover:text-red-700', 'action-button');
                 deleteButton.textContent = 'Xóa';
-                deleteButton.onclick = () => deleteNote(note.id);
+                 // Truyền notesList và searchInput vào deleteNote
+                deleteButton.onclick = () => deleteNote(note.id, notesListElement, searchInputElement);
 
                 buttonContainer.appendChild(editButton);
                 buttonContainer.appendChild(deleteButton);
@@ -169,66 +251,68 @@
                 topRow.appendChild(contentContainer);
                 topRow.appendChild(buttonContainer);
 
-                // Bottom row: Timestamp
                 const timestampElement = document.createElement('p');
-                timestampElement.classList.add('note-timestamp', 'w-full', 'text-right'); // Align timestamp to the right
+                timestampElement.classList.add('note-timestamp', 'w-full', 'text-right');
                 const created = formatTimestamp(note.createdAt);
                 const modified = formatTimestamp(note.modifiedAt);
-                // Show "Sửa đổi" if available, otherwise "Đã tạo"
                 timestampElement.textContent = modified ? `Sửa đổi: ${modified}` : (created ? `Đã tạo: ${created}` : '');
 
                 noteElement.appendChild(topRow);
-                if (timestampElement.textContent) { // Only add timestamp if it exists
+                if (timestampElement.textContent) {
                     noteElement.appendChild(timestampElement);
                 }
-                notesList.appendChild(noteElement);
+                notesListElement.appendChild(noteElement); // Append to the passed list element
             });
         }
 
-        function addNote() {
-            const noteContent = noteInput.value.trim();
+        // Sửa đổi addNote để nhận noteInput và searchInput
+        function addNote(noteInputElement, searchInputElement) {
+             if (!noteInputElement || !searchInputElement) return;
+            const noteContent = noteInputElement.value.trim();
             if (noteContent) {
                 const notes = getNotes();
-                const now = Date.now(); // Get current timestamp
+                const now = Date.now();
                 const newNote = {
-                    id: now, // Use timestamp as ID
+                    id: now,
                     content: noteContent,
-                    createdAt: now, // Add creation timestamp
-                    modifiedAt: null // No modification yet
+                    createdAt: now,
+                    modifiedAt: null
                 };
                 notes.push(newNote);
                 saveNotes(notes);
-                noteInput.value = '';
-                searchInput.value = ''; // Clear search when adding new note
-                displayNotes(); // Refresh display
+                noteInputElement.value = '';
+                searchInputElement.value = ''; // Clear search
+                // Cần lấy lại notesList từ DOM vì nó có thể đã thay đổi
+                const currentNotesList = document.getElementById('notes-list');
+                if(currentNotesList) {
+                    displayNotes(currentNotesList, searchInputElement); // Refresh display
+                }
                 console.log("Added note:", newNote);
             } else {
                 console.log("Note content is empty.");
             }
         }
 
-        function deleteNote(noteId) {
-            // Add confirmation dialog
+        // Sửa đổi deleteNote để nhận notesList và searchInput
+        function deleteNote(noteId, notesListElement, searchInputElement) {
             if (!window.confirm("Bạn có chắc muốn xóa ghi chú này không?")) {
-                return; // Stop if user cancels
+                return;
             }
-
             let notes = getNotes();
             notes = notes.filter(note => note.id !== noteId);
             saveNotes(notes);
-            // Refresh display using the current search term
-            displayNotes(searchInput.value);
+            displayNotes(notesListElement, searchInputElement, searchInputElement.value); // Refresh display
             console.log("Deleted note ID:", noteId);
         }
 
-        function toggleEdit(noteId) {
-            // Refresh the list with the current search term to cancel other edits
-            displayNotes(searchInput.value);
+        // Sửa đổi toggleEdit để nhận notesList và searchInput
+        function toggleEdit(noteId, notesListElement, searchInputElement) {
+            displayNotes(notesListElement, searchInputElement, searchInputElement.value); // Refresh to cancel other edits
 
-            const noteElement = notesList.querySelector(`[data-note-id='${noteId}']`);
-            if (!noteElement) return; // Element might be hidden by search
+            const noteElement = notesListElement.querySelector(`[data-note-id='${noteId}']`);
+            if (!noteElement) return;
 
-            const topRow = noteElement.querySelector('div:first-child'); // Top row contains content and buttons
+            const topRow = noteElement.querySelector('div:first-child');
             const contentContainer = topRow.querySelector('div:first-child');
             const buttonContainer = topRow.querySelector('div:last-child');
             const notes = getNotes();
@@ -236,25 +320,21 @@
 
             if (!note) return;
 
-            // Create textarea for editing
             const editInput = document.createElement('textarea');
             editInput.classList.add('w-full', 'p-1', 'border', 'border-gray-300', 'rounded-md', 'focus:outline-none', 'focus:ring-1', 'focus:ring-blue-500', 'edit-textarea', 'note-content');
             editInput.value = note.content;
 
-            // Create Save button
             const saveButton = document.createElement('button');
             saveButton.classList.add('text-green-600', 'hover:text-green-800', 'action-button');
             saveButton.textContent = 'Lưu';
-            saveButton.onclick = () => saveEdit(noteId, editInput.value);
+            // Truyền notesList và searchInput vào saveEdit
+            saveButton.onclick = () => saveEdit(noteId, editInput.value, notesListElement, searchInputElement);
 
-            // Create Cancel button
             const cancelButton = document.createElement('button');
             cancelButton.classList.add('text-gray-600', 'hover:text-gray-800', 'action-button');
             cancelButton.textContent = 'Hủy';
-            // Cancel reverts by re-displaying with current search term
-            cancelButton.onclick = () => displayNotes(searchInput.value);
+            cancelButton.onclick = () => displayNotes(notesListElement, searchInputElement, searchInputElement.value);
 
-            // Replace content and buttons
             contentContainer.innerHTML = '';
             contentContainer.appendChild(editInput);
 
@@ -266,12 +346,12 @@
             editInput.focus();
         }
 
-        function saveEdit(noteId, newContent) {
+        // Sửa đổi saveEdit để nhận notesList và searchInput
+        function saveEdit(noteId, newContent, notesListElement, searchInputElement) {
             const trimmedContent = newContent.trim();
             if (!trimmedContent) {
                 console.log("Note content cannot be empty after edit.");
-                // Optionally show error or delete if empty
-                displayNotes(searchInput.value); // Revert on empty save
+                displayNotes(notesListElement, searchInputElement, searchInputElement.value); // Revert
                 return;
             }
 
@@ -280,39 +360,34 @@
 
             if (noteIndex > -1) {
                 notes[noteIndex].content = trimmedContent;
-                notes[noteIndex].modifiedAt = Date.now(); // Update modification timestamp
+                notes[noteIndex].modifiedAt = Date.now();
                 saveNotes(notes);
-                // Refresh display using the current search term
-                displayNotes(searchInput.value);
+                displayNotes(notesListElement, searchInputElement, searchInputElement.value); // Refresh
                 console.log("Saved edit for note ID:", noteId);
             } else {
                 console.error("Could not find note to save:", noteId);
-                displayNotes(searchInput.value);
+                displayNotes(notesListElement, searchInputElement, searchInputElement.value);
             }
         }
 
-
         // --- Initialization and Event Listeners ---
 
-        addNoteBtn.addEventListener('click', addNote);
-
-        noteInput.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                addNote();
-            }
+        // Gắn sự kiện cho các link điều hướng
+        navLinks.forEach(link => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault(); // Ngăn hành vi mặc định của thẻ <a>
+                const selectedModule = event.target.dataset.module;
+                if (selectedModule && selectedModule !== currentModule) {
+                    currentModule = selectedModule;
+                    renderAppContent(); // Render lại nội dung với module mới
+                }
+            });
         });
 
-        // Add event listener for the search input
-        searchInput.addEventListener('input', (event) => {
-            // Call displayNotes with the current search value whenever input changes
-            displayNotes(event.target.value);
-        });
+        // Render module mặc định khi trang tải xong
+        document.addEventListener('DOMContentLoaded', renderAppContent);
 
-        // Initial display of notes on page load
-        document.addEventListener('DOMContentLoaded', () => displayNotes());
-
-        console.log("Quick Notes App (with Timestamp, Search, Confirm Delete) is ready!");
+        console.log("Personal App with Navigation is ready!");
 
     </script>
 

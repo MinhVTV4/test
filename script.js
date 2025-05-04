@@ -17,12 +17,12 @@ const MOVE_NOTE_MENU_ID = 'move-note-menu';
 const DEBOUNCE_DELAY = 1500;
 
 let notes = [];
-let templates = []; // State array for templates
+let templates = [];
 let notebooks = [];
 let currentUser = null;
 let currentUid = null;
 let notesListener = null;
-let templatesListener = null; // Listener for templates collection
+let templatesListener = null;
 let notebooksListener = null;
 
 let isViewingArchived = false;
@@ -154,173 +154,9 @@ const addNote = async () => { /* TODO */ console.warn("addNote needs Firestore i
 // =====================================================================
 //  Template Data Management (Updated for Firestore)
 // =====================================================================
-/**
- * Loads templates from Firestore and listens for real-time updates.
- */
-const loadTemplates = async () => {
-    if (!currentUser || !db) return;
-    console.log("Attempting to load templates for user:", currentUid);
-
-    // Hủy listener cũ nếu có
-    if (templatesListener) {
-        console.log("Unsubscribing previous templates listener.");
-        templatesListener();
-        templatesListener = null;
-    }
-
-    try {
-        const { collection, query, orderBy, onSnapshot } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
-        const templatesColRef = collection(db, 'users', currentUid, 'templates');
-        // Optional: Order templates by name
-        const q = query(templatesColRef, orderBy('name', 'asc'));
-
-        templatesListener = onSnapshot(q, (querySnapshot) => {
-            console.log("Templates snapshot received:", querySnapshot.size, "docs");
-            const newTemplates = [];
-            querySnapshot.forEach((doc) => {
-                newTemplates.push({
-                    id: doc.id, // Firestore document ID (string)
-                    ...doc.data() // { name: "...", title: "...", text: "...", tags: [...] }
-                });
-            });
-            templates = newTemplates; // Update global state
-            console.log("Templates state updated:", templates);
-            renderTemplateList(); // Update template management modal list
-            populateTemplateDropdown(); // Update dropdown in add note panel
-        }, (error) => {
-            console.error("Error listening to templates:", error);
-            alert("Lỗi khi tải danh sách mẫu.");
-            // Reset state and UI on error
-            templates = [];
-            renderTemplateList();
-            populateTemplateDropdown();
-        });
-        console.log("Templates listener attached.");
-
-    } catch (error) {
-        console.error("Error importing Firestore functions or setting up template listener:", error);
-        alert("Lỗi khi thiết lập kết nối đến dữ liệu mẫu.");
-    }
-};
-
-/**
- * Adds a new template or updates an existing one in Firestore.
- */
-const addOrUpdateTemplate = async () => {
-    if (!currentUser || !db) {
-        alert("Vui lòng đăng nhập để quản lý mẫu.");
-        return;
-    }
-
-    const name = templateEditName.value.trim();
-    const title = templateEditTitleInput.value.trim();
-    const text = templateEditText.value; // Keep original formatting
-    const tags = parseTags(templateEditTags.value);
-    const templateId = templateEditId.value; // ID is a string from Firestore or empty
-
-    if (!name) {
-        alert("Vui lòng nhập Tên Mẫu!");
-        templateEditName.focus();
-        return;
-    }
-
-    saveTemplateBtn.disabled = true;
-    saveTemplateBtn.textContent = 'Đang lưu...';
-
-    const templateData = {
-        name: name,
-        nameLower: name.toLowerCase(), // For case-insensitive querying
-        title: title,
-        text: text,
-        tags: tags
-    };
-
-    try {
-        const { collection, addDoc, doc, setDoc, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
-        const templatesColRef = collection(db, 'users', currentUid, 'templates');
-
-        // Check for duplicate name (case-insensitive)
-        const lowerCaseName = name.toLowerCase();
-        const q = query(templatesColRef, where('nameLower', '==', lowerCaseName));
-        const querySnapshot = await getDocs(q);
-
-        let isDuplicate = false;
-        querySnapshot.forEach((doc) => {
-            if (doc.id !== templateId) { // Check if the duplicate is not the template being edited
-                isDuplicate = true;
-            }
-        });
-
-        if (isDuplicate) {
-             alert(`Mẫu với tên "${name}" đã tồn tại. Vui lòng chọn tên khác.`);
-             templateEditName.focus();
-             saveTemplateBtn.disabled = false;
-             saveTemplateBtn.textContent = 'Lưu Mẫu';
-             return;
-        }
-
-        if (templateId) {
-            // Update existing template
-            console.log("Updating template:", templateId);
-            const templateDocRef = doc(templatesColRef, templateId);
-            await setDoc(templateDocRef, templateData, { merge: true }); // Use setDoc with merge or updateDoc
-            console.log("Template updated successfully.");
-        } else {
-            // Add new template
-            console.log("Adding new template");
-            await addDoc(templatesColRef, templateData);
-            console.log("Template added successfully.");
-        }
-        hideTemplateEditPanel(); // Hide panel on success (UI updates via snapshot)
-
-    } catch (error) {
-        console.error("Error saving template:", error);
-        alert("Lỗi khi lưu mẫu. Vui lòng thử lại.");
-    } finally {
-        saveTemplateBtn.disabled = false;
-        saveTemplateBtn.textContent = 'Lưu Mẫu';
-    }
-};
-
-/**
- * Deletes a template from Firestore.
- */
-const deleteTemplate = async (templateId) => {
-    if (!currentUser || !db || !templateId) return;
-
-    const templateToDelete = templates.find(t => t.id === templateId);
-    if (!templateToDelete) {
-        console.error("Template to delete not found in state:", templateId);
-        return;
-    }
-
-    const templateName = templateToDelete.name;
-    if (!confirm(`Bạn chắc chắn muốn xóa mẫu "${escapeHTML(templateName)}"?`)) {
-        return;
-    }
-
-    console.log("Deleting template:", templateId);
-    // Disable delete buttons temporarily?
-
-    try {
-        const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
-        const templateDocRef = doc(db, 'users', currentUid, 'templates', templateId);
-        await deleteDoc(templateDocRef);
-        console.log("Template deleted successfully.");
-
-        // UI will update via snapshot listener
-        // Hide edit panel if it was showing the deleted template
-        if (!templateEditPanel.classList.contains('hidden') && templateEditId.value === templateId) {
-            hideTemplateEditPanel();
-        }
-
-    } catch (error) {
-        console.error("Error deleting template:", error);
-        alert("Lỗi khi xóa mẫu. Vui lòng thử lại.");
-    } finally {
-        // Re-enable delete buttons?
-    }
-};
+const loadTemplates = async () => { if (!currentUser || !db) return; console.log("Attempting to load templates for user:", currentUid); if (templatesListener) { console.log("Unsubscribing previous templates listener."); templatesListener(); templatesListener = null; } try { const { collection, query, orderBy, onSnapshot } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js'); const templatesColRef = collection(db, 'users', currentUid, 'templates'); const q = query(templatesColRef, orderBy('name', 'asc')); templatesListener = onSnapshot(q, (querySnapshot) => { console.log("Templates snapshot received:", querySnapshot.size, "docs"); const newTemplates = []; querySnapshot.forEach((doc) => { newTemplates.push({ id: doc.id, ...doc.data() }); }); templates = newTemplates; console.log("Templates state updated:", templates); renderTemplateList(); populateTemplateDropdown(); }, (error) => { console.error("Error listening to templates:", error); alert("Lỗi khi tải danh sách mẫu."); templates = []; renderTemplateList(); populateTemplateDropdown(); }); console.log("Templates listener attached."); } catch (error) { console.error("Error importing Firestore functions or setting up template listener:", error); alert("Lỗi khi thiết lập kết nối đến dữ liệu mẫu."); } };
+const addOrUpdateTemplate = async () => { if (!currentUser || !db) { alert("Vui lòng đăng nhập để quản lý mẫu."); return; } const name = templateEditName.value.trim(); const title = templateEditTitleInput.value.trim(); const text = templateEditText.value; const tags = parseTags(templateEditTags.value); const templateId = templateEditId.value; if (!name) { alert("Vui lòng nhập Tên Mẫu!"); templateEditName.focus(); return; } saveTemplateBtn.disabled = true; saveTemplateBtn.textContent = 'Đang lưu...'; const templateData = { name: name, nameLower: name.toLowerCase(), title: title, text: text, tags: tags }; try { const { collection, addDoc, doc, setDoc, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js'); const templatesColRef = collection(db, 'users', currentUid, 'templates'); const lowerCaseName = name.toLowerCase(); const q = query(templatesColRef, where('nameLower', '==', lowerCaseName)); const querySnapshot = await getDocs(q); let isDuplicate = false; querySnapshot.forEach((doc) => { if (doc.id !== templateId) { isDuplicate = true; } }); if (isDuplicate) { alert(`Mẫu với tên "${name}" đã tồn tại. Vui lòng chọn tên khác.`); templateEditName.focus(); saveTemplateBtn.disabled = false; saveTemplateBtn.textContent = 'Lưu Mẫu'; return; } if (templateId) { console.log("Updating template:", templateId); const templateDocRef = doc(templatesColRef, templateId); await setDoc(templateDocRef, templateData, { merge: true }); console.log("Template updated successfully."); } else { console.log("Adding new template"); await addDoc(templatesColRef, templateData); console.log("Template added successfully."); } hideTemplateEditPanel(); } catch (error) { console.error("Error saving template:", error); alert("Lỗi khi lưu mẫu. Vui lòng thử lại."); } finally { saveTemplateBtn.disabled = false; saveTemplateBtn.textContent = 'Lưu Mẫu'; } };
+const deleteTemplate = async (templateId) => { if (!currentUser || !db || !templateId) return; const templateToDelete = templates.find(t => t.id === templateId); if (!templateToDelete) { console.error("Template to delete not found in state:", templateId); return; } const templateName = templateToDelete.name; if (!confirm(`Bạn chắc chắn muốn xóa mẫu "${escapeHTML(templateName)}"?`)) { return; } console.log("Deleting template:", templateId); try { const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js'); const templateDocRef = doc(db, 'users', currentUid, 'templates', templateId); await deleteDoc(templateDocRef); console.log("Template deleted successfully."); if (!templateEditPanel.classList.contains('hidden') && templateEditId.value === templateId) { hideTemplateEditPanel(); } } catch (error) { console.error("Error deleting template:", error); alert("Lỗi khi xóa mẫu. Vui lòng thử lại."); } };
 
 // =====================================================================
 //  Helper Functions & Event Handlers (TODO: Firestore Updates for Notes)
@@ -377,37 +213,7 @@ const handleTagInputKeydown = (event) => { /* Logic giữ nguyên */ const sugge
 // =====================================================================
 //  Template UI Handlers (Updated for Firestore)
 // =====================================================================
-const renderTemplateList = () => {
-    // Render list in modal from the global 'templates' state array
-    templateListContainer.innerHTML = '';
-    if (templates.length === 0) {
-        templateListContainer.innerHTML = `<p class="empty-state">Chưa có mẫu nào.</p>`;
-        return;
-    }
-    // Sort locally before rendering
-    templates.sort((a, b) => a.name.localeCompare(b.name)).forEach(template => {
-        const item = document.createElement('div');
-        item.classList.add('template-list-item');
-        item.dataset.id = template.id; // Use Firestore ID
-        item.innerHTML = `
-            <span>${escapeHTML(template.name)}</span>
-            <div class="template-item-actions">
-                <button class="edit-template-btn modal-button secondary small-button" data-id="${template.id}" title="Sửa mẫu ${escapeHTML(template.name)}">Sửa</button>
-                <button class="delete-template-btn modal-button danger small-button" data-id="${template.id}" title="Xóa mẫu ${escapeHTML(template.name)}">Xóa</button>
-            </div>
-        `;
-        // Attach listeners directly here
-        item.querySelector('.edit-template-btn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            showTemplateEditPanel(template.id);
-        });
-        item.querySelector('.delete-template-btn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            deleteTemplate(template.id); // Call Firestore delete function
-        });
-        templateListContainer.appendChild(item);
-    });
-};
+const renderTemplateList = () => { templateListContainer.innerHTML = ''; if (templates.length === 0) { templateListContainer.innerHTML = `<p class="empty-state">Chưa có mẫu nào.</p>`; return; } templates.sort((a, b) => a.name.localeCompare(b.name)).forEach(template => { const item = document.createElement('div'); item.classList.add('template-list-item'); item.dataset.id = template.id; item.innerHTML = ` <span>${escapeHTML(template.name)}</span> <div class="template-item-actions"> <button class="edit-template-btn modal-button secondary small-button" data-id="${template.id}" title="Sửa mẫu ${escapeHTML(template.name)}">Sửa</button> <button class="delete-template-btn modal-button danger small-button" data-id="${template.id}" title="Xóa mẫu ${escapeHTML(template.name)}">Xóa</button> </div> `; item.querySelector('.edit-template-btn').addEventListener('click', (e) => { e.stopPropagation(); showTemplateEditPanel(template.id); }); item.querySelector('.delete-template-btn').addEventListener('click', (e) => { e.stopPropagation(); deleteTemplate(template.id); }); templateListContainer.appendChild(item); }); };
 const showTemplateEditPanel = (templateId = null) => { /* Logic giữ nguyên */ templateListSection.classList.add('hidden'); templateEditPanel.classList.remove('hidden'); if (templateId !== null) { const template = templates.find(t => t.id === templateId); if (template) { templateEditTitle.textContent = "Sửa Mẫu"; templateEditId.value = template.id; templateEditName.value = template.name; templateEditTitleInput.value = template.title; templateEditText.value = template.text; templateEditTags.value = (template.tags || []).join(', '); } else { console.error("Không tìm thấy mẫu để sửa ID:", templateId); hideTemplateEditPanel(); return; } } else { templateEditTitle.textContent = "Tạo Mẫu Mới"; templateEditId.value = ''; templateEditName.value = ''; templateEditTitleInput.value = ''; templateEditText.value = ''; templateEditTags.value = ''; } templateEditName.focus(); };
 const hideTemplateEditPanel = () => { /* Logic giữ nguyên */ templateEditPanel.classList.add('hidden'); templateListSection.classList.remove('hidden'); templateEditId.value = ''; templateEditName.value = ''; templateEditTitleInput.value = ''; templateEditText.value = ''; templateEditTags.value = ''; };
 const showTemplateModal = () => { /* Logic giữ nguyên */ if (!currentUser) { alert("Vui lòng đăng nhập để quản lý mẫu."); return; } renderTemplateList(); hideTemplateEditPanel(); templateModal.classList.add('visible'); templateModal.classList.remove('hidden'); showAddTemplatePanelBtn.focus(); };
@@ -432,7 +238,7 @@ const renderNotebookTabs = () => { if (!notebookTabsContainer) return; const add
 // =====================================================================
 //  Other Panel/Import/Export (TODO: Firestore)
 // =====================================================================
-const showAddPanel = () => { /* Logic giữ nguyên */ if (!currentUser) { alert("Vui lòng đăng nhập để thêm ghi chú."); return; } const currentlyEditing = notesContainer.querySelector('.note .edit-input'); if (currentlyEditing) { alert("Vui lòng Lưu hoặc Hủy thay đổi ở ghi chú đang sửa trước khi thêm ghi chú mới."); currentlyEditing.closest('.note').querySelector('textarea.edit-input')?.focus(); return; } hideTagSuggestions(); addNotePanel.classList.remove('hidden'); showAddPanelBtn.classList.add('hidden'); templateSelect.value = ""; newNoteTitle.focus(); };
+const showAddPanel = () => { /* Logic giữ nguyên */ if (!currentUser) { alert("Vui lòng đăng nhập để thêm ghi chú."); return; } const currentlyEditing = notesContainer.querySelector('.note .edit-input'); if (currentlyEditing) { alert("Vui lòng Lưu hoặc Hủy thay đổi ở ghi chú đang sửa trước khi sửa ghi chú khác."); currentlyEditing.closest('.note').querySelector('textarea.edit-input')?.focus(); return; } hideTagSuggestions(); addNotePanel.classList.remove('hidden'); showAddPanelBtn.classList.add('hidden'); templateSelect.value = ""; newNoteTitle.focus(); };
 const hideAddPanel = () => { /* Logic giữ nguyên */ hideTagSuggestions(); addNotePanel.classList.add('hidden'); if (!notesContainer.querySelector('.note .edit-input') && currentUser) { showAddPanelBtn.classList.remove('hidden'); } newNoteTitle.value = ''; newNoteText.value = ''; newNoteTags.value = ''; templateSelect.value = ""; };
 const exportNotes = async () => { /* TODO */ console.warn("exportNotes needs Firestore implementation"); alert("Chức năng xuất dữ liệu đang được phát triển cho phiên bản đám mây."); };
 const importNotes = async (file) => { /* TODO */ console.warn("importNotes needs Firestore implementation"); alert("Chức năng nhập dữ liệu đang được phát triển cho phiên bản đám mây."); if(importFileInput) importFileInput.value = null; };
@@ -481,7 +287,7 @@ const unsubscribeListeners = () => {
         notebooksListener();
         notebooksListener = null;
     }
-    if (templatesListener) { // Add template listener
+    if (templatesListener) {
         console.log("Unsubscribing templates listener.");
         templatesListener();
         templatesListener = null;
@@ -497,7 +303,7 @@ const loadUserDataFromFirestore = () => {
     console.log("Loading user data from Firestore...");
     unsubscribeListeners();
     loadNotebooks();
-    loadTemplates(); // Load templates
+    loadTemplates();
     // loadNotes(); // TODO: Implement in next step
 };
 
@@ -516,17 +322,17 @@ const handleAuthStateChanged = (user) => {
         authButton.classList.add('logout');
         authButton.classList.remove('hidden');
         hideAuthForm();
-        loadUserDataFromFirestore(); // Load all data
+        loadUserDataFromFirestore();
         notesContainer.innerHTML = '<p class="empty-state">Đang tải dữ liệu...</p>';
         searchInput.classList.remove('hidden');
     } else {
         console.log("Auth State Changed: Signed Out");
         if (!currentUser) { console.log("Auth state unchanged."); return; }
-        unsubscribeListeners(); // Unsubscribe
+        unsubscribeListeners();
         currentUser = null;
         currentUid = null;
         notes = [];
-        templates = []; // Reset templates state
+        templates = [];
         notebooks = [];
         userStatusElement.classList.add('hidden');
         authButton.textContent = 'Đăng nhập';
@@ -537,8 +343,8 @@ const handleAuthStateChanged = (user) => {
         searchInput.classList.add('hidden');
         renderNotebookTabs();
         renderNotebookList();
-        renderTemplateList(); // Clear template list in modal
-        populateTemplateDropdown(); // Clear template dropdown
+        renderTemplateList();
+        populateTemplateDropdown();
     }
 };
 
@@ -546,12 +352,12 @@ const handleAuthStateChanged = (user) => {
 //  Event Listener Setup Functions (Updated)
 // =====================================================================
 const setupEventListeners = () => {
-    setupThemeAndAppearanceListeners();
+    setupThemeAndAppearanceListeners(); // Sửa lỗi typo ở đây
     setupHeaderActionListeners();
     setupAddNotePanelListeners();
     setupSearchListener();
     setupNoteActionListeners();
-    setupTemplateModalListeners(); // Includes listeners for template modal buttons
+    setupTemplateModalListeners();
     setupNotebookListeners();
     setupTagInputListeners();
     setupGlobalListeners();
@@ -563,7 +369,7 @@ const setupEventListeners = () => {
 // =====================================================================
 const initializeAppWithAuth = async () => {
     applyAllAppearanceSettings();
-    setupEventListeners();
+    setupEventListeners(); // Setup listener trước khi lắng nghe auth state
 
     if (!auth) {
         console.error("Firebase Auth is not initialized!");
@@ -582,4 +388,5 @@ const initializeAppWithAuth = async () => {
     }
 };
 
-initializeAppWithAuth();
+initializeAppWithAuth(); // Bắt đầu ứng dụng
+

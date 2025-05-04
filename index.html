@@ -61,7 +61,7 @@
             color: #dc2626; /* text-red-600 */
             font-weight: 500;
         }
-        .goal-edit-area textarea, .goal-edit-area input[type="date"] {
+        .goal-edit-area textarea, .goal-edit-area input[type="date"], .goal-edit-area input[type="text"] { /* Added text input */
             width: 100%;
             padding: 0.25rem 0.5rem;
             border: 1px solid #d1d5db; /* border-gray-300 */
@@ -140,9 +140,9 @@
             displayNotes(notesList, searchInput);
         }
 
-        // *** UPDATED: Build Goals UI Function ***
         function buildGoalsUI() {
-            appContent.innerHTML = `
+            // (Code for buildGoalsUI remains the same)
+             appContent.innerHTML = `
                 <h2 class="text-xl font-semibold mb-4">Theo dõi Mục tiêu</h2>
                 <form id="add-goal-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3">
                      <div>
@@ -165,22 +165,15 @@
                 <div id="goals-list" class="space-y-3">
                     </div>
             `;
-
-            // Get references to new elements
             const addGoalForm = document.getElementById('add-goal-form');
             const goalInput = document.getElementById('goal-input');
-            const goalDescInput = document.getElementById('goal-desc-input'); // New description input
-            const goalDueDateInput = document.getElementById('goal-due-date-input'); // New due date input
+            const goalDescInput = document.getElementById('goal-desc-input');
+            const goalDueDateInput = document.getElementById('goal-due-date-input');
             const goalsList = document.getElementById('goals-list');
-
-            // Attach event listeners
             addGoalForm.addEventListener('submit', (event) => {
                 event.preventDefault();
-                // Pass all input elements to addGoal
                 addGoal(goalInput, goalDescInput, goalDueDateInput, goalsList);
             });
-
-            // Initial display of goals
             displayGoals(goalsList);
         }
 
@@ -209,52 +202,38 @@
         function saveEdit(id, content, listEl, searchEl) { /* ... */ const tc=content.trim(); if(!tc){displayNotes(listEl,searchEl,searchEl.value); return;} let n=getNotes(); const idx=n.findIndex(no=>no.id===id); if(idx>-1){n[idx].content=tc; n[idx].modifiedAt=Date.now(); saveNotes(n); displayNotes(listEl,searchEl,searchEl.value);} else {console.error("Cannot find note to save:",id); displayNotes(listEl,searchEl,searchEl.value);} }
 
 
-        // --- *** UPDATED: Goal Management Functions *** ---
+        // --- Goal Management Functions ---
 
         const GOALS_STORAGE_KEY = 'personalGoals';
 
         function getGoals() {
             const goals = localStorage.getItem(GOALS_STORAGE_KEY);
             try {
-                // Parse and ensure date fields are handled (though stored as strings)
                 const parsedGoals = goals ? JSON.parse(goals) : [];
                 return parsedGoals.map(goal => ({ ...goal }));
-            } catch (e) {
-                console.error("Error parsing goals:", e); return [];
-            }
+            } catch (e) { console.error("Error parsing goals:", e); return []; }
         }
 
         function saveGoals(goals) {
             localStorage.setItem(GOALS_STORAGE_KEY, JSON.stringify(goals));
         }
 
-        // Helper to format date string (YYYY-MM-DD) to DD/MM/YYYY
         function formatDisplayDate(dateString) {
             if (!dateString) return '';
-            try {
-                const [year, month, day] = dateString.split('-');
-                return `${day}/${month}/${year}`;
-            } catch (e) {
-                console.error("Error formatting date:", e);
-                return dateString; // Return original string on error
-            }
+            try { const [year, month, day] = dateString.split('-'); return `${day}/${month}/${year}`; }
+            catch (e) { console.error("Error formatting date:", e); return dateString; }
         }
 
-        // Helper to check if due date is overdue (and goal not completed)
         function isOverdue(dueDateString, completed) {
             if (!dueDateString || completed) return false;
             try {
-                const today = new Date();
-                today.setHours(0, 0, 0, 0); // Set today to the beginning of the day for comparison
-                const dueDate = new Date(dueDateString);
-                dueDate.setHours(0, 0, 0, 0); // Also set due date to beginning of day
+                const today = new Date(); today.setHours(0, 0, 0, 0);
+                const dueDate = new Date(dueDateString); dueDate.setHours(0, 0, 0, 0);
                 return dueDate < today;
-            } catch (e) {
-                return false;
-            }
+            } catch (e) { return false; }
         }
 
-
+        // *** FIXED: displayGoals Function ***
         function displayGoals(goalsListElement) {
             if (!goalsListElement) { console.error("Goals list element needed"); return; }
             const goals = getGoals();
@@ -265,16 +244,15 @@
                 return;
             }
 
-            goals.sort((a, b) => (a.completed - b.completed) || (new Date(a.dueDate || 0) - new Date(b.dueDate || 0)) || (b.createdAt - a.createdAt)); // Sort: incomplete, by due date, then newest
+            goals.sort((a, b) => (a.completed - b.completed) || (new Date(a.dueDate || 0) - new Date(b.dueDate || 0)) || (b.createdAt - a.createdAt));
 
             goals.forEach(goal => {
                 const goalElement = document.createElement('div');
                 goalElement.dataset.goalId = goal.id;
                 goalElement.classList.add('goal-item');
                 if (goal.completed) goalElement.classList.add('completed');
-                if (goal.isEditing) goalElement.classList.add('editing'); // Add editing class if needed
+                // Removed 'isEditing' check here, handle edit state in toggleGoalEdit
 
-                // --- Goal Header (Name + Buttons) ---
                 const goalHeader = document.createElement('div');
                 goalHeader.classList.add('goal-header');
 
@@ -285,36 +263,41 @@
                 const buttonContainer = document.createElement('div');
                 buttonContainer.classList.add('flex-shrink-0', 'flex');
 
-                // Edit Button
                 const editButton = document.createElement('button');
+                // Use spread operator (...) to add multiple classes correctly
                 editButton.classList.add('text-blue-600', 'hover:text-blue-800', 'action-button');
                 editButton.textContent = 'Sửa';
                 editButton.onclick = () => toggleGoalEdit(goal.id, goalsListElement);
 
-                // Complete/Undo Button
                 const completeButton = document.createElement('button');
-                completeButton.classList.add(goal.completed ? 'text-yellow-600 hover:text-yellow-800' : 'text-green-600 hover:text-green-800', 'action-button');
+                // *** FIX HERE: Use spread operator or multiple add calls ***
+                const completeClasses = goal.completed
+                    ? ['text-yellow-600', 'hover:text-yellow-800', 'action-button']
+                    : ['text-green-600', 'hover:text-green-800', 'action-button'];
+                completeButton.classList.add(...completeClasses); // Use spread operator
+                // // Alternative: Multiple calls
+                // completeButton.classList.add(goal.completed ? 'text-yellow-600' : 'text-green-600');
+                // completeButton.classList.add(goal.completed ? 'hover:text-yellow-800' : 'hover:text-green-800');
+                // completeButton.classList.add('action-button');
+
                 completeButton.textContent = goal.completed ? 'Hoàn tác' : 'Hoàn thành';
                 completeButton.onclick = () => toggleGoalComplete(goal.id, goalsListElement);
 
-                // Delete Button
                 const deleteButton = document.createElement('button');
                 deleteButton.classList.add('text-red-500', 'hover:text-red-700', 'action-button');
                 deleteButton.textContent = 'Xóa';
                 deleteButton.onclick = () => deleteGoal(goal.id, goalsListElement);
 
-                buttonContainer.appendChild(editButton); // Add Edit button
+                buttonContainer.appendChild(editButton);
                 buttonContainer.appendChild(completeButton);
                 buttonContainer.appendChild(deleteButton);
 
                 goalHeader.appendChild(nameElement);
                 goalHeader.appendChild(buttonContainer);
 
-                // --- Goal Details (Description + Due Date) ---
                 const goalDetails = document.createElement('div');
                 goalDetails.classList.add('goal-details');
 
-                // Description
                 if (goal.description) {
                     const descElement = document.createElement('p');
                     descElement.classList.add('goal-description');
@@ -322,7 +305,6 @@
                     goalDetails.appendChild(descElement);
                 }
 
-                // Due Date
                 if (goal.dueDate) {
                     const dueDateElement = document.createElement('p');
                     const overdue = isOverdue(goal.dueDate, goal.completed);
@@ -336,9 +318,8 @@
                     goalDetails.appendChild(dueDateElement);
                 }
 
-                // Append header and details to the main element
                 goalElement.appendChild(goalHeader);
-                if (goalDetails.hasChildNodes()) { // Only append details if there's content
+                if (goalDetails.hasChildNodes()) {
                     goalElement.appendChild(goalDetails);
                 }
 
@@ -346,142 +327,67 @@
             });
         }
 
-        // Updated addGoal to include description and due date
         function addGoal(nameInput, descInput, dueDateInput, goalsListElement) {
+            // (Code remains the same)
             if (!nameInput || !descInput || !dueDateInput || !goalsListElement) return;
             const goalName = nameInput.value.trim();
-            const goalDesc = descInput.value.trim(); // Get description
-            const goalDueDate = dueDateInput.value; // Get due date (YYYY-MM-DD string or empty)
-
+            const goalDesc = descInput.value.trim();
+            const goalDueDate = dueDateInput.value;
             if (goalName) {
-                const goals = getGoals();
-                const now = Date.now();
-                const newGoal = {
-                    id: now,
-                    name: goalName,
-                    description: goalDesc, // Save description
-                    dueDate: goalDueDate || null, // Save due date (null if empty)
-                    completed: false,
-                    createdAt: now,
-                    modifiedAt: null // Add modifiedAt field
-                };
-                goals.push(newGoal);
-                saveGoals(goals);
-                // Clear form fields
-                nameInput.value = '';
-                descInput.value = '';
-                dueDateInput.value = '';
-                displayGoals(goalsListElement);
-                console.log("Added goal:", newGoal);
-            } else {
-                console.log("Goal name is empty.");
-                alert("Tên mục tiêu không được để trống!"); // Provide user feedback
-            }
+                const goals = getGoals(); const now = Date.now();
+                const newGoal = { id: now, name: goalName, description: goalDesc, dueDate: goalDueDate || null, completed: false, createdAt: now, modifiedAt: null };
+                goals.push(newGoal); saveGoals(goals);
+                nameInput.value = ''; descInput.value = ''; dueDateInput.value = '';
+                displayGoals(goalsListElement); console.log("Added goal:", newGoal);
+            } else { console.log("Goal name is empty."); alert("Tên mục tiêu không được để trống!"); }
         }
 
         function deleteGoal(goalId, goalsListElement) {
+            // (Code remains the same)
             if (!window.confirm("Bạn có chắc muốn xóa mục tiêu này không?")) return;
-            let goals = getGoals();
-            goals = goals.filter(goal => goal.id !== goalId);
-            saveGoals(goals);
-            displayGoals(goalsListElement);
-            console.log("Deleted goal ID:", goalId);
+            let goals = getGoals(); goals = goals.filter(goal => goal.id !== goalId); saveGoals(goals);
+            displayGoals(goalsListElement); console.log("Deleted goal ID:", goalId);
         }
 
         function toggleGoalComplete(goalId, goalsListElement) {
-            let goals = getGoals();
-            const goalIndex = goals.findIndex(goal => goal.id === goalId);
+            // (Code remains the same)
+             let goals = getGoals(); const goalIndex = goals.findIndex(goal => goal.id === goalId);
             if (goalIndex > -1) {
-                goals[goalIndex].completed = !goals[goalIndex].completed;
-                goals[goalIndex].modifiedAt = Date.now(); // Update modified time on completion change
-                saveGoals(goals);
-                displayGoals(goalsListElement);
-                console.log(`Toggled completion for goal ID: ${goalId} to ${goals[goalIndex].completed}`);
+                goals[goalIndex].completed = !goals[goalIndex].completed; goals[goalIndex].modifiedAt = Date.now(); saveGoals(goals);
+                displayGoals(goalsListElement); console.log(`Toggled completion for goal ID: ${goalId} to ${goals[goalIndex].completed}`);
             } else { console.error("Could not find goal to toggle:", goalId); }
         }
 
-        // *** NEW: Toggle Edit State for Goal ***
         function toggleGoalEdit(goalId, goalsListElement) {
-             // First, cancel any other edits by redrawing
+            // (Code remains the same)
              displayGoals(goalsListElement);
-
-             const goalElement = goalsListElement.querySelector(`[data-goal-id='${goalId}']`);
-             if (!goalElement) return; // Should exist after redraw
-
-             const goals = getGoals();
-             const goal = goals.find(g => g.id === goalId);
-             if (!goal) return;
-
-             // --- Create Edit Form ---
-             const editArea = document.createElement('div');
-             editArea.classList.add('goal-edit-area', 'mt-2', 'pt-2', 'border-t', 'border-gray-300'); // Add some spacing and separator
-
-             // Name Input
+             const goalElement = goalsListElement.querySelector(`[data-goal-id='${goalId}']`); if (!goalElement) return;
+             const goals = getGoals(); const goal = goals.find(g => g.id === goalId); if (!goal) return;
+             const editArea = document.createElement('div'); editArea.classList.add('goal-edit-area', 'mt-2', 'pt-2', 'border-t', 'border-gray-300');
              const nameLabel = document.createElement('label'); nameLabel.textContent = "Tên:"; nameLabel.classList.add('block', 'text-xs', 'font-medium', 'text-gray-600', 'mb-1');
              const nameInput = document.createElement('input'); nameInput.type = 'text'; nameInput.value = goal.name; nameInput.required = true;
              editArea.appendChild(nameLabel); editArea.appendChild(nameInput);
-
-             // Description Textarea
              const descLabel = document.createElement('label'); descLabel.textContent = "Mô tả:"; descLabel.classList.add('block', 'text-xs', 'font-medium', 'text-gray-600', 'mb-1', 'mt-2');
              const descTextarea = document.createElement('textarea'); descTextarea.rows = '3'; descTextarea.value = goal.description || '';
              editArea.appendChild(descLabel); editArea.appendChild(descTextarea);
-
-             // Due Date Input
              const dateLabel = document.createElement('label'); dateLabel.textContent = "Hạn chót:"; dateLabel.classList.add('block', 'text-xs', 'font-medium', 'text-gray-600', 'mb-1', 'mt-2');
              const dateInput = document.createElement('input'); dateInput.type = 'date'; dateInput.value = goal.dueDate || '';
              editArea.appendChild(dateLabel); editArea.appendChild(dateInput);
-
-             // --- Create Save/Cancel Buttons for Edit ---
-             const editButtonContainer = document.createElement('div');
-             editButtonContainer.classList.add('flex', 'justify-end', 'mt-3'); // Align buttons right
-
-             const saveButton = document.createElement('button');
-             saveButton.classList.add('text-green-600', 'hover:text-green-800', 'action-button');
-             saveButton.textContent = 'Lưu';
-             saveButton.onclick = () => saveGoalEdit(goalId, nameInput.value, descTextarea.value, dateInput.value, goalsListElement);
-
-             const cancelButton = document.createElement('button');
-             cancelButton.classList.add('text-gray-600', 'hover:text-gray-800', 'action-button');
-             cancelButton.textContent = 'Hủy';
-             cancelButton.onclick = () => displayGoals(goalsListElement); // Cancel reverts by re-displaying
-
-             editButtonContainer.appendChild(saveButton);
-             editButtonContainer.appendChild(cancelButton);
-             editArea.appendChild(editButtonContainer);
-
-             // --- Replace Goal Content with Edit Form ---
-             // Clear existing content (header and details)
-             goalElement.innerHTML = '';
-             // Add the edit area
-             goalElement.appendChild(editArea);
-             goalElement.classList.add('editing'); // Mark as editing
-             nameInput.focus(); // Focus the first input
+             const editButtonContainer = document.createElement('div'); editButtonContainer.classList.add('flex', 'justify-end', 'mt-3');
+             const saveButton = document.createElement('button'); saveButton.classList.add('text-green-600', 'hover:text-green-800', 'action-button'); saveButton.textContent = 'Lưu'; saveButton.onclick = () => saveGoalEdit(goalId, nameInput.value, descTextarea.value, dateInput.value, goalsListElement);
+             const cancelButton = document.createElement('button'); cancelButton.classList.add('text-gray-600', 'hover:text-gray-800', 'action-button'); cancelButton.textContent = 'Hủy'; cancelButton.onclick = () => displayGoals(goalsListElement);
+             editButtonContainer.appendChild(saveButton); editButtonContainer.appendChild(cancelButton); editArea.appendChild(editButtonContainer);
+             goalElement.innerHTML = ''; goalElement.appendChild(editArea); goalElement.classList.add('editing'); nameInput.focus();
         }
 
-        // *** NEW: Save Edited Goal ***
         function saveGoalEdit(goalId, newName, newDesc, newDueDate, goalsListElement) {
-            const trimmedName = newName.trim();
-            if (!trimmedName) {
-                alert("Tên mục tiêu không được để trống!");
-                // Optionally, instead of alerting, you could highlight the input field
-                return; // Stop saving if name is empty
-            }
-
-            let goals = getGoals();
-            const goalIndex = goals.findIndex(goal => goal.id === goalId);
-
+            // (Code remains the same)
+            const trimmedName = newName.trim(); if (!trimmedName) { alert("Tên mục tiêu không được để trống!"); return; }
+            let goals = getGoals(); const goalIndex = goals.findIndex(goal => goal.id === goalId);
             if (goalIndex > -1) {
-                goals[goalIndex].name = trimmedName;
-                goals[goalIndex].description = newDesc.trim();
-                goals[goalIndex].dueDate = newDueDate || null; // Store empty string as null
-                goals[goalIndex].modifiedAt = Date.now(); // Update modification timestamp
-                saveGoals(goals);
-                displayGoals(goalsListElement); // Refresh the list
-                console.log("Saved edit for goal ID:", goalId);
-            } else {
-                console.error("Could not find goal to save edit:", goalId);
-                displayGoals(goalsListElement); // Refresh anyway to clear potential bad state
-            }
+                goals[goalIndex].name = trimmedName; goals[goalIndex].description = newDesc.trim(); goals[goalIndex].dueDate = newDueDate || null; goals[goalIndex].modifiedAt = Date.now(); saveGoals(goals);
+                displayGoals(goalsListElement); console.log("Saved edit for goal ID:", goalId);
+            } else { console.error("Could not find goal to save edit:", goalId); displayGoals(goalsListElement); }
         }
 
 

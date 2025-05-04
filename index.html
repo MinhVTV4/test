@@ -3,28 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ứng dụng Ghi Chú Cá Nhân</title>
-    <link rel="stylesheet" href="style.css">
-    </head>
-<body>
+    <title>Ứng dụng Phát triển Cá nhân - Ghi Chú</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Thêm style để các dòng mới trong ghi chú được hiển thị */
+        .note-content {
+            white-space: pre-wrap; /* Giữ lại khoảng trắng và xuống dòng */
+            word-break: break-word; /* Ngăn chữ quá dài làm vỡ layout */
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-800">
 
-    <div class="app-container">
-        <h1>Ghi Chú Nhanh Cá Nhân</h1>
+    <header class="bg-blue-600 text-white p-4 shadow-md">
+        <div class="container mx-auto">
+            <h1 class="text-2xl font-bold">Ứng dụng Cá nhân Của Tôi</h1>
+            </div>
+    </header>
 
-        <div class="add-note-section">
-            <label for="note-content" style="display:block; margin-bottom: 5px;">Nội dung ghi chú mới:</label>
-            <textarea id="note-content" rows="4" placeholder="Nhập ghi chú của bạn ở đây..."></textarea>
-            <button id="add-note-btn">Thêm Ghi Chú</button>
+    <main class="container mx-auto p-4 mt-4">
+        <div id="app-content" class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Ghi Chú Nhanh</h2>
+
+            <div class="mb-4">
+                <textarea id="note-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4" placeholder="Nhập ghi chú của bạn ở đây..."></textarea>
+            </div>
+            <button id="add-note-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">
+                Thêm Ghi Chú
+            </button>
+
+            <div id="notes-list" class="mt-6 space-y-3">
+                </div>
         </div>
+    </main>
 
-        <div class="notes-list-section">
-            <h2>Danh sách ghi chú</h2>
-            <ul id="notes-list">
-                </ul>
-             <p id="no-notes-msg" class="hidden">Chưa có ghi chú nào được thêm.</p>
-        </div>
-    </div>
+    <footer class="text-center text-gray-500 mt-8 p-4">
+        <p>&copy; 2025 - Tạo bởi Bạn & Gemini</p>
+    </footer>
 
-    <script src="script.js"></script>
+    <script>
+        // Lấy các phần tử DOM cần thiết
+        const noteInput = document.getElementById('note-input');
+        const addNoteBtn = document.getElementById('add-note-btn');
+        const notesList = document.getElementById('notes-list');
+
+        // --- Quản lý Ghi chú ---
+
+        // Hàm lấy ghi chú từ localStorage
+        function getNotes() {
+            // Lấy dữ liệu từ localStorage, nếu không có thì trả về mảng rỗng
+            const notes = localStorage.getItem('quickNotes');
+            return notes ? JSON.parse(notes) : [];
+        }
+
+        // Hàm lưu ghi chú vào localStorage
+        function saveNotes(notes) {
+            // Chuyển mảng notes thành chuỗi JSON và lưu
+            localStorage.setItem('quickNotes', JSON.stringify(notes));
+        }
+
+        // Hàm hiển thị ghi chú lên giao diện
+        function displayNotes() {
+            const notes = getNotes();
+            // Xóa danh sách hiện tại trước khi hiển thị lại
+            notesList.innerHTML = '';
+
+            if (notes.length === 0) {
+                notesList.innerHTML = '<p class="text-gray-500">Chưa có ghi chú nào.</p>';
+                return;
+            }
+
+            // Sắp xếp ghi chú mới nhất lên đầu (theo timestamp giảm dần)
+            notes.sort((a, b) => b.id - a.id);
+
+            // Tạo và thêm từng phần tử ghi chú vào danh sách
+            notes.forEach(note => {
+                const noteElement = document.createElement('div');
+                noteElement.classList.add('bg-yellow-100', 'p-3', 'rounded-md', 'shadow-sm', 'flex', 'justify-between', 'items-start');
+
+                // Nội dung ghi chú
+                const contentElement = document.createElement('p');
+                contentElement.classList.add('note-content', 'text-gray-700', 'flex-grow', 'mr-2'); // Thêm class note-content
+                contentElement.textContent = note.content;
+
+                // Nút xóa ghi chú
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('text-red-500', 'hover:text-red-700', 'font-semibold', 'text-sm', 'ml-2', 'px-2', 'py-1', 'rounded', 'hover:bg-red-100', 'transition', 'duration-150');
+                deleteButton.textContent = 'Xóa';
+                deleteButton.onclick = () => deleteNote(note.id); // Gán sự kiện xóa
+
+                noteElement.appendChild(contentElement);
+                noteElement.appendChild(deleteButton);
+                notesList.appendChild(noteElement);
+            });
+        }
+
+        // Hàm thêm ghi chú mới
+        function addNote() {
+            const noteContent = noteInput.value.trim(); // Lấy nội dung và loại bỏ khoảng trắng thừa
+
+            if (noteContent) { // Chỉ thêm nếu có nội dung
+                const notes = getNotes();
+                const newNote = {
+                    id: Date.now(), // Sử dụng timestamp làm ID duy nhất
+                    content: noteContent
+                };
+                notes.push(newNote); // Thêm ghi chú mới vào mảng
+                saveNotes(notes); // Lưu lại vào localStorage
+                noteInput.value = ''; // Xóa nội dung trong textarea
+                displayNotes(); // Cập nhật lại danh sách hiển thị
+                console.log("Đã thêm ghi chú:", newNote);
+            } else {
+                // Có thể thêm thông báo lỗi nếu người dùng không nhập gì
+                console.log("Nội dung ghi chú trống.");
+            }
+        }
+
+        // Hàm xóa ghi chú
+        function deleteNote(noteId) {
+            let notes = getNotes();
+            // Lọc ra các ghi chú không có ID trùng với noteId cần xóa
+            notes = notes.filter(note => note.id !== noteId);
+            saveNotes(notes); // Lưu lại danh sách đã cập nhật
+            displayNotes(); // Hiển thị lại danh sách
+            console.log("Đã xóa ghi chú ID:", noteId);
+        }
+
+
+        // --- Khởi tạo và Gắn Sự kiện ---
+
+        // Gắn sự kiện click cho nút "Thêm Ghi Chú"
+        addNoteBtn.addEventListener('click', addNote);
+
+        // Cho phép nhấn Enter trong textarea để thêm ghi chú (Shift+Enter để xuống dòng)
+        noteInput.addEventListener('keydown', function(event) {
+            // Kiểm tra nếu nhấn Enter và không nhấn Shift
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault(); // Ngăn hành vi mặc định (xuống dòng)
+                addNote(); // Gọi hàm thêm ghi chú
+            }
+        });
+
+
+        // Hiển thị các ghi chú đã lưu khi trang được tải lần đầu
+        // Sử dụng DOMContentLoaded để đảm bảo tất cả HTML đã được phân tích xong
+        document.addEventListener('DOMContentLoaded', displayNotes);
+
+        console.log("Ứng dụng Ghi chú đã sẵn sàng!");
+
+    </script>
+
 </body>
 </html>

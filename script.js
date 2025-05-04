@@ -137,6 +137,21 @@ const applyFontSize = (scale) => { const clampedScale = Math.max(0.8, Math.min(1
 const updateFontSizeUI = (scale) => { if (fontSizeSlider) { fontSizeSlider.value = scale; } if (fontSizeValueSpan) { fontSizeValueSpan.textContent = `${Math.round(scale * 100)}%`; } };
 const quickToggleTheme = () => { const currentTheme = getStoredPreference(THEME_NAME_KEY, DEFAULT_THEME); const lastCustomTheme = getStoredPreference(LAST_CUSTOM_THEME_KEY, null); let targetTheme; const isCurrentDark = DARK_THEME_NAMES.includes(currentTheme); if (isCurrentDark) { if (lastCustomTheme && !DARK_THEME_NAMES.includes(lastCustomTheme)) { targetTheme = lastCustomTheme; } else { targetTheme = 'light'; } } else { targetTheme = 'dark'; } applyTheme(targetTheme); localStorage.setItem(THEME_NAME_KEY, targetTheme); };
 
+// *** KIỂM TRA LẠI TÊN HÀM NÀY *** (Phần định nghĩa)
+const setupThemeAndAppearanceListeners = () => {
+    quickThemeToggleBtn.addEventListener('click', quickToggleTheme);
+    settingsBtn.addEventListener('click', showSettingsModal);
+    closeSettingsModalBtn.addEventListener('click', hideSettingsModal);
+    settingsModal.addEventListener('click', (event) => { if (event.target === settingsModal) hideSettingsModal(); });
+    if (themeOptionsContainer) { themeOptionsContainer.addEventListener('click', (event) => { const targetButton = event.target.closest('.theme-option-btn'); if (targetButton?.dataset.theme) { const selectedTheme = targetButton.dataset.theme; if (VALID_THEMES.includes(selectedTheme)) { applyTheme(selectedTheme); localStorage.setItem(THEME_NAME_KEY, selectedTheme); if (selectedTheme !== 'light' && selectedTheme !== 'dark') { localStorage.setItem(LAST_CUSTOM_THEME_KEY, selectedTheme); } } else { console.warn(`Attempted to apply invalid theme: ${selectedTheme}`); } } }); }
+    if (accentColorOptionsContainer) { accentColorOptionsContainer.addEventListener('click', (event) => { const targetSwatch = event.target.closest('.accent-swatch'); if (targetSwatch?.dataset.color) { const selectedColor = targetSwatch.dataset.color; applyAccentColor(selectedColor); localStorage.setItem(ACCENT_COLOR_KEY, selectedColor); } }); }
+    if (fontFamilySelect) { fontFamilySelect.addEventListener('change', (event) => { const selectedFont = event.target.value; applyFontFamily(selectedFont); localStorage.setItem(FONT_FAMILY_KEY, selectedFont); }); }
+    const debouncedSaveFontSize = debounce((scale) => { localStorage.setItem(FONT_SIZE_SCALE_KEY, scale.toString()); }, 500);
+    if (fontSizeSlider) { fontSizeSlider.addEventListener('input', (event) => { const scale = parseFloat(event.target.value); if (!isNaN(scale)) { applyFontSize(scale); debouncedSaveFontSize(scale); } }); }
+    if (resetFontSizeBtn) { resetFontSizeBtn.addEventListener('click', () => { const defaultScale = DEFAULT_FONT_SIZE_SCALE; applyFontSize(defaultScale); localStorage.setItem(FONT_SIZE_SCALE_KEY, defaultScale.toString()); if (fontSizeSlider) fontSizeSlider.value = defaultScale; }); }
+};
+
+
 // =====================================================================
 //  Firestore Data Management - Notebooks (Updated)
 // =====================================================================
@@ -238,7 +253,7 @@ const renderNotebookTabs = () => { if (!notebookTabsContainer) return; const add
 // =====================================================================
 //  Other Panel/Import/Export (TODO: Firestore)
 // =====================================================================
-const showAddPanel = () => { /* Logic giữ nguyên */ if (!currentUser) { alert("Vui lòng đăng nhập để thêm ghi chú."); return; } const currentlyEditing = notesContainer.querySelector('.note .edit-input'); if (currentlyEditing) { alert("Vui lòng Lưu hoặc Hủy thay đổi ở ghi chú đang sửa trước khi sửa ghi chú khác."); currentlyEditing.closest('.note').querySelector('textarea.edit-input')?.focus(); return; } hideTagSuggestions(); addNotePanel.classList.remove('hidden'); showAddPanelBtn.classList.add('hidden'); templateSelect.value = ""; newNoteTitle.focus(); };
+const showAddPanel = () => { /* Logic giữ nguyên */ if (!currentUser) { alert("Vui lòng đăng nhập để thêm ghi chú."); return; } const currentlyEditing = notesContainer.querySelector('.note .edit-input'); if (currentlyEditing) { alert("Vui lòng Lưu hoặc Hủy thay đổi ở ghi chú đang sửa trước khi thêm ghi chú mới."); currentlyEditing.closest('.note').querySelector('textarea.edit-input')?.focus(); return; } hideTagSuggestions(); addNotePanel.classList.remove('hidden'); showAddPanelBtn.classList.add('hidden'); templateSelect.value = ""; newNoteTitle.focus(); };
 const hideAddPanel = () => { /* Logic giữ nguyên */ hideTagSuggestions(); addNotePanel.classList.add('hidden'); if (!notesContainer.querySelector('.note .edit-input') && currentUser) { showAddPanelBtn.classList.remove('hidden'); } newNoteTitle.value = ''; newNoteText.value = ''; newNoteTags.value = ''; templateSelect.value = ""; };
 const exportNotes = async () => { /* TODO */ console.warn("exportNotes needs Firestore implementation"); alert("Chức năng xuất dữ liệu đang được phát triển cho phiên bản đám mây."); };
 const importNotes = async (file) => { /* TODO */ console.warn("importNotes needs Firestore implementation"); alert("Chức năng nhập dữ liệu đang được phát triển cho phiên bản đám mây."); if(importFileInput) importFileInput.value = null; };
@@ -352,7 +367,8 @@ const handleAuthStateChanged = (user) => {
 //  Event Listener Setup Functions (Updated)
 // =====================================================================
 const setupEventListeners = () => {
-    setupThemeAndAppearanceListeners(); // Đã sửa lỗi typo ở đây
+    // *** KIỂM TRA LẠI TÊN HÀM NÀY *** (Phần gọi hàm - Đã sửa)
+    setupThemeAndAppearanceListeners();
     setupHeaderActionListeners();
     setupAddNotePanelListeners();
     setupSearchListener();

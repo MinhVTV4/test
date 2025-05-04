@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ứng dụng Phát triển Cá nhân v1.0</title>
+    <title>Ứng dụng Phát triển Cá nhân v1.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -12,7 +12,7 @@
         /* --- General UI Refinements --- */
         .app-module-container { background-color: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); min-height: 300px; }
         .empty-state-message { text-align: center; color: #6b7280; padding: 2rem 0; font-style: italic; }
-        .list-item-hover:hover { background-color: #f9fafb; }
+        /* Removed .list-item-hover as zebra striping provides visual separation */
         .action-button-icon { padding: 0.3rem; margin-left: 0.5rem; border-radius: 9999px; transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; }
         .action-button-icon svg { width: 16px; height: 16px; }
         .action-button-icon:hover { background-color: rgba(0, 0, 0, 0.05); }
@@ -33,35 +33,38 @@
         .pin-indicator svg { width: 12px; height: 12px; }
 
         /* --- Notes Specific --- */
-        .note-item { background-color: #fefce8; padding: 0.75rem; border-radius: 0.375rem; border: 1px solid #fef9c3; transition: background-color 0.15s ease-in-out; position: relative; }
-        .note-item.pinned { background-color: #fef9c3; border-left: 3px solid #facc15; padding-left: 1.25rem; }
+        /* Removed default background from .note-item */
+        .note-item { padding: 0.75rem; border-radius: 0.375rem; border: 1px solid #e5e7eb; /* Use a neutral border */ transition: background-color 0.15s ease-in-out; position: relative; margin-bottom: 0.5rem; /* Add margin between items */ }
+        .note-item.pinned { border-left: 3px solid #facc15; padding-left: 1.25rem; background-color: #fef9c3; /* Keep pinned distinct */ }
         .note-item .pin-indicator { color: #a16207; }
         .note-content, .edit-textarea { white-space: pre-wrap; word-break: break-word; }
         .edit-textarea { min-height: 60px; }
-        .note-timestamp { font-size: 0.75rem; color: #a16207; margin-top: 0.5rem; }
+        .note-timestamp { font-size: 0.75rem; color: #6b7280; /* Neutral color */ margin-top: 0.5rem; }
         .note-item.editing { background-color: #fef3c7; }
 
         /* --- Goals Specific --- */
-        .goal-item { display: flex; flex-direction: column; padding: 1rem; border-radius: 0.375rem; background-color: #f3f4f6; margin-bottom: 0.75rem; border: 1px solid #e5e7eb; transition: background-color 0.15s ease-in-out; position: relative; }
+        /* Removed default background from .goal-item */
+        .goal-item { display: flex; flex-direction: column; padding: 1rem; border-radius: 0.375rem; margin-bottom: 0.5rem; border: 1px solid #e5e7eb; transition: background-color 0.15s ease-in-out; position: relative; }
         .goal-item.pinned { background-color: #eef2ff; border-left: 3px solid #6366f1; padding-left: 1.5rem; }
         .goal-item .pin-indicator { color: #4f46e5; }
-        .goal-item.completed { background-color: #e5e7eb; }
+        .goal-item.completed { background-color: #e5e7eb; } /* Keep completed distinct */
         .goal-item.editing { background-color: #f0f9ff; border-color: #bfdbfe; }
         .goal-header { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; margin-bottom: 0.5rem; }
         .goal-name { flex-grow: 1; margin-right: 0.5rem; font-weight: 600; }
         .goal-item.completed .goal-name { text-decoration: line-through; color: #6b7280; font-weight: 500; }
         .goal-details { width: 100%; font-size: 0.875rem; color: #4b5563; margin-top: 0.25rem; }
         .goal-description { margin-bottom: 0.25rem; white-space: pre-wrap; word-break: break-word; }
-        .goal-due-date-info { display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.3rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem; background-color: rgba(0, 0, 0, 0.02); }
+        .goal-due-date-info { display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.3rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem; /* background-color: rgba(0, 0, 0, 0.02); */ /* Removed subtle bg */ }
         .goal-due-date { font-style: italic; font-weight: 500; }
         .goal-days-remaining { font-weight: 600; font-size: 0.8rem; }
-        .due-soon { color: #ca8a04; background-color: #fefce8; border-left: 3px solid #facc15; }
-        .overdue { color: #b91c1c; background-color: #fee2e2; border-left: 3px solid #ef4444; }
-        .on-track { color: #15803d; background-color: #f0fdf4; border-left: 3px solid #4ade80; }
+        .due-soon .goal-due-date-info { color: #ca8a04; background-color: #fefce8; border-left: 3px solid #facc15; } /* Apply border/bg to container */
+        .overdue .goal-due-date-info { color: #b91c1c; background-color: #fee2e2; border-left: 3px solid #ef4444; }
+        .on-track .goal-due-date-info { color: #15803d; background-color: #f0fdf4; border-left: 3px solid #4ade80; }
         .goal-edit-area textarea, .goal-edit-area input[type="date"], .goal-edit-area input[type="text"] { width: 100%; padding: 0.25rem 0.5rem; border: 1px solid #d1d5db; border-radius: 0.25rem; margin-bottom: 0.5rem; font-size: 0.875rem; }
 
         /* --- Habits Specific --- */
-        .habit-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-radius: 0.375rem; background-color: #f3f4f6; margin-bottom: 0.5rem; border: 1px solid #e5e7eb; }
+         /* Removed default background from .habit-item */
+        .habit-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-radius: 0.375rem; margin-bottom: 0.5rem; border: 1px solid #e5e7eb; transition: background-color 0.15s ease-in-out; }
         .habit-item.editing { background-color: #f5f3ff; border-color: #c4b5fd; }
         .habit-info { display: flex; align-items: baseline; flex-grow: 1; margin-right: 1rem; }
         .habit-name { font-weight: 500; }
@@ -77,28 +80,14 @@
         .habit-stats strong { color: #1e293b; }
 
         /* --- Habit History Calendar Modal --- */
-        .modal-overlay {
-            position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.5);
-            display: flex; align-items: center; justify-content: center; z-index: 50;
-        }
-        .modal-content {
-            background-color: white; padding: 1.5rem; border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            max-width: 400px; width: 90%;
-        }
-        .calendar-grid {
-            display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.25rem;
-            text-align: center; margin-top: 1rem;
-        }
+        .modal-overlay { position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 50; }
+        .modal-content { background-color: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); max-width: 400px; width: 90%; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.25rem; text-align: center; margin-top: 1rem; }
         .calendar-day-header { font-weight: 600; font-size: 0.75rem; color: #6b7280; padding-bottom: 0.5rem; }
-        .calendar-day {
-            padding: 0.5rem 0; border-radius: 9999px; font-size: 0.875rem;
-            width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;
-            margin: auto; /* Center the day number */
-        }
-        .calendar-day.other-month { color: #d1d5db; /* gray-300 */ }
-        .calendar-day.today { background-color: #bfdbfe; /* blue-200 */ font-weight: 600; }
-        .calendar-day.completed { background-color: #a7f3d0; /* emerald-200 */ color: #047857; /* emerald-700 */ font-weight: 600; }
+        .calendar-day { padding: 0.5rem 0; border-radius: 9999px; font-size: 0.875rem; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; margin: auto; }
+        .calendar-day.other-month { color: #d1d5db; }
+        .calendar-day.today { background-color: #bfdbfe; font-weight: 600; }
+        .calendar-day.completed { background-color: #a7f3d0; color: #047857; font-weight: 600; }
 
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -153,22 +142,21 @@
         const navLinks = mainNav.querySelectorAll('.nav-link');
         let noteSortPreference = localStorage.getItem('noteSortPref') || 'newest';
         let goalSortPreference = localStorage.getItem('goalSortPref') || 'default';
-        // State for habit history modal
         let currentHistoryHabitId = null;
-        let calendarDate = new Date(); // Date object to track the displayed month
+        let calendarDate = new Date();
 
         // --- SVG Icons ---
         const ICONS = { /* ... (Icons remain the same) ... */ edit: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>`, delete: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>`, check: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>`, undo: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" /></svg>`, save: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75 l6 6 9-13.5" /></svg>`, cancel: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>`, pin: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0 1 20.25 6v12A2.25 2.25 0 0 1 18 20.25H6A2.25 2.25 0 0 1 3.75 18V6A2.25 2.25 0 0 1 6 3.75h1.5m9 0h-9" /></svg>`, pin_filled: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M16.5 3.75a.75.75 0 0 1 .75.75v11.19l-4.72-2.36a.75.75 0 0 0-.56 0L7.5 15.69V4.5a.75.75 0 0 1 .75-.75h7.5Z" clip-rule="evenodd" /><path d="M18 3.75a2.25 2.25 0 0 1 2.25 2.25v12a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6A2.25 2.25 0 0 1 6 3.75h12Z" /></svg>`, history: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>`, fire: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M8.75 1.75a.75.75 0 0 0-1.5 0v1.313c-.37-.1-.76-.163-1.17-.198C4.895 2.798 4 3.65 4 4.857c0 .41.13 1.03.393 1.776.24.69.662 1.42 1.28 2.065.617.645 1.333 1.176 2.146 1.571a.75.75 0 0 0 .44-.073c.813-.395 1.53- .926 2.147-1.57.618-.646 1.04-1.376 1.28-2.066C11.87 5.888 12 5.267 12 4.857c0-1.206-.895-2.059-2.08-2.186-.41-.035-.8-.1-1.17-.198V1.75Z" /><path d="M4.708 11.584a.75.75 0 0 1 .875.016C6.333 12.06 7.167 12.5 8 12.5s1.667-.44 2.417-.9a.75.75 0 0 1 .875-.016 14.41 14.41 0 0 1 1.145.61c.217.12.4.27.548.454a.75.75 0 0 1-.918 1.183 12.905 12.905 0 0 0-2.54-.714c-.427-.089-.86-.133-1.296-.133s-.87.044-1.297.133a12.904 12.904 0 0 0-2.54.714.75.75 0 0 1-.918-1.183c.148-.184.33-.334.548-.454a14.411 14.411 0 0 1 1.145-.61Z" /></svg>` };
 
         // --- Module Building Functions ---
-        function buildNotesUI() { /* ... (no changes) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Ghi Chú Nhanh</h2><button id="show-note-form-btn" class="add-new-button">Tạo ghi chú mới</button><div id="add-note-container" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 hidden"><div class="mb-4"><textarea id="note-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="4" placeholder="Nhập ghi chú..."></textarea></div><div class="flex justify-end"><button id="add-note-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm Ghi Chú</button><button id="cancel-add-note-btn" type="button" class="form-cancel-button">Hủy</button></div></div><div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3"><input type="search" id="search-input" placeholder="Tìm kiếm ghi chú..." class="w-full sm:w-auto p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><div class="flex items-center space-x-2"><label for="note-sort-select" class="text-sm font-medium text-gray-700 whitespace-nowrap">Sắp xếp:</label><select id="note-sort-select" class="sort-select"><option value="newest" ${noteSortPreference==='newest'?'selected':''}>Mới nhất</option><option value="oldest" ${noteSortPreference==='oldest'?'selected':''}>Cũ nhất</option><option value="name_asc" ${noteSortPreference==='name_asc'?'selected':''}>Tên (A-Z)</option><option value="name_desc" ${noteSortPreference==='name_desc'?'selected':''}>Tên (Z-A)</option></select></div></div><h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Ghi chú</h3><div id="notes-list" class="mt-6 space-y-3"> </div>`; const snfb=document.getElementById('show-note-form-btn'); const anc=document.getElementById('add-note-container'); const ni=document.getElementById('note-input'); const anb=document.getElementById('add-note-btn'); const canb=document.getElementById('cancel-add-note-btn'); const si=document.getElementById('search-input'); const nss=document.getElementById('note-sort-select'); const nl=document.getElementById('notes-list'); snfb.addEventListener('click',()=>{anc.classList.remove('hidden'); snfb.classList.add('hidden'); ni.focus();}); canb.addEventListener('click',()=>{anc.classList.add('hidden'); snfb.classList.remove('hidden'); ni.value='';}); anb.addEventListener('click',()=>addNote(ni,si,anc,snfb)); ni.addEventListener('keydown',(e)=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();addNote(ni,si,anc,snfb);}}); si.addEventListener('input',(e)=>displayNotes(nl,si,nss.value,e.target.value)); nss.addEventListener('change',(e)=>{noteSortPreference=e.target.value; localStorage.setItem('noteSortPref',noteSortPreference); displayNotes(nl,si,noteSortPreference,si.value);}); displayNotes(nl,si,noteSortPreference); }
-        function buildGoalsUI() { /* ... (no changes) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Theo dõi Mục tiêu</h2><button id="show-goal-form-btn" class="add-new-button" style="background-color: #22c55e;">Tạo mục tiêu mới</button><form id="add-goal-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3 hidden"><div><label for="goal-input" class="block text-sm font-medium text-gray-700 mb-1">Tên mục tiêu:</label><input type="text" id="goal-input" placeholder="Ví dụ: Học JavaScript nâng cao" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div><label for="goal-desc-input" class="block text-sm font-medium text-gray-700 mb-1">Mô tả (tùy chọn):</label><textarea id="goal-desc-input" placeholder="Mô tả chi tiết các bước hoặc lý do..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea></div><div><label for="goal-due-date-input" class="block text-sm font-medium text-gray-700 mb-1">Hạn chót (tùy chọn):</label><input type="date" id="goal-due-date-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div class="flex justify-end"><button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm Mục tiêu</button><button id="cancel-add-goal-btn" type="button" class="form-cancel-button">Hủy</button></div></form><div class="flex justify-end mb-4"><div class="flex items-center space-x-2"><label for="goal-sort-select" class="text-sm font-medium text-gray-700 whitespace-nowrap">Sắp xếp:</label><select id="goal-sort-select" class="sort-select"><option value="default" ${goalSortPreference==='default'?'selected':''}>Mặc định</option><option value="due_date_asc" ${goalSortPreference==='due_date_asc'?'selected':''}>Hạn gần nhất</option><option value="due_date_desc" ${goalSortPreference==='due_date_desc'?'selected':''}>Hạn xa nhất</option><option value="name_asc" ${goalSortPreference==='name_asc'?'selected':''}>Tên (A-Z)</option><option value="name_desc" ${goalSortPreference==='name_desc'?'selected':''}>Tên (Z-A)</option><option value="newest" ${goalSortPreference==='newest'?'selected':''}>Ngày tạo mới nhất</option><option value="oldest" ${goalSortPreference==='oldest'?'selected':''}>Ngày tạo cũ nhất</option></select></div></div><h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Mục tiêu</h3><div id="goals-list" class="space-y-3"></div>`; const sgfb=document.getElementById('show-goal-form-btn'); const agf=document.getElementById('add-goal-form'); const gi=document.getElementById('goal-input'); const gdi=document.getElementById('goal-desc-input'); const gddi=document.getElementById('goal-due-date-input'); const cagb=document.getElementById('cancel-add-goal-btn'); const gss=document.getElementById('goal-sort-select'); const gl=document.getElementById('goals-list'); sgfb.addEventListener('click',()=>{agf.classList.remove('hidden'); sgfb.classList.add('hidden'); gi.focus();}); cagb.addEventListener('click',()=>{agf.classList.add('hidden'); sgfb.classList.remove('hidden'); gi.value=''; gdi.value=''; gddi.value='';}); agf.addEventListener('submit',(e)=>{e.preventDefault();addGoal(gi,gdi,gddi,gl,agf,sgfb);}); gss.addEventListener('change',(e)=>{goalSortPreference=e.target.value; localStorage.setItem('goalSortPref',goalSortPreference); displayGoals(gl,goalSortPreference);}); displayGoals(gl,goalSortPreference); }
-        function buildHabitsUI() { /* ... (no changes) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} const s=calculateHabitStats(); appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Theo dõi Thói quen</h2><div id="habit-stats-area" class="habit-stats">${s.totalHabits>0?`Hoàn thành hôm nay: <strong>${s.completedToday} / ${s.totalHabits}</strong> (${s.todayCompletionRate}%)`:'Thêm thói quen để bắt đầu theo dõi!'}${s.totalHabits>0?`<br>Tỷ lệ hoàn thành (7 ngày qua): <strong>${s.last7DaysCompletionRate}%</strong>`:''}</div><button id="show-habit-form-btn" class="add-new-button" style="background-color: #a855f7;">Tạo thói quen mới</button><form id="add-habit-form" class="mb-6 flex items-center space-x-2 hidden"><input type="text" id="habit-input" placeholder="Nhập thói quen mới..." required class="flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm</button><button id="cancel-add-habit-btn" type="button" class="form-cancel-button !ml-2 !py-2 !px-4">Hủy</button></form><h3 class="text-lg font-semibold mb-3 text-gray-700">Thói quen Hôm nay (${getTodayDateString()})</h3><div id="habits-list" class="space-y-2"></div>`; const shfb=document.getElementById('show-habit-form-btn'); const ahf=document.getElementById('add-habit-form'); const hi=document.getElementById('habit-input'); const cahb=document.getElementById('cancel-add-habit-btn'); const hl=document.getElementById('habits-list'); shfb.addEventListener('click',()=>{ahf.classList.remove('hidden'); shfb.classList.add('hidden'); hi.focus();}); cahb.addEventListener('click',()=>{ahf.classList.add('hidden'); shfb.classList.remove('hidden'); hi.value='';}); ahf.addEventListener('submit',(e)=>{e.preventDefault();addHabit(hi,hl,ahf,shfb);}); displayHabits(hl); }
+        function buildNotesUI() { /* ... (no changes) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Ghi Chú Nhanh</h2><button id="show-note-form-btn" class="add-new-button">Tạo ghi chú mới</button><div id="add-note-container" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 hidden"><div class="mb-4"><textarea id="note-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="4" placeholder="Nhập ghi chú..."></textarea></div><div class="flex justify-end"><button id="add-note-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm Ghi Chú</button><button id="cancel-add-note-btn" type="button" class="form-cancel-button">Hủy</button></div></div><div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3"><input type="search" id="search-input" placeholder="Tìm kiếm ghi chú..." class="w-full sm:w-auto p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><div class="flex items-center space-x-2"><label for="note-sort-select" class="text-sm font-medium text-gray-700 whitespace-nowrap">Sắp xếp:</label><select id="note-sort-select" class="sort-select"><option value="newest" ${noteSortPreference==='newest'?'selected':''}>Mới nhất</option><option value="oldest" ${noteSortPreference==='oldest'?'selected':''}>Cũ nhất</option><option value="name_asc" ${noteSortPreference==='name_asc'?'selected':''}>Tên (A-Z)</option><option value="name_desc" ${noteSortPreference==='name_desc'?'selected':''}>Tên (Z-A)</option></select></div></div><h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Ghi chú</h3><div id="notes-list" class="mt-6 space-y-0"> </div>`; /* Changed space-y-3 to space-y-0 */ const snfb=document.getElementById('show-note-form-btn'); const anc=document.getElementById('add-note-container'); const ni=document.getElementById('note-input'); const anb=document.getElementById('add-note-btn'); const canb=document.getElementById('cancel-add-note-btn'); const si=document.getElementById('search-input'); const nss=document.getElementById('note-sort-select'); const nl=document.getElementById('notes-list'); snfb.addEventListener('click',()=>{anc.classList.remove('hidden'); snfb.classList.add('hidden'); ni.focus();}); canb.addEventListener('click',()=>{anc.classList.add('hidden'); snfb.classList.remove('hidden'); ni.value='';}); anb.addEventListener('click',()=>addNote(ni,si,anc,snfb)); ni.addEventListener('keydown',(e)=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();addNote(ni,si,anc,snfb);}}); si.addEventListener('input',(e)=>displayNotes(nl,si,nss.value,e.target.value)); nss.addEventListener('change',(e)=>{noteSortPreference=e.target.value; localStorage.setItem('noteSortPref',noteSortPreference); displayNotes(nl,si,noteSortPreference,si.value);}); displayNotes(nl,si,noteSortPreference); }
+        function buildGoalsUI() { /* ... (no changes) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Theo dõi Mục tiêu</h2><button id="show-goal-form-btn" class="add-new-button" style="background-color: #22c55e;">Tạo mục tiêu mới</button><form id="add-goal-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3 hidden"><div><label for="goal-input" class="block text-sm font-medium text-gray-700 mb-1">Tên mục tiêu:</label><input type="text" id="goal-input" placeholder="Ví dụ: Học JavaScript nâng cao" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div><label for="goal-desc-input" class="block text-sm font-medium text-gray-700 mb-1">Mô tả (tùy chọn):</label><textarea id="goal-desc-input" placeholder="Mô tả chi tiết các bước hoặc lý do..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea></div><div><label for="goal-due-date-input" class="block text-sm font-medium text-gray-700 mb-1">Hạn chót (tùy chọn):</label><input type="date" id="goal-due-date-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div class="flex justify-end"><button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm Mục tiêu</button><button id="cancel-add-goal-btn" type="button" class="form-cancel-button">Hủy</button></div></form><div class="flex justify-end mb-4"><div class="flex items-center space-x-2"><label for="goal-sort-select" class="text-sm font-medium text-gray-700 whitespace-nowrap">Sắp xếp:</label><select id="goal-sort-select" class="sort-select"><option value="default" ${goalSortPreference==='default'?'selected':''}>Mặc định</option><option value="due_date_asc" ${goalSortPreference==='due_date_asc'?'selected':''}>Hạn gần nhất</option><option value="due_date_desc" ${goalSortPreference==='due_date_desc'?'selected':''}>Hạn xa nhất</option><option value="name_asc" ${goalSortPreference==='name_asc'?'selected':''}>Tên (A-Z)</option><option value="name_desc" ${goalSortPreference==='name_desc'?'selected':''}>Tên (Z-A)</option><option value="newest" ${goalSortPreference==='newest'?'selected':''}>Ngày tạo mới nhất</option><option value="oldest" ${goalSortPreference==='oldest'?'selected':''}>Ngày tạo cũ nhất</option></select></div></div><h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Mục tiêu</h3><div id="goals-list" class="space-y-0"></div>`; /* Changed space-y-3 to space-y-0 */ const sgfb=document.getElementById('show-goal-form-btn'); const agf=document.getElementById('add-goal-form'); const gi=document.getElementById('goal-input'); const gdi=document.getElementById('goal-desc-input'); const gddi=document.getElementById('goal-due-date-input'); const cagb=document.getElementById('cancel-add-goal-btn'); const gss=document.getElementById('goal-sort-select'); const gl=document.getElementById('goals-list'); sgfb.addEventListener('click',()=>{agf.classList.remove('hidden'); sgfb.classList.add('hidden'); gi.focus();}); cagb.addEventListener('click',()=>{agf.classList.add('hidden'); sgfb.classList.remove('hidden'); gi.value=''; gdi.value=''; gddi.value='';}); agf.addEventListener('submit',(e)=>{e.preventDefault();addGoal(gi,gdi,gddi,gl,agf,sgfb);}); gss.addEventListener('change',(e)=>{goalSortPreference=e.target.value; localStorage.setItem('goalSortPref',goalSortPreference); displayGoals(gl,goalSortPreference);}); displayGoals(gl,goalSortPreference); }
+        function buildHabitsUI() { /* ... (no changes) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} const s=calculateHabitStats(); appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Theo dõi Thói quen</h2><div id="habit-stats-area" class="habit-stats">${s.totalHabits>0?`Hoàn thành hôm nay: <strong>${s.completedToday} / ${s.totalHabits}</strong> (${s.todayCompletionRate}%)`:'Thêm thói quen để bắt đầu theo dõi!'}${s.totalHabits>0?`<br>Tỷ lệ hoàn thành (7 ngày qua): <strong>${s.last7DaysCompletionRate}%</strong>`:''}</div><button id="show-habit-form-btn" class="add-new-button" style="background-color: #a855f7;">Tạo thói quen mới</button><form id="add-habit-form" class="mb-6 flex items-center space-x-2 hidden"><input type="text" id="habit-input" placeholder="Nhập thói quen mới..." required class="flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm</button><button id="cancel-add-habit-btn" type="button" class="form-cancel-button !ml-2 !py-2 !px-4">Hủy</button></form><h3 class="text-lg font-semibold mb-3 text-gray-700">Thói quen Hôm nay (${getTodayDateString()})</h3><div id="habits-list" class="space-y-0"></div>`; /* Changed space-y-2 to space-y-0 */ const shfb=document.getElementById('show-habit-form-btn'); const ahf=document.getElementById('add-habit-form'); const hi=document.getElementById('habit-input'); const cahb=document.getElementById('cancel-add-habit-btn'); const hl=document.getElementById('habits-list'); shfb.addEventListener('click',()=>{ahf.classList.remove('hidden'); shfb.classList.add('hidden'); hi.focus();}); cahb.addEventListener('click',()=>{ahf.classList.add('hidden'); shfb.classList.remove('hidden'); hi.value='';}); ahf.addEventListener('submit',(e)=>{e.preventDefault();addHabit(hi,hl,ahf,shfb);}); displayHabits(hl); }
 
         // --- Core Application Logic ---
         function renderAppContent() {
             console.log(`Rendering module: ${currentModule}`);
-            let baseTitle = "Ứng dụng Phát triển Cá nhân v1.0"; // Updated version
+            let baseTitle = "Ứng dụng Phát triển Cá nhân v1.1"; // Updated version
             let moduleTitle = "";
             if (currentModule === 'notes') moduleTitle = " - Ghi Chú";
             else if (currentModule === 'goals') moduleTitle = " - Mục tiêu";
@@ -191,7 +179,50 @@
         function getNotes() { /* ... (no changes) ... */ const n=localStorage.getItem('quickNotes'); try { const p=n?JSON.parse(n):[]; return p.map(no=>({...no, isPinned: no.isPinned || false })); } catch(e){console.error("Error parsing notes:",e); return [];} }
         function saveNotes(notes) { /* ... (no changes) ... */ localStorage.setItem('quickNotes',JSON.stringify(notes)); }
         function formatTimestamp(timestamp) { /* ... (no changes) ... */ if(!timestamp)return ''; const d=new Date(timestamp); return `${d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}, ${d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'})}`; }
-        function displayNotes(listEl, searchEl, sortBy = noteSortPreference, term = '') { /* ... (no changes) ... */ if(!listEl||!searchEl){return;} let n=getNotes(); const s=term.toLowerCase().trim(); if(s){n=n.filter(no=>no.content.toLowerCase().includes(s));} n.sort((a,b)=>{if(a.isPinned!==b.isPinned){return b.isPinned-a.isPinned;} switch(sortBy){case 'oldest':return (a.createdAt||0)-(b.createdAt||0); case 'name_asc':return (a.content||'').localeCompare(b.content||''); case 'name_desc':return (b.content||'').localeCompare(a.content||''); case 'newest': default: return (b.modifiedAt||b.createdAt||0)-(a.modifiedAt||a.createdAt||0);}}); listEl.innerHTML=''; if(n.length===0){listEl.innerHTML=`<p class="empty-state-message">${s?'Không tìm thấy ghi chú nào khớp.':'Chưa có ghi chú nào.'}</p>`; return;} n.forEach(no=>{const ne=document.createElement('div'); ne.dataset.noteId=no.id; ne.classList.add('note-item','list-item-hover','flex','flex-col'); if(no.isPinned){ne.classList.add('pinned');} if(no.isPinned){const pi=document.createElement('span'); pi.classList.add('pin-indicator'); pi.innerHTML=ICONS.pin_filled; ne.appendChild(pi);} const tr=document.createElement('div'); tr.classList.add('flex','justify-between','items-start','w-full','note-top-row'); const cc=document.createElement('div'); cc.classList.add('flex-grow','mr-2','note-content-container'); const ce=document.createElement('p'); ce.classList.add('note-content','text-gray-800'); ce.textContent=no.content; cc.appendChild(ce); const bc=document.createElement('div'); bc.classList.add('flex-shrink-0','flex','items-center','note-button-container'); const pb=document.createElement('button'); pb.classList.add('action-button-icon','pin-icon-btn'); if(no.isPinned){pb.classList.add('pinned'); pb.innerHTML=ICONS.pin_filled; pb.setAttribute('aria-label','Bỏ ghim ghi chú');} else {pb.innerHTML=ICONS.pin; pb.setAttribute('aria-label','Ghim ghi chú');} pb.onclick=()=>toggleNotePin(no.id,listEl,searchEl); const eb=document.createElement('button'); eb.classList.add('action-button-icon','edit-icon-btn'); eb.innerHTML=ICONS.edit; eb.setAttribute('aria-label','Sửa ghi chú'); eb.onclick=()=>toggleEdit(no.id,listEl,searchEl); const db=document.createElement('button'); db.classList.add('action-button-icon','delete-icon-btn'); db.innerHTML=ICONS.delete; db.setAttribute('aria-label','Xóa ghi chú'); db.onclick=()=>deleteNote(no.id,listEl,searchEl); bc.appendChild(pb); bc.appendChild(eb); bc.appendChild(db); tr.appendChild(cc); tr.appendChild(bc); const ts=document.createElement('p'); ts.classList.add('note-timestamp','w-full','text-right'); const cr=formatTimestamp(no.createdAt); const md=formatTimestamp(no.modifiedAt); ts.textContent=md?`Sửa đổi: ${md}`:(cr?`Đã tạo: ${cr}`:''); ne.appendChild(tr); if(ts.textContent){ne.appendChild(ts);} listEl.appendChild(ne);}); }
+
+        // *** UPDATED: displayNotes Function (Apply Zebra Striping) ***
+        function displayNotes(listEl, searchEl, sortBy = noteSortPreference, term = '') {
+             if(!listEl||!searchEl){return;}
+             let notes = getNotes();
+             const s = term.toLowerCase().trim();
+             if(s){ notes = notes.filter(no=>no.content.toLowerCase().includes(s)); }
+
+             // Sort logic remains the same
+             notes.sort((a,b)=>{if(a.isPinned!==b.isPinned){return b.isPinned-a.isPinned;} switch(sortBy){case 'oldest':return (a.createdAt||0)-(b.createdAt||0); case 'name_asc':return (a.content||'').localeCompare(b.content||''); case 'name_desc':return (b.content||'').localeCompare(a.content||''); case 'newest': default: return (b.modifiedAt||b.createdAt||0)-(a.modifiedAt||a.createdAt||0);}});
+
+             listEl.innerHTML='';
+             if(notes.length===0){ listEl.innerHTML=`<p class="empty-state-message">${s?'Không tìm thấy ghi chú nào khớp.':'Chưa có ghi chú nào.'}</p>`; return; }
+
+             notes.forEach((note, index)=>{ // Added index parameter
+                 const noteElement = document.createElement('div');
+                 noteElement.dataset.noteId = note.id;
+                 // Apply alternating background based on index (even/odd)
+                 const bgColor = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                 noteElement.classList.add('note-item', bgColor, 'flex', 'flex-col'); // Removed list-item-hover
+
+                 if (note.isPinned) {
+                     noteElement.classList.add('pinned');
+                     // Ensure pinned notes have a consistent, distinct background
+                     noteElement.classList.remove('bg-white', 'bg-gray-50');
+                     noteElement.classList.add('bg-yellow-100'); // Re-apply pinned background
+                 }
+                 if (note.isPinned) {const pi=document.createElement('span'); pi.classList.add('pin-indicator'); pi.innerHTML=ICONS.pin_filled; noteElement.appendChild(pi);}
+
+                 const tr=document.createElement('div'); tr.classList.add('flex','justify-between','items-start','w-full','note-top-row');
+                 const cc=document.createElement('div'); cc.classList.add('flex-grow','mr-2','note-content-container');
+                 const ce=document.createElement('p'); ce.classList.add('note-content','text-gray-800'); ce.textContent=note.content; cc.appendChild(ce);
+                 const bc=document.createElement('div'); bc.classList.add('flex-shrink-0','flex','items-center','note-button-container');
+                 const pb=document.createElement('button'); pb.classList.add('action-button-icon','pin-icon-btn'); if(note.isPinned){pb.classList.add('pinned'); pb.innerHTML=ICONS.pin_filled; pb.setAttribute('aria-label','Bỏ ghim ghi chú');} else {pb.innerHTML=ICONS.pin; pb.setAttribute('aria-label','Ghim ghi chú');} pb.onclick=()=>toggleNotePin(note.id,listEl,searchEl);
+                 const eb=document.createElement('button'); eb.classList.add('action-button-icon','edit-icon-btn'); eb.innerHTML=ICONS.edit; eb.setAttribute('aria-label','Sửa ghi chú'); eb.onclick=()=>toggleEdit(note.id,listEl,searchEl);
+                 const db=document.createElement('button'); db.classList.add('action-button-icon','delete-icon-btn'); db.innerHTML=ICONS.delete; db.setAttribute('aria-label','Xóa ghi chú'); db.onclick=()=>deleteNote(note.id,listEl,searchEl);
+                 bc.appendChild(pb); bc.appendChild(eb); bc.appendChild(db);
+                 tr.appendChild(cc); tr.appendChild(bc);
+                 const ts=document.createElement('p'); ts.classList.add('note-timestamp','w-full','text-right'); const cr=formatTimestamp(note.createdAt); const md=formatTimestamp(note.modifiedAt); ts.textContent=md?`Sửa đổi: ${md}`:(cr?`Đã tạo: ${cr}`:'');
+                 noteElement.appendChild(tr);
+                 if(ts.textContent){ noteElement.appendChild(ts); }
+                 listEl.appendChild(noteElement);
+             });
+        }
         function addNote(inputEl, searchEl, formContainer, showFormBtn) { /* ... (no changes) ... */ if(!inputEl||!searchEl||!formContainer||!showFormBtn)return; const c=inputEl.value.trim(); if(c){const n=getNotes(); const now=Date.now(); const nn={id:now,content:c,createdAt:now,modifiedAt:null,isPinned:false}; n.push(nn); saveNotes(n); inputEl.value=''; searchEl.value=''; formContainer.classList.add('hidden'); showFormBtn.classList.remove('hidden'); const cl=document.getElementById('notes-list'); if(cl){displayNotes(cl,searchEl, noteSortPreference);}} }
         function deleteNote(id, listEl, searchEl) { /* ... (no changes) ... */ if(!window.confirm("Bạn chắc chắn xóa ghi chú này?"))return; let n=getNotes(); n=n.filter(no=>no.id!==id); saveNotes(n); displayNotes(listEl,searchEl, noteSortPreference, searchEl.value); }
         function toggleEdit(id, listEl, searchEl) { /* ... (no changes) ... */ displayNotes(listEl,searchEl, noteSortPreference, searchEl.value); const ne=listEl.querySelector(`[data-note-id='${id}']`); if(!ne)return; const cc=ne.querySelector('.note-content-container'); const bc=ne.querySelector('.note-button-container'); if(!cc||!bc){console.error("Could not find content/button container for note edit:",id); return;} const ns=getNotes(); const no=ns.find(n=>n.id===id); if(!no)return; cc.innerHTML=''; bc.innerHTML=''; const ei=document.createElement('textarea'); ei.classList.add('w-full','p-1','border','border-gray-300','rounded-md','focus:outline-none','focus:ring-1','focus:ring-blue-500','edit-textarea','note-content'); ei.value=no.content; cc.appendChild(ei); const sb=document.createElement('button'); sb.classList.add('action-button-icon','save-icon-btn'); sb.innerHTML=ICONS.save; sb.setAttribute('aria-label','Lưu thay đổi'); sb.onclick=()=>saveEdit(id,ei.value,listEl,searchEl); const cb=document.createElement('button'); cb.classList.add('action-button-icon','cancel-icon-btn'); cb.innerHTML=ICONS.cancel; cb.setAttribute('aria-label','Hủy bỏ'); cb.onclick=()=>displayNotes(listEl,searchEl, noteSortPreference, searchEl.value); bc.appendChild(sb); bc.appendChild(cb); ne.classList.add('editing'); ei.focus(); }
@@ -204,13 +235,51 @@
         function saveGoals(goals) { /* ... (no changes) ... */ localStorage.setItem(GOALS_STORAGE_KEY,JSON.stringify(goals)); }
         function formatDisplayDate(dateString) { /* ... (no changes) ... */ if(!dateString)return ''; try{const [y,m,d]=dateString.split('-'); return `${d}/${m}/${y}`;} catch(e){console.error("Error formatting date:",e); return dateString;} }
         function calculateDaysRemaining(dueDateString) { /* ... (no changes) ... */ if (!dueDateString) return { text: '', class: '' }; try { const t=new Date(); t.setHours(0,0,0,0); const d=new Date(dueDateString); d.setHours(0,0,0,0); const diffTime=d.getTime()-t.getTime(); const diffDays=Math.ceil(diffTime/(1000*60*60*24)); if(diffDays<0){return { text:`Quá hạn ${Math.abs(diffDays)} ngày`, class:'overdue'};} else if(diffDays===0){return { text:'Hết hạn hôm nay', class:'due-soon'};} else if(diffDays<=7){return { text:`Còn ${diffDays} ngày`, class:'due-soon'};} else {return { text:`Còn ${diffDays} ngày`, class:'on-track'};} } catch(e){console.error("Error calculating days remaining:",e); return { text:'', class:''};} }
-        function displayGoals(goalsListElement, sortBy = goalSortPreference) { /* ... (no changes) ... */ if(!goalsListElement){console.error("Goals list element needed");return;} let g=getGoals(); goalsListElement.innerHTML=''; if(g.length===0){goalsListElement.innerHTML='<p class="empty-state-message">Chưa có mục tiêu nào.</p>';return;} g.sort((a,b)=>{if(a.isPinned!==b.isPinned){return b.isPinned-a.isPinned;} switch(sortBy){case 'due_date_asc': return (new Date(a.dueDate||'9999-12-31'))-(new Date(b.dueDate||'9999-12-31')); case 'due_date_desc': return (new Date(b.dueDate||'0000-01-01'))-(new Date(a.dueDate||'0000-01-01')); case 'name_asc': return (a.name||'').localeCompare(b.name||''); case 'name_desc': return (b.name||'').localeCompare(a.name||''); case 'newest': return (b.createdAt||0)-(a.createdAt||0); case 'oldest': return (a.createdAt||0)-(b.createdAt||0); case 'default': default: return (a.completed-b.completed)||(new Date(a.dueDate||'9999-12-31')-new Date(b.dueDate||'9999-12-31'))||(b.createdAt-a.createdAt);}}); g.forEach(go=>{const ge=document.createElement('div'); ge.dataset.goalId=go.id; ge.classList.add('goal-item','list-item-hover'); if(go.completed)ge.classList.add('completed'); if(go.isPinned)ge.classList.add('pinned'); if(go.isPinned){const pi=document.createElement('span'); pi.classList.add('pin-indicator'); pi.style.color='#4f46e5'; pi.innerHTML=ICONS.pin_filled; ge.appendChild(pi);} const gh=document.createElement('div'); gh.classList.add('goal-header'); const ne=document.createElement('span'); ne.classList.add('goal-name'); ne.textContent=go.name; const bc=document.createElement('div'); bc.classList.add('flex-shrink-0','flex','items-center'); const pb=document.createElement('button'); pb.classList.add('action-button-icon','pin-icon-btn'); if(go.isPinned){pb.classList.add('pinned'); pb.innerHTML=ICONS.pin_filled; pb.setAttribute('aria-label','Bỏ ghim mục tiêu');} else {pb.innerHTML=ICONS.pin; pb.setAttribute('aria-label','Ghim mục tiêu');} pb.onclick=()=>toggleGoalPin(go.id,goalsListElement); const eb=document.createElement('button'); eb.classList.add('action-button-icon','edit-icon-btn'); eb.innerHTML=ICONS.edit; eb.setAttribute('aria-label','Sửa mục tiêu'); eb.onclick=()=>toggleGoalEdit(go.id,goalsListElement); const cb=document.createElement('button'); cb.classList.add('action-button-icon'); if(go.completed){cb.classList.add('undo-icon-btn'); cb.innerHTML=ICONS.undo; cb.setAttribute('aria-label','Đánh dấu chưa hoàn thành');} else {cb.classList.add('complete-icon-btn'); cb.innerHTML=ICONS.check; cb.setAttribute('aria-label','Đánh dấu hoàn thành');} cb.onclick=()=>toggleGoalComplete(go.id,goalsListElement); const db=document.createElement('button'); db.classList.add('action-button-icon','delete-icon-btn'); db.innerHTML=ICONS.delete; db.setAttribute('aria-label','Xóa mục tiêu'); db.onclick=()=>deleteGoal(go.id,goalsListElement); bc.appendChild(pb); bc.appendChild(eb); bc.appendChild(cb); bc.appendChild(db); gh.appendChild(ne); gh.appendChild(bc); const gd=document.createElement('div'); gd.classList.add('goal-details'); if(go.description){const d=document.createElement('p'); d.classList.add('goal-description'); d.textContent=go.description; gd.appendChild(d);} if(go.dueDate&&!go.completed){const di=document.createElement('div'); const r=calculateDaysRemaining(go.dueDate); di.classList.add('goal-due-date-info',r.class); const dt=document.createElement('span'); dt.classList.add('goal-due-date'); dt.textContent=`Hạn: ${formatDisplayDate(go.dueDate)}`; const rt=document.createElement('span'); rt.classList.add('goal-days-remaining'); rt.textContent=r.text; di.appendChild(dt); di.appendChild(rt); gd.appendChild(di);} else if(go.dueDate&&go.completed){const cd=document.createElement('p'); cd.classList.add('goal-due-date','text-gray-400'); cd.textContent=`(Hạn chót: ${formatDisplayDate(go.dueDate)})`; gd.appendChild(cd);} ge.appendChild(gh); if(gd.hasChildNodes()){ge.appendChild(gd);} goalsListElement.appendChild(ge);}); }
-        function addGoal(nameInput, descInput, dueDateInput, goalsListElement, formElement, showFormBtn) { /* ... (no changes) ... */ if (!nameInput||!descInput||!dueDateInput||!goalsListElement||!formElement||!showFormBtn) return; const gn=nameInput.value.trim(); const gd=descInput.value.trim(); const gdd=dueDateInput.value; if(gn){const g=getGoals(); const n=Date.now(); const ng={id:n, name:gn, description:gd, dueDate:gdd||null, completed:false, createdAt:n, modifiedAt:null, isPinned: false }; g.push(ng); saveGoals(g); nameInput.value=''; descInput.value=''; dueDateInput.value=''; formElement.classList.add('hidden'); showFormBtn.classList.remove('hidden'); displayGoals(goalsListElement, goalSortPreference); console.log("Added goal:",ng);} else { console.log("Goal name empty."); alert("Tên mục tiêu không được để trống!"); } }
-        function deleteGoal(goalId, goalsListElement) { /* ... (no changes) ... */ if (!window.confirm("Bạn có chắc muốn xóa mục tiêu này không?")) return; let g=getGoals(); g=g.filter(go=>go.id!==goalId); saveGoals(g); displayGoals(goalsListElement, goalSortPreference); console.log("Deleted goal ID:",goalId); }
-        function toggleGoalComplete(goalId, goalsListElement) { /* ... (no changes) ... */ let g=getGoals(); const i=g.findIndex(go=>go.id===goalId); if(i>-1){g[i].completed=!g[i].completed; g[i].modifiedAt=Date.now(); saveGoals(g); displayGoals(goalsListElement, goalSortPreference); console.log(`Toggled completion: ${goalId} to ${g[i].completed}`);} else {console.error("Cannot find goal to toggle:",goalId);} }
-        function toggleGoalEdit(goalId, goalsListElement) { /* ... (no changes) ... */ displayGoals(goalsListElement, goalSortPreference); const el=goalsListElement.querySelector(`[data-goal-id='${goalId}']`); if(!el)return; const g=getGoals(); const go=g.find(i=>i.id===goalId); if(!go)return; const ea=document.createElement('div'); ea.classList.add('goal-edit-area','mt-2','pt-2','border-t','border-gray-300'); const nl=document.createElement('label'); nl.textContent="Tên:"; nl.classList.add('block','text-xs','font-medium','text-gray-600','mb-1'); const ni=document.createElement('input'); ni.type='text'; ni.value=go.name; ni.required=true; ea.appendChild(nl); ea.appendChild(ni); const dl=document.createElement('label'); dl.textContent="Mô tả:"; dl.classList.add('block','text-xs','font-medium','text-gray-600','mb-1','mt-2'); const dt=document.createElement('textarea'); dt.rows='3'; dt.value=go.description||''; ea.appendChild(dl); ea.appendChild(dt); const ddl=document.createElement('label'); ddl.textContent="Hạn chót:"; ddl.classList.add('block','text-xs','font-medium','text-gray-600','mb-1','mt-2'); const ddi=document.createElement('input'); ddi.type='date'; ddi.value=go.dueDate||''; ea.appendChild(ddl); ea.appendChild(ddi); const ebc=document.createElement('div'); ebc.classList.add('flex','justify-end','mt-3'); const sb=document.createElement('button'); sb.classList.add('action-button-icon','save-icon-btn'); sb.innerHTML=ICONS.save; sb.setAttribute('aria-label','Lưu thay đổi'); sb.onclick=()=>saveGoalEdit(goalId,ni.value,dt.value,ddi.value,goalsListElement); const cb=document.createElement('button'); cb.classList.add('action-button-icon','cancel-icon-btn'); cb.innerHTML=ICONS.cancel; cb.setAttribute('aria-label','Hủy bỏ'); cb.onclick=()=>displayGoals(goalsListElement, goalSortPreference); ebc.appendChild(sb); ebc.appendChild(cb); ea.appendChild(ebc); el.innerHTML=''; el.appendChild(ea); el.classList.add('editing'); ni.focus(); }
-        function saveGoalEdit(goalId, newName, newDesc, newDueDate, goalsListElement) { /* ... (no changes) ... */ const tn=newName.trim(); if(!tn){alert("Tên mục tiêu không được để trống!"); return;} let g=getGoals(); const i=g.findIndex(go=>go.id===goalId); if(i>-1){g[i].name=tn; g[i].description=newDesc.trim(); g[i].dueDate=newDueDate||null; g[i].modifiedAt=Date.now(); saveGoals(g); displayGoals(goalsListElement, goalSortPreference); console.log("Saved edit for goal:",goalId);} else {console.error("Cannot find goal to save:",goalId); displayGoals(goalsListElement, goalSortPreference);} }
-        function toggleGoalPin(goalId, goalsListElement) { /* ... (no changes) ... */ let g=getGoals(); const i=g.findIndex(go=>go.id===goalId); if(i>-1){g[i].isPinned=!g[i].isPinned; g[i].modifiedAt=Date.now(); saveGoals(g); displayGoals(goalsListElement, goalSortPreference); console.log(`Toggled pin goal: ${goalId} to ${g[i].isPinned}`);} else {console.error("Cannot find goal to pin:",goalId);} }
+
+        // *** UPDATED: displayGoals Function (Apply Zebra Striping) ***
+        function displayGoals(goalsListElement, sortBy = goalSortPreference) {
+            if(!goalsListElement){console.error("Goals list element needed");return;}
+            let goals = getGoals();
+            goalsListElement.innerHTML='';
+
+            if(goals.length===0){ goalsListElement.innerHTML='<p class="empty-state-message">Chưa có mục tiêu nào.</p>'; return; }
+
+            // Sort logic remains the same
+            goals.sort((a,b)=>{if(a.isPinned!==b.isPinned){return b.isPinned-a.isPinned;} switch(sortBy){case 'due_date_asc': return (new Date(a.dueDate||'9999-12-31'))-(new Date(b.dueDate||'9999-12-31')); case 'due_date_desc': return (new Date(b.dueDate||'0000-01-01'))-(new Date(a.dueDate||'0000-01-01')); case 'name_asc': return (a.name||'').localeCompare(b.name||''); case 'name_desc': return (b.name||'').localeCompare(a.name||''); case 'newest': return (b.createdAt||0)-(a.createdAt||0); case 'oldest': return (a.createdAt||0)-(b.createdAt||0); case 'default': default: return (a.completed-b.completed)||(new Date(a.dueDate||'9999-12-31')-new Date(b.dueDate||'9999-12-31'))||(b.createdAt-a.createdAt);}});
+
+            // Render sorted goals
+            goals.forEach((go, index)=>{ // Added index
+                const goalElement = document.createElement('div'); // Renamed to goalElement
+                goalElement.dataset.goalId = go.id;
+                // Apply alternating background
+                const bgColor = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                goalElement.classList.add('goal-item', bgColor); // Removed list-item-hover
+
+                if(go.completed) {
+                    goalElement.classList.add('completed');
+                    goalElement.classList.remove('bg-white', 'bg-gray-50'); // Keep completed distinct
+                }
+                 if(go.isPinned) {
+                    goalElement.classList.add('pinned');
+                    goalElement.classList.remove('bg-white', 'bg-gray-50'); // Keep pinned distinct
+                 }
+                 if(go.isPinned){const pi=document.createElement('span'); pi.classList.add('pin-indicator'); pi.style.color='#4f46e5'; pi.innerHTML=ICONS.pin_filled; goalElement.appendChild(pi);}
+
+                 // Rest of the goal element creation remains the same...
+                 const gh=document.createElement('div'); gh.classList.add('goal-header'); const ne=document.createElement('span'); ne.classList.add('goal-name'); ne.textContent=go.name; const bc=document.createElement('div'); bc.classList.add('flex-shrink-0','flex','items-center'); const pb=document.createElement('button'); pb.classList.add('action-button-icon','pin-icon-btn'); if(go.isPinned){pb.classList.add('pinned'); pb.innerHTML=ICONS.pin_filled; pb.setAttribute('aria-label','Bỏ ghim mục tiêu');} else {pb.innerHTML=ICONS.pin; pb.setAttribute('aria-label','Ghim mục tiêu');} pb.onclick=()=>toggleGoalPin(go.id,goalsListElement); const eb=document.createElement('button'); eb.classList.add('action-button-icon','edit-icon-btn'); eb.innerHTML=ICONS.edit; eb.setAttribute('aria-label','Sửa mục tiêu'); eb.onclick=()=>toggleGoalEdit(go.id,goalsListElement); const cb=document.createElement('button'); cb.classList.add('action-button-icon'); if(go.completed){cb.classList.add('undo-icon-btn'); cb.innerHTML=ICONS.undo; cb.setAttribute('aria-label','Đánh dấu chưa hoàn thành');} else {cb.classList.add('complete-icon-btn'); cb.innerHTML=ICONS.check; cb.setAttribute('aria-label','Đánh dấu hoàn thành');} cb.onclick=()=>toggleGoalComplete(go.id,goalsListElement); const db=document.createElement('button'); db.classList.add('action-button-icon','delete-icon-btn'); db.innerHTML=ICONS.delete; db.setAttribute('aria-label','Xóa mục tiêu'); db.onclick=()=>deleteGoal(go.id,goalsListElement); bc.appendChild(pb); bc.appendChild(eb); bc.appendChild(cb); bc.appendChild(db); gh.appendChild(ne); gh.appendChild(bc); const gd=document.createElement('div'); gd.classList.add('goal-details'); if(go.description){const d=document.createElement('p'); d.classList.add('goal-description'); d.textContent=go.description; gd.appendChild(d);} if(go.dueDate&&!go.completed){const di=document.createElement('div'); const r=calculateDaysRemaining(go.dueDate); di.classList.add('goal-due-date-info',r.class); const dt=document.createElement('span'); dt.classList.add('goal-due-date'); dt.textContent=`Hạn: ${formatDisplayDate(go.dueDate)}`; const rt=document.createElement('span'); rt.classList.add('goal-days-remaining'); rt.textContent=r.text; di.appendChild(dt); di.appendChild(rt); gd.appendChild(di);} else if(go.dueDate&&go.completed){const cd=document.createElement('p'); cd.classList.add('goal-due-date','text-gray-400'); cd.textContent=`(Hạn chót: ${formatDisplayDate(go.dueDate)})`; gd.appendChild(cd);}
+                 goalElement.appendChild(gh);
+                 if(gd.hasChildNodes()){goalElement.appendChild(gd);}
+                 goalsListElement.appendChild(goalElement);
+            });
+        }
+
+        // Update calls to displayGoals to pass the current sort preference
+        function addGoal(nameInput, descInput, dueDateInput, goalsListElement, formElement, showFormBtn) { if (!nameInput||!descInput||!dueDateInput||!goalsListElement||!formElement||!showFormBtn) return; const gn=nameInput.value.trim(); const gd=descInput.value.trim(); const gdd=dueDateInput.value; if(gn){const g=getGoals(); const n=Date.now(); const ng={id:n, name:gn, description:gd, dueDate:gdd||null, completed:false, createdAt:n, modifiedAt:null, isPinned: false }; g.push(ng); saveGoals(g); nameInput.value=''; descInput.value=''; dueDateInput.value=''; formElement.classList.add('hidden'); showFormBtn.classList.remove('hidden'); displayGoals(goalsListElement, goalSortPreference); console.log("Added goal:",ng);} else { console.log("Goal name empty."); alert("Tên mục tiêu không được để trống!"); } }
+        function deleteGoal(goalId, goalsListElement) { if (!window.confirm("Bạn có chắc muốn xóa mục tiêu này không?")) return; let g=getGoals(); g=g.filter(go=>go.id!==goalId); saveGoals(g); displayGoals(goalsListElement, goalSortPreference); console.log("Deleted goal ID:",goalId); }
+        function toggleGoalComplete(goalId, goalsListElement) { let g=getGoals(); const i=g.findIndex(go=>go.id===goalId); if(i>-1){g[i].completed=!g[i].completed; g[i].modifiedAt=Date.now(); saveGoals(g); displayGoals(goalsListElement, goalSortPreference); console.log(`Toggled completion: ${goalId} to ${g[i].completed}`);} else {console.error("Cannot find goal to toggle:",goalId);} }
+        function toggleGoalEdit(goalId, goalsListElement) { displayGoals(goalsListElement, goalSortPreference); const el=goalsListElement.querySelector(`[data-goal-id='${goalId}']`); if(!el)return; const g=getGoals(); const go=g.find(i=>i.id===goalId); if(!go)return; const ea=document.createElement('div'); ea.classList.add('goal-edit-area','mt-2','pt-2','border-t','border-gray-300'); const nl=document.createElement('label'); nl.textContent="Tên:"; nl.classList.add('block','text-xs','font-medium','text-gray-600','mb-1'); const ni=document.createElement('input'); ni.type='text'; ni.value=go.name; ni.required=true; ea.appendChild(nl); ea.appendChild(ni); const dl=document.createElement('label'); dl.textContent="Mô tả:"; dl.classList.add('block','text-xs','font-medium','text-gray-600','mb-1','mt-2'); const dt=document.createElement('textarea'); dt.rows='3'; dt.value=go.description||''; ea.appendChild(dl); ea.appendChild(dt); const ddl=document.createElement('label'); ddl.textContent="Hạn chót:"; ddl.classList.add('block','text-xs','font-medium','text-gray-600','mb-1','mt-2'); const ddi=document.createElement('input'); ddi.type='date'; ddi.value=go.dueDate||''; ea.appendChild(ddl); ea.appendChild(ddi); const ebc=document.createElement('div'); ebc.classList.add('flex','justify-end','mt-3'); const sb=document.createElement('button'); sb.classList.add('action-button-icon','save-icon-btn'); sb.innerHTML=ICONS.save; sb.setAttribute('aria-label','Lưu thay đổi'); sb.onclick=()=>saveGoalEdit(goalId,ni.value,dt.value,ddi.value,goalsListElement); const cb=document.createElement('button'); cb.classList.add('action-button-icon','cancel-icon-btn'); cb.innerHTML=ICONS.cancel; cb.setAttribute('aria-label','Hủy bỏ'); cb.onclick=()=>displayGoals(goalsListElement, goalSortPreference); ebc.appendChild(sb); ebc.appendChild(cb); ea.appendChild(ebc); el.innerHTML=''; el.appendChild(ea); el.classList.add('editing'); ni.focus(); }
+        function saveGoalEdit(goalId, newName, newDesc, newDueDate, goalsListElement) { const tn=newName.trim(); if(!tn){alert("Tên mục tiêu không được để trống!"); return;} let g=getGoals(); const i=g.findIndex(go=>go.id===goalId); if(i>-1){g[i].name=tn; g[i].description=newDesc.trim(); g[i].dueDate=newDueDate||null; g[i].modifiedAt=Date.now(); saveGoals(g); displayGoals(goalsListElement, goalSortPreference); console.log("Saved edit for goal:",goalId);} else {console.error("Cannot find goal to save:",goalId); displayGoals(goalsListElement, goalSortPreference);} }
+        function toggleGoalPin(goalId, goalsListElement) { let g=getGoals(); const i=g.findIndex(go=>go.id===goalId); if(i>-1){g[i].isPinned=!g[i].isPinned; g[i].modifiedAt=Date.now(); saveGoals(g); displayGoals(goalsListElement, goalSortPreference); console.log(`Toggled pin goal: ${goalId} to ${g[i].isPinned}`);} else {console.error("Cannot find goal to pin:",goalId);} }
 
 
         // --- Habit Management Functions ---
@@ -220,126 +289,44 @@
         function saveHabits(habits) { /* ... (no changes) ... */ localStorage.setItem(HABITS_STORAGE_KEY,JSON.stringify(habits)); }
         function calculateCurrentStreak(completedDates) { /* ... (no changes) ... */ if(!Array.isArray(completedDates)||completedDates.length===0){return 0;} const sd=completedDates.map(ds=>new Date(ds)).sort((a,b)=>b-a); let s=0; const t=new Date(); t.setHours(0,0,0,0); const y=new Date(t); y.setDate(t.getDate()-1); if(sd[0].getTime()===t.getTime()||sd[0].getTime()===y.getTime()){s=1; let ced=new Date(sd[0]); for(let i=1;i<sd.length;i++){ced.setDate(ced.getDate()-1); if(sd[i].getTime()===ced.getTime()){s++;} else {break;}}} return s; }
         function calculateHabitStats() { /* ... (no changes) ... */ const h=getHabits(); const ts=getTodayDateString(); const th=h.length; let ct=0; let tcl7d=0; let tpcl7d=0; h.forEach(ha=>{if(ha.completedDates.includes(ts)){ct++;}}); for(let i=0;i<7;i++){const d=new Date(); d.setDate(d.getDate()-i); const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; let dc=0; h.forEach(ha=>{if(ha.createdAt<=d.getTime()){tpcl7d++; if(ha.completedDates.includes(ds)){dc++; tcl7d++;}}});} const tcr=th>0?Math.round((ct/th)*100):0; const l7dcr=tpcl7d>0?Math.round((tcl7d/tpcl7d)*100):0; return {totalHabits:th, completedToday:ct, todayCompletionRate:tcr, last7DaysCompletionRate:l7dcr}; }
-        function displayHabits(habitsListElement) { /* ... (no changes) ... */ if(!habitsListElement){console.error("Habits list element needed");return;} const h=getHabits(); const ts=getTodayDateString(); habitsListElement.innerHTML=''; if(h.length===0){habitsListElement.innerHTML='<p class="empty-state-message">Chưa có thói quen nào được tạo.</p>';return;} h.sort((a,b)=>a.name.localeCompare(b.name)); h.forEach(ha=>{const he=document.createElement('div'); he.dataset.habitId=ha.id; he.classList.add('habit-item','list-item-hover'); const hi=document.createElement('div'); hi.classList.add('habit-info'); const ne=document.createElement('span'); ne.classList.add('habit-name'); ne.textContent=ha.name; hi.appendChild(ne); const cs=calculateCurrentStreak(ha.completedDates); if(cs>0){const se=document.createElement('span'); se.classList.add('habit-streak'); se.innerHTML=`${ICONS.fire} ${cs}`; se.title=`Chuỗi ${cs} ngày liên tiếp!`; hi.appendChild(se);} const cc=document.createElement('div'); cc.classList.add('flex','items-center'); const ict=ha.completedDates.includes(ts); const ci=`habit-check-${ha.id}`; const cl=document.createElement('label'); cl.htmlFor=ci; cl.classList.add('habit-checkbox-label'); if(ict){cl.classList.add('checked'); cl.innerHTML=ICONS.check;} const cb=document.createElement('input'); cb.type='checkbox'; cb.id=ci; cb.checked=ict; cb.classList.add('habit-checkbox'); cb.onchange=()=>toggleHabitCompletion(ha.id,habitsListElement); const eb=document.createElement('button'); eb.classList.add('action-button-icon','edit-icon-btn'); eb.innerHTML=ICONS.edit; eb.setAttribute('aria-label','Sửa tên thói quen'); eb.onclick=()=>toggleHabitEdit(ha.id,habitsListElement); const hb=document.createElement('button'); hb.classList.add('action-button-icon','history-icon-btn'); hb.innerHTML=ICONS.history; hb.setAttribute('aria-label','Xem lịch sử'); hb.onclick=()=>showHabitHistory(ha.id); const db=document.createElement('button'); db.classList.add('action-button-icon','delete-icon-btn'); db.innerHTML=ICONS.delete; db.setAttribute('aria-label','Xóa thói quen'); db.onclick=()=>deleteHabit(ha.id,habitsListElement); cc.appendChild(cl); cc.appendChild(cb); cc.appendChild(eb); cc.appendChild(hb); cc.appendChild(db); he.appendChild(hi); he.appendChild(cc); habitsListElement.appendChild(he);}); }
+
+        // *** UPDATED: displayHabits Function (Apply Zebra Striping) ***
+        function displayHabits(habitsListElement) {
+            if (!habitsListElement) { console.error("Habits list element needed"); return; }
+            const habits = getHabits();
+            const todayStr = getTodayDateString();
+            habitsListElement.innerHTML = '';
+
+            if (habits.length === 0) { habitsListElement.innerHTML = '<p class="empty-state-message">Chưa có thói quen nào được tạo.</p>'; return; }
+
+            habits.sort((a, b) => a.name.localeCompare(b.name));
+
+            habits.forEach((ha, index) => { // Added index
+                const habitElement = document.createElement('div'); // Renamed to habitElement
+                habitElement.dataset.habitId = ha.id;
+                // Apply alternating background
+                const bgColor = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                habitElement.classList.add('habit-item', bgColor); // Removed list-item-hover
+
+                // Rest of the habit element creation remains the same...
+                const hi=document.createElement('div'); hi.classList.add('habit-info'); const ne=document.createElement('span'); ne.classList.add('habit-name'); ne.textContent=ha.name; hi.appendChild(ne); const cs=calculateCurrentStreak(ha.completedDates); if(cs>0){const se=document.createElement('span'); se.classList.add('habit-streak'); se.innerHTML=`${ICONS.fire} ${cs}`; se.title=`Chuỗi ${cs} ngày liên tiếp!`; hi.appendChild(se);} const cc=document.createElement('div'); cc.classList.add('flex','items-center'); const ict=ha.completedDates.includes(todayStr); const ci=`habit-check-${ha.id}`; const cl=document.createElement('label'); cl.htmlFor=ci; cl.classList.add('habit-checkbox-label'); if(ict){cl.classList.add('checked'); cl.innerHTML=ICONS.check;} const cb=document.createElement('input'); cb.type='checkbox'; cb.id=ci; cb.checked=ict; cb.classList.add('habit-checkbox'); cb.onchange=()=>toggleHabitCompletion(ha.id,habitsListElement); const eb=document.createElement('button'); eb.classList.add('action-button-icon','edit-icon-btn'); eb.innerHTML=ICONS.edit; eb.setAttribute('aria-label','Sửa tên thói quen'); eb.onclick=()=>toggleHabitEdit(ha.id,habitsListElement); const hb=document.createElement('button'); hb.classList.add('action-button-icon','history-icon-btn'); hb.innerHTML=ICONS.history; hb.setAttribute('aria-label','Xem lịch sử'); hb.onclick=()=>showHabitHistory(ha.id); const db=document.createElement('button'); db.classList.add('action-button-icon','delete-icon-btn'); db.innerHTML=ICONS.delete; db.setAttribute('aria-label','Xóa thói quen'); db.onclick=()=>deleteHabit(ha.id,habitsListElement); cc.appendChild(cl); cc.appendChild(cb); cc.appendChild(eb); cc.appendChild(hb); cc.appendChild(db);
+                habitElement.appendChild(hi); habitElement.appendChild(cc);
+                habitsListElement.appendChild(habitElement);
+            });
+        }
+
         function addHabit(habitInputElement, habitsListElement, formElement, showFormBtn) { /* ... (no changes) ... */ if(!habitInputElement||!habitsListElement||!formElement||!showFormBtn)return; const hn=habitInputElement.value.trim(); if(hn){const h=getHabits(); if(h.some(ha=>ha.name.toLowerCase()===hn.toLowerCase())){alert(`Thói quen "${hn}" đã tồn tại!`); return;} const n=Date.now(); const nh={id:n, name:hn, createdAt:n, completedDates:[]}; h.push(nh); saveHabits(h); habitInputElement.value=''; formElement.classList.add('hidden'); showFormBtn.classList.remove('hidden'); displayHabits(habitsListElement); const sa=document.getElementById('habit-stats-area'); if(sa){const s=calculateHabitStats(); sa.innerHTML=`${s.totalHabits>0?`Hoàn thành hôm nay: <strong>${s.completedToday}/${s.totalHabits}</strong> (${s.todayCompletionRate}%)`:'Thêm thói quen để bắt đầu theo dõi!'}${s.totalHabits>0?`<br>Tỷ lệ hoàn thành (7 ngày qua): <strong>${s.last7DaysCompletionRate}%</strong>`:''}`;} console.log("Added habit:",nh);} else {alert("Tên thói quen không được để trống!");} }
         function deleteHabit(habitId, habitsListElement) { /* ... (no changes) ... */ if(!window.confirm("Bạn có chắc muốn xóa thói quen này? Việc này cũng sẽ xóa lịch sử hoàn thành của nó."))return; let h=getHabits(); h=h.filter(ha=>ha.id!==habitId); saveHabits(h); displayHabits(habitsListElement); const sa=document.getElementById('habit-stats-area'); if(sa){const s=calculateHabitStats(); sa.innerHTML=`${s.totalHabits>0?`Hoàn thành hôm nay: <strong>${s.completedToday}/${s.totalHabits}</strong> (${s.todayCompletionRate}%)`:'Thêm thói quen để bắt đầu theo dõi!'}${s.totalHabits>0?`<br>Tỷ lệ hoàn thành (7 ngày qua): <strong>${s.last7DaysCompletionRate}%</strong>`:''}`;} console.log("Deleted habit ID:",habitId); }
         function toggleHabitCompletion(habitId, habitsListElement) { /* ... (no changes) ... */ let h=getHabits(); const i=h.findIndex(ha=>ha.id===habitId); const t=getTodayDateString(); if(i>-1){const cd=h[i].completedDates; const di=cd.indexOf(t); if(di>-1){cd.splice(di,1); console.log(`Unmarked habit ${habitId} for ${t}`);} else {cd.push(t); console.log(`Marked habit ${habitId} for ${t}`);} saveHabits(h); displayHabits(habitsListElement); const sa=document.getElementById('habit-stats-area'); if(sa){const s=calculateHabitStats(); sa.innerHTML=`${s.totalHabits>0?`Hoàn thành hôm nay: <strong>${s.completedToday}/${s.totalHabits}</strong> (${s.todayCompletionRate}%)`:'Thêm thói quen để bắt đầu theo dõi!'}${s.totalHabits>0?`<br>Tỷ lệ hoàn thành (7 ngày qua): <strong>${s.last7DaysCompletionRate}%</strong>`:''}`;} } else {console.error("Cannot find habit to toggle:",habitId);} }
-
-        // *** UPDATED: showHabitHistory Function ***
-        function showHabitHistory(habitId) {
-            const habits = getHabits();
-            const habit = habits.find(h => h.id === habitId);
-            if (!habit) {
-                console.error("Không tìm thấy thói quen để xem lịch sử:", habitId);
-                return;
-            }
-
-            currentHistoryHabitId = habitId; // Store current habit ID for calendar updates
-            calendarDate = new Date(); // Reset calendar to current month when opening
-
-            const modal = document.getElementById('habit-history-modal');
-            const modalHabitName = document.getElementById('modal-habit-name');
-            const closeBtn = document.getElementById('close-history-modal-btn');
-            const prevMonthBtn = document.getElementById('prev-month-btn');
-            const nextMonthBtn = document.getElementById('next-month-btn');
-
-            modalHabitName.textContent = `Lịch sử: ${habit.name}`;
-
-            // Generate and display calendar for the current month
-            renderCalendar(habit.completedDates);
-
-            // Show the modal
-            modal.classList.remove('hidden');
-
-            // --- Event Listeners for Modal ---
-            // Close button
-            closeBtn.onclick = () => modal.classList.add('hidden');
-
-            // Previous month
-            prevMonthBtn.onclick = () => {
-                calendarDate.setMonth(calendarDate.getMonth() - 1);
-                renderCalendar(habit.completedDates);
-            };
-
-            // Next month
-            nextMonthBtn.onclick = () => {
-                calendarDate.setMonth(calendarDate.getMonth() + 1);
-                renderCalendar(habit.completedDates);
-            };
-
-            // Close modal if clicking outside the content
-            modal.onclick = (event) => {
-                if (event.target === modal) {
-                    modal.classList.add('hidden');
-                }
-            };
-        }
-
-        // *** NEW: Render Calendar Function ***
-        function renderCalendar(completedDatesSet) {
-            const year = calendarDate.getFullYear();
-            const month = calendarDate.getMonth(); // 0-indexed
-
-            const monthYearStr = `Tháng ${month + 1} ${year}`;
-            document.getElementById('current-month-year').textContent = monthYearStr;
-
-            const gridContainer = document.getElementById('calendar-grid-container');
-            gridContainer.innerHTML = ''; // Clear previous grid
-
-            // Add day headers (T2, T3, ..., CN)
-            const daysOfWeek = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-            daysOfWeek.forEach(day => {
-                const dayHeader = document.createElement('div');
-                dayHeader.classList.add('calendar-day-header');
-                dayHeader.textContent = day;
-                gridContainer.appendChild(dayHeader);
-            });
-
-            const firstDayOfMonth = new Date(year, month, 1);
-            const lastDayOfMonth = new Date(year, month + 1, 0);
-            const daysInMonth = lastDayOfMonth.getDate();
-            // Adjust starting day: 0=Sun, 1=Mon,... We want Mon=0, Sun=6
-            let startDayOfWeek = firstDayOfMonth.getDay(); // 0 (Sun) to 6 (Sat)
-            startDayOfWeek = (startDayOfWeek === 0) ? 6 : startDayOfWeek - 1; // Adjust to Mon=0, Sun=6
-
-            const todayStr = getTodayDateString(); // Get today's date string for highlighting
-
-            // Add empty cells for days before the 1st of the month
-            for (let i = 0; i < startDayOfWeek; i++) {
-                gridContainer.appendChild(document.createElement('div'));
-            }
-
-            // Add day cells for the current month
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayCell = document.createElement('div');
-                dayCell.classList.add('calendar-day');
-                dayCell.textContent = day;
-
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-
-                // Highlight today
-                if (dateStr === todayStr) {
-                    dayCell.classList.add('today');
-                }
-
-                // Highlight completed days
-                if (completedDatesSet.includes(dateStr)) {
-                    dayCell.classList.add('completed');
-                    dayCell.title = `Đã hoàn thành ngày ${day}/${month + 1}/${year}`;
-                }
-
-                gridContainer.appendChild(dayCell);
-            }
-        }
-
-
+        function showHabitHistory(habitId) { /* ... (no changes) ... */ const h=getHabits(); const ha=h.find(i=>i.id===habitId); if(!ha){console.error("Không tìm thấy thói quen:",habitId); return;} currentHistoryHabitId=habitId; calendarDate=new Date(); const m=document.getElementById('habit-history-modal'); const mn=document.getElementById('modal-habit-name'); const cb=document.getElementById('close-history-modal-btn'); const pb=document.getElementById('prev-month-btn'); const nb=document.getElementById('next-month-btn'); mn.textContent=`Lịch sử: ${ha.name}`; renderCalendar(ha.completedDates); m.classList.remove('hidden'); cb.onclick=()=>m.classList.add('hidden'); pb.onclick=()=>{calendarDate.setMonth(calendarDate.getMonth()-1); renderCalendar(ha.completedDates);}; nb.onclick=()=>{calendarDate.setMonth(calendarDate.getMonth()+1); renderCalendar(ha.completedDates);}; m.onclick=(e)=>{if(e.target===m){m.classList.add('hidden');}}; }
+        function renderCalendar(completedDatesSet) { /* ... (no changes) ... */ const y=calendarDate.getFullYear(); const m=calendarDate.getMonth(); const ms=`Tháng ${m+1} ${y}`; document.getElementById('current-month-year').textContent=ms; const gc=document.getElementById('calendar-grid-container'); gc.innerHTML=''; const dow=['T2','T3','T4','T5','T6','T7','CN']; dow.forEach(d=>{const dh=document.createElement('div'); dh.classList.add('calendar-day-header'); dh.textContent=d; gc.appendChild(dh);}); const fd=new Date(y,m,1); const ld=new Date(y,m+1,0); const dim=ld.getDate(); let sdow=fd.getDay(); sdow=(sdow===0)?6:sdow-1; const ts=getTodayDateString(); for(let i=0;i<sdow;i++){gc.appendChild(document.createElement('div'));} for(let d=1;d<=dim;d++){const dc=document.createElement('div'); dc.classList.add('calendar-day'); dc.textContent=d; const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; if(ds===ts){dc.classList.add('today');} if(completedDatesSet.includes(ds)){dc.classList.add('completed'); dc.title=`Đã hoàn thành ngày ${d}/${m+1}/${y}`;} gc.appendChild(dc);} }
         function toggleHabitEdit(habitId, habitsListElement) { /* ... (no changes) ... */ displayHabits(habitsListElement); const el=habitsListElement.querySelector(`[data-habit-id='${habitId}']`); if(!el)return; const h=getHabits(); const ha=h.find(i=>i.id===habitId); if(!ha)return; const hic=el.querySelector('.habit-info'); const cc=el.querySelector('.flex.items-center'); if(!hic||!cc)return; hic.innerHTML=''; const ei=document.createElement('input'); ei.type='text'; ei.value=ha.name; ei.classList.add('habit-edit-input'); ei.required=true; hic.appendChild(ei); cc.innerHTML=''; const sb=document.createElement('button'); sb.classList.add('action-button-icon','save-icon-btn'); sb.innerHTML=ICONS.save; sb.setAttribute('aria-label','Lưu tên thói quen'); sb.onclick=()=>saveHabitEdit(habitId,ei.value,habitsListElement); const cb=document.createElement('button'); cb.classList.add('action-button-icon','cancel-icon-btn'); cb.innerHTML=ICONS.cancel; cb.setAttribute('aria-label','Hủy bỏ'); cb.onclick=()=>displayHabits(habitsListElement); cc.appendChild(sb); cc.appendChild(cb); el.classList.add('editing'); ei.focus(); ei.select(); }
         function saveHabitEdit(habitId, newName, habitsListElement) { /* ... (no changes) ... */ const tn=newName.trim(); if(!tn){alert("Tên thói quen không được để trống!");return;} let h=getHabits(); const de=h.some(ha=>ha.id!==habitId&&ha.name.toLowerCase()===tn.toLowerCase()); if(de){alert(`Tên thói quen "${tn}" đã tồn tại! Vui lòng chọn tên khác.`);return;} const i=h.findIndex(ha=>ha.id===habitId); if(i>-1){h[i].name=tn; saveHabits(h); displayHabits(habitsListElement); console.log(`Saved edit for habit ID: ${habitId}, new name: ${tn}`);} else {console.error("Could not find habit to save edit:",habitId); displayHabits(habitsListElement);} }
 
         // --- Initialization and Event Listeners ---
         navLinks.forEach(link => { /* ... (no changes) ... */ link.addEventListener('click',(e)=>{e.preventDefault(); const sm=e.target.dataset.module; if(sm&&sm!==currentModule){currentModule=sm; renderAppContent();}}); });
         document.addEventListener('DOMContentLoaded', renderAppContent);
-        console.log("Personal App v1.0 with Calendar History!");
+        console.log("Personal App v1.1 with Zebra Striping!");
 
     </script>
 

@@ -9,10 +9,21 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* Thêm style để các dòng mới trong ghi chú được hiển thị */
-        .note-content {
-            white-space: pre-wrap; /* Giữ lại khoảng trắng và xuống dòng */
-            word-break: break-word; /* Ngăn chữ quá dài làm vỡ layout */
+        .note-content, .edit-textarea { /* Áp dụng style cho cả p và textarea */
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .edit-textarea { /* Style riêng cho textarea khi sửa */
+            min-height: 60px; /* Chiều cao tối thiểu */
+        }
+        /* Style cho các nút nhỏ hơn */
+        .action-button {
+            font-size: 0.875rem; /* text-sm */
+            padding: 0.25rem 0.5rem; /* py-1 px-2 */
+            margin-left: 0.5rem; /* ml-2 */
+            border-radius: 0.375rem; /* rounded-md */
+            transition: background-color 0.15s ease-in-out;
+            font-weight: 500; /* medium */
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -48,114 +59,201 @@
     </footer>
 
     <script>
-        // Lấy các phần tử DOM cần thiết
         const noteInput = document.getElementById('note-input');
         const addNoteBtn = document.getElementById('add-note-btn');
         const notesList = document.getElementById('notes-list');
 
-        // --- Quản lý Ghi chú ---
+        // --- Note Management ---
 
-        // Hàm lấy ghi chú từ localStorage
         function getNotes() {
-            // Lấy dữ liệu từ localStorage, nếu không có thì trả về mảng rỗng
             const notes = localStorage.getItem('quickNotes');
             return notes ? JSON.parse(notes) : [];
         }
 
-        // Hàm lưu ghi chú vào localStorage
         function saveNotes(notes) {
-            // Chuyển mảng notes thành chuỗi JSON và lưu
             localStorage.setItem('quickNotes', JSON.stringify(notes));
         }
 
-        // Hàm hiển thị ghi chú lên giao diện
         function displayNotes() {
             const notes = getNotes();
-            // Xóa danh sách hiện tại trước khi hiển thị lại
-            notesList.innerHTML = '';
+            notesList.innerHTML = ''; // Clear current list
 
             if (notes.length === 0) {
                 notesList.innerHTML = '<p class="text-gray-500">Chưa có ghi chú nào.</p>';
                 return;
             }
 
-            // Sắp xếp ghi chú mới nhất lên đầu (theo timestamp giảm dần)
-            notes.sort((a, b) => b.id - a.id);
+            notes.sort((a, b) => b.id - a.id); // Show newest first
 
-            // Tạo và thêm từng phần tử ghi chú vào danh sách
             notes.forEach(note => {
                 const noteElement = document.createElement('div');
+                // Store note id directly on the element for easy access
+                noteElement.dataset.noteId = note.id;
                 noteElement.classList.add('bg-yellow-100', 'p-3', 'rounded-md', 'shadow-sm', 'flex', 'justify-between', 'items-start');
 
-                // Nội dung ghi chú
+                // Container for content (will hold <p> or <textarea>)
+                const contentContainer = document.createElement('div');
+                contentContainer.classList.add('flex-grow', 'mr-2');
+
                 const contentElement = document.createElement('p');
-                contentElement.classList.add('note-content', 'text-gray-700', 'flex-grow', 'mr-2'); // Thêm class note-content
+                contentElement.classList.add('note-content', 'text-gray-700');
                 contentElement.textContent = note.content;
+                contentContainer.appendChild(contentElement);
 
-                // Nút xóa ghi chú
+                // Container for buttons
+                const buttonContainer = document.createElement('div');
+                buttonContainer.classList.add('flex-shrink-0', 'flex'); // Use flex for button alignment
+
+                // Edit Button
+                const editButton = document.createElement('button');
+                editButton.classList.add('text-blue-600', 'hover:text-blue-800', 'action-button');
+                editButton.textContent = 'Sửa';
+                editButton.onclick = () => toggleEdit(note.id);
+
+                // Delete Button
                 const deleteButton = document.createElement('button');
-                deleteButton.classList.add('text-red-500', 'hover:text-red-700', 'font-semibold', 'text-sm', 'ml-2', 'px-2', 'py-1', 'rounded', 'hover:bg-red-100', 'transition', 'duration-150');
+                deleteButton.classList.add('text-red-500', 'hover:text-red-700', 'action-button');
                 deleteButton.textContent = 'Xóa';
-                deleteButton.onclick = () => deleteNote(note.id); // Gán sự kiện xóa
+                deleteButton.onclick = () => deleteNote(note.id);
 
-                noteElement.appendChild(contentElement);
-                noteElement.appendChild(deleteButton);
+                buttonContainer.appendChild(editButton);
+                buttonContainer.appendChild(deleteButton);
+
+                noteElement.appendChild(contentContainer);
+                noteElement.appendChild(buttonContainer);
                 notesList.appendChild(noteElement);
             });
         }
 
-        // Hàm thêm ghi chú mới
         function addNote() {
-            const noteContent = noteInput.value.trim(); // Lấy nội dung và loại bỏ khoảng trắng thừa
-
-            if (noteContent) { // Chỉ thêm nếu có nội dung
+            const noteContent = noteInput.value.trim();
+            if (noteContent) {
                 const notes = getNotes();
                 const newNote = {
-                    id: Date.now(), // Sử dụng timestamp làm ID duy nhất
+                    id: Date.now(),
                     content: noteContent
                 };
-                notes.push(newNote); // Thêm ghi chú mới vào mảng
-                saveNotes(notes); // Lưu lại vào localStorage
-                noteInput.value = ''; // Xóa nội dung trong textarea
-                displayNotes(); // Cập nhật lại danh sách hiển thị
-                console.log("Đã thêm ghi chú:", newNote);
+                notes.push(newNote);
+                saveNotes(notes);
+                noteInput.value = '';
+                displayNotes();
+                console.log("Added note:", newNote);
             } else {
-                // Có thể thêm thông báo lỗi nếu người dùng không nhập gì
-                console.log("Nội dung ghi chú trống.");
+                console.log("Note content is empty.");
+                // Optionally show an error message to the user
             }
         }
 
-        // Hàm xóa ghi chú
         function deleteNote(noteId) {
+            // Optional: Add a confirmation dialog
+            // if (!confirm("Bạn có chắc muốn xóa ghi chú này?")) {
+            //     return;
+            // }
             let notes = getNotes();
-            // Lọc ra các ghi chú không có ID trùng với noteId cần xóa
             notes = notes.filter(note => note.id !== noteId);
-            saveNotes(notes); // Lưu lại danh sách đã cập nhật
-            displayNotes(); // Hiển thị lại danh sách
-            console.log("Đã xóa ghi chú ID:", noteId);
+            saveNotes(notes);
+            displayNotes();
+            console.log("Deleted note ID:", noteId);
+        }
+
+        // Function to toggle between view and edit mode
+        function toggleEdit(noteId) {
+            const noteElement = notesList.querySelector(`[data-note-id='${noteId}']`);
+            if (!noteElement) return; // Should not happen
+
+            const contentContainer = noteElement.querySelector('div:first-child'); // First div holds content
+            const buttonContainer = noteElement.querySelector('div:last-child');  // Last div holds buttons
+            const isEditing = noteElement.classList.contains('editing');
+
+            if (isEditing) {
+                // If currently editing, switch back to view mode (Cancel functionality)
+                // Simply re-displaying notes handles this cleanly
+                displayNotes();
+            } else {
+                // Switch to edit mode
+                // First, cancel any other potential edits by redrawing
+                displayNotes();
+                // Find the element again after redraw
+                const freshNoteElement = notesList.querySelector(`[data-note-id='${noteId}']`);
+                if (!freshNoteElement) return;
+
+                const freshContentContainer = freshNoteElement.querySelector('div:first-child');
+                const freshButtonContainer = freshNoteElement.querySelector('div:last-child');
+                const notes = getNotes();
+                const note = notes.find(n => n.id === noteId);
+
+                if (!note) return; // Note not found
+
+                // Create textarea for editing
+                const editInput = document.createElement('textarea');
+                editInput.classList.add('w-full', 'p-1', 'border', 'border-gray-300', 'rounded-md', 'focus:outline-none', 'focus:ring-1', 'focus:ring-blue-500', 'edit-textarea', 'note-content'); // Reuse note-content class
+                editInput.value = note.content;
+
+                // Create Save button
+                const saveButton = document.createElement('button');
+                saveButton.classList.add('text-green-600', 'hover:text-green-800', 'action-button');
+                saveButton.textContent = 'Lưu';
+                saveButton.onclick = () => saveEdit(noteId, editInput.value);
+
+                // Create Cancel button
+                const cancelButton = document.createElement('button');
+                cancelButton.classList.add('text-gray-600', 'hover:text-gray-800', 'action-button');
+                cancelButton.textContent = 'Hủy';
+                cancelButton.onclick = () => displayNotes(); // Cancel reverts by re-displaying
+
+                // Replace content and buttons
+                freshContentContainer.innerHTML = ''; // Clear the <p> tag
+                freshContentContainer.appendChild(editInput);
+
+                freshButtonContainer.innerHTML = ''; // Clear Edit/Delete buttons
+                freshButtonContainer.appendChild(saveButton);
+                freshButtonContainer.appendChild(cancelButton);
+
+                freshNoteElement.classList.add('editing'); // Mark as editing
+                editInput.focus(); // Focus the textarea
+            }
+        }
+
+        // Function to save the edited note
+        function saveEdit(noteId, newContent) {
+            const trimmedContent = newContent.trim();
+            if (!trimmedContent) {
+                console.log("Note content cannot be empty after edit.");
+                // Optionally show error or delete if empty
+                // For now, let's just cancel the edit if empty
+                displayNotes();
+                return;
+            }
+
+            let notes = getNotes();
+            const noteIndex = notes.findIndex(note => note.id === noteId);
+
+            if (noteIndex > -1) {
+                notes[noteIndex].content = trimmedContent;
+                saveNotes(notes);
+                displayNotes(); // Refresh the list to show updated note
+                console.log("Saved edit for note ID:", noteId);
+            } else {
+                console.error("Could not find note to save:", noteId);
+                displayNotes(); // Refresh to clear inconsistent state
+            }
         }
 
 
-        // --- Khởi tạo và Gắn Sự kiện ---
+        // --- Initialization and Event Listeners ---
 
-        // Gắn sự kiện click cho nút "Thêm Ghi Chú"
         addNoteBtn.addEventListener('click', addNote);
 
-        // Cho phép nhấn Enter trong textarea để thêm ghi chú (Shift+Enter để xuống dòng)
         noteInput.addEventListener('keydown', function(event) {
-            // Kiểm tra nếu nhấn Enter và không nhấn Shift
             if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault(); // Ngăn hành vi mặc định (xuống dòng)
-                addNote(); // Gọi hàm thêm ghi chú
+                event.preventDefault();
+                addNote();
             }
         });
 
-
-        // Hiển thị các ghi chú đã lưu khi trang được tải lần đầu
-        // Sử dụng DOMContentLoaded để đảm bảo tất cả HTML đã được phân tích xong
         document.addEventListener('DOMContentLoaded', displayNotes);
 
-        console.log("Ứng dụng Ghi chú đã sẵn sàng!");
+        console.log("Quick Notes App (with Edit) is ready!");
 
     </script>
 

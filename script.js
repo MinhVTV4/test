@@ -352,7 +352,7 @@ const handleAuthStateChanged = (user) => {
 //  Event Listener Setup Functions (Updated)
 // =====================================================================
 const setupEventListeners = () => {
-    setupThemeAndAppearanceListeners(); // Sửa lỗi typo ở đây
+    setupThemeAndAppearanceListeners(); // Đã sửa lỗi typo ở đây
     setupHeaderActionListeners();
     setupAddNotePanelListeners();
     setupSearchListener();

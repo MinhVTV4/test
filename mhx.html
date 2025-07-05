@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kêu Gọi Tài Trợ - Mùa Hè Xanh 2025 (Nâng Cấp)</title>
+    
+    <!-- Tải Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tải Font Inter từ Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- Cài đặt chung --- */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Nền tối để làm nổi bật các hiệu ứng */
+        }
+
+        /* --- Hiệu ứng Nền Gradient Động --- */
+        .animated-gradient-background {
+            background: linear-gradient(-45deg, #10b981, #22c55e, #4ade80, #059669);
+            background-size: 400% 400%;
+            animation: gradient-flow 15s ease infinite;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            filter: blur(100px); /* Làm mờ nền để tạo chiều sâu */
+        }
+
+        @keyframes gradient-flow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- Hiệu ứng Thẻ Tài Trợ --- */
+        .sponsor-card {
+            background-color: rgba(255, 255, 255, 0.05); /* Nền trong mờ */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px); /* Hiệu ứng Glassmorphism */
+            border-radius: 1.5rem; /* bo góc nhiều hơn */
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+            transform-style: preserve-3d;
+            animation: card-load-in 0.5s ease-out backwards;
+        }
+        
+        /* Animation khi tải trang */
+        @keyframes card-load-in {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        /* Delay animation cho từng thẻ */
+        .sponsor-card:nth-child(1) { animation-delay: 0.1s; }
+        .sponsor-card:nth-child(2) { animation-delay: 0.2s; }
+        .sponsor-card:nth-child(3) { animation-delay: 0.3s; }
+        .sponsor-card:nth-child(4) { animation-delay: 0.4s; }
+
+
+        .sponsor-card:hover {
+            transform: translateY(-15px) rotateX(5deg) scale(1.05);
+            box-shadow: 0 30px 40px rgba(0,0,0,0.3);
+        }
+
+        /* --- Hiệu ứng Hào Quang & Ánh Kim --- */
+        .sponsor-card::before, .sponsor-card::after {
+            content: '';
+            position: absolute;
+            z-index: -1;
+            transition: opacity 0.4s ease;
+        }
+
+        /* Vầng hào quang */
+        .sponsor-card::before {
+            top: 50%;
+            left: 50%;
+            width: 150%;
+            height: 150%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            opacity: 0;
+            filter: blur(60px);
+        }
+        
+        .sponsor-card:hover::before {
+            opacity: 0.3;
+        }
+
+        /* Ánh kim lướt qua */
+        .sponsor-card::after {
+            top: -100%;
+            left: -50%;
+            width: 200%;
+            height: 400%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(25deg);
+            opacity: 0;
+        }
+        
+        .sponsor-card:hover::after {
+            animation: shine 1.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        @keyframes shine {
+            0% { top: -100%; opacity: 1; }
+            80% { top: 100%; opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        /* --- Màu sắc đặc trưng cho từng gói --- */
+        .card-gold:hover::before { background: #ffd700; }
+        .card-silver:hover::before { background: #c0c0c0; }
+        .card-bronze:hover::before { background: #cd7f32; }
+        .card-green:hover::before { background: #4ade80; }
+
+        /* --- Nút bấm Gradient --- */
+        .gradient-button {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .gradient-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .gradient-button:active {
+            transform: translateY(0);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body class="text-white">
+
+    <div class="animated-gradient-background"></div>
+
+    <div class="relative container mx-auto px-4 py-12 md:py-20 z-10">
+
+        <!-- Tiêu đề chính -->
+        <header class="text-center mb-12 md:mb-20">
+            <h1 class="text-4xl md:text-6xl font-black mb-4 tracking-tighter">
+                Gây Quỹ <span class="bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-green-400">Mùa Hè Xanh 2025</span>
+            </h1>
+            <p class="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto font-light">
+                Chung tay kiến tạo giá trị, lan tỏa yêu thương. Mỗi đóng góp của bạn là một viên gạch xây nên mùa hè trọn vẹn cho cộng đồng.
+            </p>
+        </header>
+
+        <!-- Lưới hiển thị các gói tài trợ -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 max-w-5xl mx-auto">
+
+            <!-- Gói Tài Trợ Vàng -->
+            <div class="sponsor-card card-gold">
+                <div class="p-8">
+                    <h3 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-amber-500 mb-2">NHÀ TÀI TRỢ VÀNG</h3>
+                    <p class="text-gray-400 mb-6">Đối tác chiến lược, vị thế dẫn đầu.</p>
+                    <div class="text-5xl font-extrabold mb-6">
+                        > 25 Tr
+                        <span class="text-2xl font-medium text-gray-400">VNĐ</span>
+                    </div>
+                    <ul class="text-gray-300 space-y-3 mb-8">
+                        <li>✓ Quyền lợi truyền thông độc quyền</li>
+                        <li>✓ Logo nổi bật nhất tại sự kiện</li>
+                        <li>✓ Phát biểu & trao giải</li>
+                        <li>✓ Kỷ niệm chương Vàng danh giá</li>
+                    </ul>
+                    <button class="gradient-button w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-white font-bold py-4 px-6 rounded-xl text-lg">
+                        Trở thành đối tác Vàng
+                    </button>
+                </div>
+            </div>
+
+            <!-- Gói Tài Trợ Bạc -->
+            <div class="sponsor-card card-silver">
+                <div class="p-8">
+                    <h3 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-300 to-gray-400 mb-2">NHÀ TÀI TRỢ BẠC</h3>
+                    <p class="text-gray-400 mb-6">Đồng hành bền vững, lan tỏa thương hiệu.</p>
+                    <div class="text-5xl font-extrabold mb-6">
+                        15-25 Tr
+                        <span class="text-2xl font-medium text-gray-400">VNĐ</span>
+                    </div>
+                    <ul class="text-gray-300 space-y-3 mb-8">
+                        <li>✓ Quyền lợi truyền thông toàn diện</li>
+                        <li>✓ Logo trên backdrop chính</li>
+                        <li>✓ Giấy chứng nhận & tri ân</li>
+                        <li>✓ Quà tặng cao cấp từ BTC</li>
+                    </ul>
+                    <button class="gradient-button w-full bg-gradient-to-r from-slate-400 to-gray-500 hover:from-slate-500 hover:to-gray-600 text-white font-bold py-4 px-6 rounded-xl text-lg">
+                        Đồng hành cùng chúng tôi
+                    </button>
+                </div>
+            </div>
+
+            <!-- Gói Tài Trợ Đồng -->
+            <div class="sponsor-card card-bronze">
+                <div class="p-8">
+                    <h3 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-600 mb-2">NHÀ TÀI TRỢ ĐỒNG</h3>
+                    <p class="text-gray-400 mb-6">Góp sức thiết thực, xây dựng cộng đồng.</p>
+                    <div class="text-5xl font-extrabold mb-6">
+                        5-15 Tr
+                        <span class="text-2xl font-medium text-gray-400">VNĐ</span>
+                    </div>
+                    <ul class="text-gray-300 space-y-3 mb-8">
+                        <li>✓ Logo trên các kênh online</li>
+                        <li>✓ Vinh danh trong sự kiện</li>
+                        <li>✓ Thư cảm ơn trang trọng</li>
+                        <li>✓ Quà tặng lưu niệm ý nghĩa</li>
+                    </ul>
+                    <button class="gradient-button w-full bg-gradient-to-r from-orange-500 to-amber-700 hover:from-orange-600 hover:to-amber-800 text-white font-bold py-4 px-6 rounded-xl text-lg">
+                        Góp sức ngay
+                    </button>
+                </div>
+            </div>
+
+            <!-- Gói Tài Trợ Hảo Tâm -->
+            <div class="sponsor-card card-green">
+                <div class="p-8">
+                    <h3 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-300 to-emerald-500 mb-2">NHÀ TÀI TRỢ HẢO TÂM</h3>
+                    <p class="text-gray-400 mb-6">Mỗi đóng góp là một niềm hy vọng.</p>
+                    <div class="text-5xl font-extrabold mb-6">
+                        Tùy tâm
+                        <span class="text-2xl font-medium text-gray-400"></span>
+                    </div>
+                    <ul class="text-gray-300 space-y-3 mb-8">
+                        <li>✓ Vinh danh trên website</li>
+                        <li>✓ Thư cảm ơn điện tử</li>
+                        <li class="text-transparent select-none">✓ Placeholder</li>
+                        <li class="text-transparent select-none">✓ Placeholder</li>
+                    </ul>
+                    <button class="gradient-button w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-4 px-6 rounded-xl text-lg">
+                        Ủng hộ chiến dịch
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

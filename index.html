@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kêu Gọi Tài Trợ - Mùa Hè Xanh 2025 (Hiệu Ứng Đầy Đủ)</title>
+    <title>Kêu Gọi Tài Trợ - Mùa Hè Xanh 2025 (Hiệu Ứng Tự Động)</title>
     
     <!-- Tải Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -31,7 +31,7 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            filter: blur(100px); /* Làm mờ nền để tạo chiều sâu */
+            filter: blur(100px);
         }
 
         @keyframes gradient-flow {
@@ -39,75 +39,81 @@
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
+        
+        /* --- Keyframes cho hiệu ứng tự động --- */
+        @keyframes breathing-effect {
+            0%   { transform: translateY(0) rotateX(0) scale(1); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+            50%  { transform: translateY(-15px) rotateX(5deg) scale(1.05); box-shadow: 0 30px 40px rgba(0,0,0,0.3); }
+            100% { transform: translateY(0) rotateX(0) scale(1); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        }
+
+        @keyframes pulsing-glow {
+            0%   { opacity: 0.15; }
+            50%  { opacity: 0.35; }
+            100% { opacity: 0.15; }
+        }
 
         /* --- Hiệu ứng Thẻ Tài Trợ --- */
         .sponsor-card {
-            background-color: rgba(255, 255, 255, 0.05); /* Nền trong mờ */
+            background-color: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px); /* Hiệu ứng Glassmorphism */
-            border-radius: 1.5rem; /* bo góc nhiều hơn */
+            backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
             position: relative;
             overflow: hidden;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
             transform-style: preserve-3d;
-            animation: card-load-in 0.5s ease-out backwards;
+            /* Áp dụng animation tự động */
+            animation: breathing-effect 6s ease-in-out infinite;
         }
         
-        @keyframes card-load-in {
-            from { opacity: 0; transform: translateY(50px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        
-        .sponsor-card:nth-child(1) { animation-delay: 0.1s; }
-        .sponsor-card:nth-child(2) { animation-delay: 0.2s; }
-        .sponsor-card:nth-child(3) { animation-delay: 0.3s; }
-        .sponsor-card:nth-child(4) { animation-delay: 0.4s; }
-
-        .sponsor-card:hover {
-            transform: translateY(-15px) rotateX(5deg) scale(1.05);
-            box-shadow: 0 30px 40px rgba(0,0,0,0.3);
-        }
-
-        /* --- Hiệu ứng Hào Quang & Ánh Kim --- */
-        .sponsor-card::before, .sponsor-card::after {
+        /* --- Hiệu ứng Hào Quang Tỏa Sáng --- */
+        .sponsor-card::before {
             content: '';
             position: absolute;
             z-index: 0;
-            transition: opacity 0.4s ease;
-        }
-
-        .sponsor-card::before {
-            top: 50%; left: 50%; width: 150%; height: 150%;
+            top: 50%; left: 50%;
+            width: 150%; height: 150%;
             transform: translate(-50%, -50%);
-            border-radius: 50%; opacity: 0; filter: blur(60px);
+            border-radius: 50%;
+            filter: blur(60px);
+            /* Áp dụng animation tự động */
+            animation: pulsing-glow 6s ease-in-out infinite;
         }
         
-        .sponsor-card:hover::before { opacity: 0.3; }
-
+        /* Xóa hiệu ứng ánh kim vì không phù hợp với animation lặp lại */
         .sponsor-card::after {
-            top: -100%; left: -50%; width: 200%; height: 400%;
-            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transform: rotate(25deg); opacity: 0;
+            display: none;
         }
         
-        .sponsor-card:hover::after { animation: shine 1.5s cubic-bezier(0.165, 0.84, 0.44, 1); }
+        /* Đặt màu hào quang trực tiếp */
+        .card-gold::before   { background: #ffd700; }
+        .card-silver::before { background: #c0c0c0; }
+        .card-bronze::before { background: #cd7f32; }
+        .card-green::before  { background: #4ade80; }
 
-        @keyframes shine {
-            0% { top: -100%; opacity: 1; }
-            80% { top: 100%; opacity: 1; }
-            100% { top: 100%; opacity: 0; }
-        }
-
-        /* --- Màu sắc đặc trưng cho từng gói --- */
-        .card-gold:hover::before { background: #ffd700; }
-        .card-silver:hover::before { background: #c0c0c0; }
-        .card-bronze:hover::before { background: #cd7f32; }
-        .card-green:hover::before { background: #4ade80; }
+        /* --- Chuyển động so le --- */
+        .sponsor-card:nth-child(1) { animation-delay: 0s; }
+        .sponsor-card:nth-child(2) { animation-delay: -1.5s; }
+        .sponsor-card:nth-child(3) { animation-delay: -3s; }
+        .sponsor-card:nth-child(4) { animation-delay: -4.5s; }
+        
+        .sponsor-card:nth-child(1)::before { animation-delay: 0s; }
+        .sponsor-card:nth-child(2)::before { animation-delay: -1.5s; }
+        .sponsor-card:nth-child(3)::before { animation-delay: -3s; }
+        .sponsor-card:nth-child(4)::before { animation-delay: -4.5s; }
 
         /* --- Nút bấm Gradient --- */
-        .gradient-button { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .gradient-button:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-        .gradient-button:active { transform: translateY(0); box-shadow: 0 5px 10px rgba(0,0,0,0.2); }
+        .gradient-button { 
+            transition: transform 0.2s ease, box-shadow 0.2s ease; 
+        }
+        .gradient-button:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2); 
+        }
+        .gradient-button:active { 
+            transform: translateY(0); 
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2); 
+        }
         
         /* --- Cải thiện độ rõ nét cho chữ --- */
         .text-shadow-pop {
@@ -115,7 +121,7 @@
         }
         .card-content {
             position: relative;
-            z-index: 1; /* Đảm bảo nội dung luôn ở trên các hiệu ứng */
+            z-index: 1;
         }
     </style>
 </head>
@@ -135,7 +141,7 @@
             </p>
         </header>
 
-        <!-- Lưới hiển thị các gói tài trợ - ĐÃ CẬP NHẬT -->
+        <!-- Lưới hiển thị các gói tài trợ -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
 
             <!-- Gói Tài Trợ Vàng -->
